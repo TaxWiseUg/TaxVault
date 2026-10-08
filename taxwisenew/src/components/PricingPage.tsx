@@ -1,0 +1,372 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { C } from "../lib/constants";
+import { Button, Card } from "./UI";
+import { Clock, Check, CreditCard, Loader2 } from "lucide-react";
+
+interface PricingPageProps {
+  user: {
+    id: string;
+    email: string;
+    full_name: string;
+    plan: string;
+  };
+  onRefreshUser: () => void;
+}
+
+export const PricingPage: React.FC<PricingPageProps> = ({ user, onRefreshUser }) => {
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [paymentMessage, setPaymentMessage] = useState("");
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const status = searchParams.get("status");
+    if (status === "completed" || status === "success") {
+      setPaymentMessage("Thank you! Your payment was processed successfully and your account is being upgraded.");
+      onRefreshUser(); // Refresh user profile to load upgraded plan from DB
+    } else if (status === "cancelled") {
+      setPaymentMessage("The checkout process was cancelled. You have not been charged.");
+    }
+  }, [searchParams, onRefreshUser]);
+
+  const initiatePayment = async (planKey: string) => {
+    setLoadingPlan(planKey);
+    setPaymentMessage("");
+    
+    try {
+      const res = await fetch("/api/payments/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: planKey,
+          userId: user.id,
+          email: user.email,
+          name: user.full_name,
+        }),
+      });
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Server returned status ${res.status} (${res.statusText || "Service Error"})`);
+      }
+
+      if (!res.ok || data.error) throw new Error(data.error || "Payment initiation failed");
+
+      if (data.link) {
+        // Redirect to Flutterwave checkout page or simulated checkout URL
+        window.location.assign(data.link);
+      }
+    } catch (err) {
+      console.error("Payment setup error:", err);
+      const message = err instanceof Error
+        ? err.message
+        : typeof err === "string"
+          ? err
+          : "Failed to initiate payment gateway. Please try again.";
+      setPaymentMessage(message);
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
+  const plans = [
+    {
+      key: "starter",
+      name: "Starter",
+      price: "50K",
+      period: "/ month",
+      features: ["10 case analyses/month", "Basic AI summaries", "Learning Hub access", "PDF report export", "Email support"],
+      cta: "Start Starter Plan",
+    },
+    {
+      key: "professional",
+      name: "Professional",
+      price: "150K",
+      period: "/ month",
+      popular: true,
+      comingSoon: true,
+      features: [
+        "100 case analyses/month",
+        "Full AI analysis + precedents",
+        "Compliance checker",
+        "Client report builder",
+        "PDF upload & analysis",
+        "Deadline tracker",
+        "Priority support",
+      ],
+      cta: "Upgrade to Professional",
+    },
+    {
+      key: "firm",
+      name: "Firm",
+      price: "400K",
+      period: "/ month",
+      comingSoon: true,
+      features: ["Unlimited analyses", "Up to 10 team members", "Custom client branding", "API access", "Admin portal", "Dedicated account manager"],
+      cta: "Upgrade to Firm",
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.85rem", color: C.navy, marginBottom: 8, fontWeight: 800 }}>
+          Simple, Transparent Pricing
+        </h1>
+        <p style={{ color: C.muted, fontSize: "0.92rem", fontWeight: 500 }}>All subscriptions priced in Uganda Shillings. Upgrade or cancel your subscription at any time.</p>
+      </div>
+
+      {paymentMessage && (
+        <div
+          style={{
+            maxWidth: 640,
+            margin: "0 auto 28px",
+            background: paymentMessage.includes("successful") ? C.greenLight : C.goldLight,
+            color: paymentMessage.includes("successful") ? C.green : C.gold,
+            padding: "16px 24px",
+            borderRadius: 14,
+            fontSize: "0.875rem",
+            fontWeight: 700,
+            textAlign: "center",
+            border: `1.5px solid ${paymentMessage.includes("successful") ? `${C.green}30` : `${C.gold}30`}`,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.02)"
+          }}
+        >
+          {paymentMessage}
+        </div>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, marginBottom: 32 }}>
+        {plans.map((p) => {
+          const isCurrentPlan = user.plan?.toLowerCase() === p.key;
+          
+          if (p.comingSoon) {
+            return (
+              <Card
+                key={p.name}
+                style={{
+                  padding: "48px 28px",
+                  position: "relative",
+                  border: `1.5px dashed ${C.border}`,
+                  background: "rgba(15,32,68,0.01)",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                  minHeight: "420px",
+                  opacity: 0.8,
+                  overflow: "visible"
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 14,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    background: C.gold,
+                    color: C.white,
+                    fontSize: "0.68rem",
+                    fontWeight: 800,
+                    padding: "4px 16px",
+                    borderRadius: 50,
+                    whiteSpace: "nowrap",
+                    letterSpacing: "0.04em",
+                    boxShadow: "0 2px 6px rgba(200, 146, 42, 0.2)"
+                  }}
+                >
+                  COMING SOON
+                </div>
+
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 800,
+                    color: "#9ca3af",
+                    textTransform: "uppercase",
+                    letterSpacing: ".08em",
+                    marginBottom: 16,
+                  }}
+                >
+                  {p.name}
+                </div>
+
+                <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                  <div
+                    style={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: "50%",
+                      background: "rgba(200, 146, 42, 0.1)",
+                      color: C.gold,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginBottom: 16,
+                    }}
+                  >
+                    <Clock size={20} />
+                  </div>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.6rem", fontWeight: 800, color: C.navy, marginBottom: 8 }}>
+                    Coming Soon
+                  </div>
+                  <p style={{ fontSize: "0.82rem", color: C.muted, maxWidth: "220px", lineHeight: "1.5", fontWeight: 500 }}>
+                    We are currently finalizing this tier to bring you advanced tax analysis tools.
+                  </p>
+                </div>
+              </Card>
+            );
+          }
+
+          return (
+             <Card
+              key={p.name}
+              style={{
+                padding: "36px 28px 28px",
+                position: "relative",
+                border: p.popular ? `2px solid ${C.teal}` : `1.5px solid ${C.border}`,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                transform: p.popular ? "scale(1.01)" : "none",
+                boxShadow: p.popular ? "0 12px 36px rgba(26,123,107,0.08)" : "none",
+                overflow: "visible",
+              }}
+            >
+              <div>
+                {p.popular && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: -13,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      background: C.teal,
+                      color: C.white,
+                      fontSize: "0.68rem",
+                      fontWeight: 800,
+                      padding: "4px 16px",
+                      borderRadius: 50,
+                      whiteSpace: "nowrap",
+                      letterSpacing: "0.04em",
+                      boxShadow: "0 2px 6px rgba(26,123,107,0.2)"
+                    }}
+                  >
+                    RECOMMENDED
+                  </div>
+                )}
+                
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 800,
+                    color: C.muted,
+                    textTransform: "uppercase",
+                    letterSpacing: ".08em",
+                    marginBottom: 12,
+                  }}
+                >
+                  {p.name}
+                </div>
+                
+                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 24 }}>
+                  <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2.2rem", fontWeight: 800, color: C.navy }}>
+                    UGX {p.price}
+                  </span>
+                  <span style={{ fontSize: "0.85rem", color: C.muted, fontWeight: 500 }}>
+                    {p.period}
+                  </span>
+                </div>
+
+                <div style={{ borderTop: `1px solid rgba(15,32,68,0.05)`, paddingTop: 20, marginBottom: 24 }}>
+                  {p.features.map((f) => (
+                    <div key={f} style={{ fontSize: "0.85rem", color: C.text, marginBottom: 12, display: "flex", gap: 8, alignItems: "center", fontWeight: 500 }}>
+                      <Check size={14} style={{ color: C.teal }} strokeWidth={3} />
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Button
+                onClick={() => !isCurrentPlan && initiatePayment(p.key)}
+                variant={p.popular ? "primary" : "outline"}
+                disabled={isCurrentPlan || loadingPlan !== null}
+                style={{ width: "100%", justifyContent: "center", display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                {loadingPlan === p.key ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Connecting Gateway...</span>
+                  </>
+                ) : isCurrentPlan ? (
+                  <>
+                    <Check size={14} strokeWidth={3} />
+                    <span>Active Plan</span>
+                  </>
+                ) : (
+                  p.cta
+                )}
+              </Button>
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card
+        style={{
+          padding: "24px 28px",
+          border: `1.5px solid ${C.border}`,
+          background: "rgba(26, 123, 107, 0.04)",
+          boxShadow: "0 8px 20px rgba(0,0,0,0.02)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
+          <div>
+            <div style={{ fontWeight: 800, color: C.navy, marginBottom: 4, fontSize: "0.98rem", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ display: "inline-flex", background: "rgba(26, 123, 107, 0.1)", borderRadius: 8, padding: 6, color: C.teal }}>
+                <CreditCard size={18} />
+              </span>
+              <span>Secure Mobile Money & Card Gateway</span>
+            </div>
+            <div style={{ fontSize: "0.85rem", color: C.muted, fontWeight: 500, marginLeft: 38 }}>
+              Transactions processed locally via secure channels. Instant activation.
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginLeft: 38 }}>
+            {[
+              { name: "MTN MoMo", dotColor: "#F2C94C" },
+              { name: "Airtel Money", dotColor: "#EB5757" },
+              { name: "Visa Card", dotColor: "#2F80ED" },
+              { name: "Mastercard", dotColor: "#F2994A" }
+            ].map((m) => (
+              <div
+                key={m.name}
+                style={{
+                  background: C.white,
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 8,
+                  padding: "6px 14px",
+                  fontSize: "0.78rem",
+                  color: C.navy,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
+                }}
+              >
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: m.dotColor }} />
+                <span>{m.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+};
