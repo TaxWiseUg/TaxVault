@@ -1093,13 +1093,28 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({ user }) =>
       if (format === "pdf") {
         // Open the HTML in a new window and trigger the browser's print-to-PDF
         const html = await res.text();
-        const win = window.open("", "_blank");
+        let win: Window | null = null;
+        try {
+          win = window.open("", "_blank");
+        } catch {
+          win = null;
+        }
+
         if (win) {
           win.document.write(html);
           win.document.close();
-          setTimeout(() => win.print(), 800);
+          setTimeout(() => win?.print(), 800);
         } else {
-          showToast("Pop-up blocked. Please allow pop-ups and try again.", "error");
+          // Graceful fallback for iframe environments where popup windows are blocked
+          const blob = new Blob([html], { type: "text/html" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `taxwise-compliance-report.html`;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+          showToast("Report downloaded as printable HTML file.", "info");
         }
       } else {
         // Binary download for xlsx / docx

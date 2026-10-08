@@ -558,14 +558,8 @@ const mockSupabase = {
         localStorage.setItem("mock_otp_email", email);
         console.log(`[Mock Auth] Reset code generated for ${email}: ${code}`);
         
-        // Show a clear instructions alert with the code
-        try {
-          if (typeof window !== "undefined" && typeof window.alert === "function") {
-            window.alert(`[DEBUG - Sandbox Mode]\n\nPassword reset code generated for: ${email}\n\nReset Code: ${code}\n\nThis code has been copied to your clipboard. Please paste it into the 8-Character Reset Code field to proceed.`);
-          }
-        } catch (e) {
-          console.warn("Alert blocked in iframe environment:", e);
-        }
+        // Avoid window.alert in iframe environments
+        console.info(`[Sandbox Mode] Password reset code for ${email}: ${code}`);
         try {
           navigator.clipboard.writeText(code);
         } catch (e) {}
