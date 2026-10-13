@@ -1,9 +1,11 @@
+"use client";
+
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { Card, Button } from "./UI";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, User, Lock, Key, CreditCard, Trash2, Check, CheckCircle2 } from "lucide-react";
 
 interface DbProfile {
   id: string;
@@ -293,8 +295,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
           {/* Left Side: Personal Details */}
           <Card style={{ padding: 28, display: "flex", flexDirection: "column", gap: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#E6F5F2", color: C.teal, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>
-                👤
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#E6F5F2", color: C.teal, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <User size={18} />
               </div>
               <div>
                 <h2 style={{ fontSize: "1.1rem", fontWeight: 800, color: C.navy, margin: 0 }}>Personal details</h2>
@@ -323,8 +325,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                     disabled
                     style={disabledInputStyle}
                   />
-                  <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", color: "#9CA3AF" }}>
-                    🔒
+                  <span style={{ position: "absolute", right: 16, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center" }}>
+                    <Lock size={15} style={{ color: "#9CA3AF" }} />
                   </span>
                 </div>
                 <span style={{ fontSize: "0.72rem", color: C.muted, marginTop: 4 }}>
@@ -355,14 +357,14 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
               </div>
 
               {profileError && (
-                <div style={{ background: C.redLight, border: `1px solid ${C.red}`, color: C.red, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16 }}>
-                  ⚠️ {profileError}
+                <div style={{ background: C.redLight, border: `1px solid ${C.red}`, color: C.red, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                  <AlertTriangle size={15} /> {profileError}
                 </div>
               )}
 
               {profileSuccess && (
-                <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16 }}>
-                  ✓ {profileSuccess}
+                <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Check size={15} /> {profileSuccess}
                 </div>
               )}
 
@@ -381,8 +383,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
             {/* Card 1: Change Password */}
             <Card style={{ padding: 28 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#FEF3CD", color: C.gold, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem" }}>
-                  🔑
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#FEF3CD", color: C.gold, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Key size={18} />
                 </div>
                 <div>
                   <h2 style={{ fontSize: "1.1rem", fontWeight: 800, color: C.navy, margin: 0 }}>Change Password</h2>
@@ -414,14 +416,14 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                 </div>
 
                 {passError && (
-                  <div style={{ background: C.redLight, border: `1px solid ${C.red}`, color: C.red, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16 }}>
-                    ⚠️ {passError}
+                  <div style={{ background: C.redLight, border: `1px solid ${C.red}`, color: C.red, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                    <AlertTriangle size={15} /> {passError}
                   </div>
                 )}
 
                 {passSuccess && (
-                  <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16 }}>
-                    ✓ {passSuccess}
+                  <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                    <Check size={15} /> {passSuccess}
                   </div>
                 )}
 
@@ -438,7 +440,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
             <Card style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span style={{ fontSize: "1.3rem" }}>💳</span>
+                  <CreditCard size={18} style={{ color: C.navy }} />
                   <span style={{ fontWeight: 800, color: C.navy, fontSize: "0.95rem" }}>My Subscription</span>
                 </div>
                 <span style={{ fontSize: "0.7rem", fontWeight: 800, color: C.teal, background: C.tealLight, padding: "4px 10px", borderRadius: 20, border: `1px solid ${C.teal}33` }}>
@@ -451,13 +453,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                   Plan Benefits:
                 </div>
                 <ul style={{ margin: 0, paddingLeft: 18, fontSize: "0.8rem", color: C.navy, lineHeight: 1.5 }}>
-                  <li>Analyze legal cases with AI</li>
+                  <li>Analyze legal cases and tax dispute briefs</li>
                   <li>Verify URA compliance checklists</li>
                   <li>Browse TAT legal library</li>
                   {user.plan?.toLowerCase() === "free" ? (
                     <li style={{ color: C.muted }}>Daily search limit (10 searches/day)</li>
                   ) : (
-                    <li style={{ fontWeight: 700, color: C.teal }}>Unlimited AI lookups &amp; reports</li>
+                    <li style={{ fontWeight: 700, color: C.teal }}>Unlimited statutory lookups &amp; reports</li>
                   )}
                 </ul>
               </div>
@@ -522,10 +524,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1.2rem",
+                color: C.red,
                 flexShrink: 0,
               }}>
-                ⚠️
+                <AlertTriangle size={20} />
               </div>
               <div>
                 <h2 style={{ fontSize: "1.05rem", fontWeight: 800, color: "#991B1B", margin: 0, marginBottom: 4 }}>
@@ -553,6 +555,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                 transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
                 whiteSpace: "nowrap",
                 flexShrink: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = C.red;
@@ -565,7 +570,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                 e.currentTarget.style.boxShadow = "none";
               }}
             >
-              🗑️ Delete My Account
+              <Trash2 size={15} /> Delete My Account
             </button>
           </div>
         </div>
@@ -618,10 +623,10 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1.3rem",
+                color: C.red,
                 flexShrink: 0,
               }}>
-                {deleteStep === "done" ? "✓" : "🗑️"}
+                {deleteStep === "done" ? <Check size={20} style={{ color: C.green }} /> : <Trash2 size={20} style={{ color: C.red }} />}
               </div>
               <div>
                 <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 800, color: "#991B1B" }}>
@@ -660,7 +665,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
               {deleteStep === "done" ? (
                 /* Success / Done state */
                 <div style={{ textAlign: "center", padding: "12px 0 4px" }}>
-                  <div style={{ fontSize: "3rem", marginBottom: 12 }}>👋</div>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+                    <CheckCircle2 size={44} style={{ color: C.teal }} />
+                  </div>
                   <p style={{ margin: 0, fontSize: "0.9rem", color: C.muted, lineHeight: 1.6 }}>
                     Your account has been permanently deleted. Thank you for using TaxWise.
                   </p>
@@ -692,7 +699,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                     color: "#7F1D1D",
                     lineHeight: 1.5,
                   }}>
-                    <strong>⚠️ Warning:</strong> All your data including case analyses, compliance reports, and subscription history will be <strong>permanently erased</strong> and cannot be recovered.
+                    <strong style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <AlertTriangle size={14} style={{ color: C.red }} /> Warning:
+                    </strong> All your data including case analyses, compliance reports, and subscription history will be <strong>permanently erased</strong> and cannot be recovered.
                   </div>
 
                   {/* Password field */}

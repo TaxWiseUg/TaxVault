@@ -1,4 +1,6 @@
+"use client";
 /* eslint-disable react-hooks/set-state-in-effect */
+
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { C } from "../lib/constants";
@@ -78,7 +80,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ user, onRefreshUser })
       name: "Starter",
       price: "50K",
       period: "/ month",
-      features: ["10 case analyses/month", "Basic AI summaries", "Learning Hub access", "PDF report export", "Email support"],
+      features: ["10 case analyses/month", "Basic case summaries", "Learning Hub access", "PDF report export", "Email support"],
       cta: "Start Starter Plan",
     },
     {
@@ -90,7 +92,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({ user, onRefreshUser })
       comingSoon: true,
       features: [
         "100 case analyses/month",
-        "Full AI analysis + precedents",
+        "Full statutory analysis + precedents",
         "Compliance checker",
         "Client report builder",
         "PDF upload & analysis",

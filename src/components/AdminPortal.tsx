@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, DEFAULT_USERS, DEFAULT_CASES, DEFAULT_ADMIN_LOGS, DEFAULT_TAT_CASES, DEFAULT_COURSES } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import {
   isSupportedDocument,
@@ -8,6 +8,13 @@ import {
   SUPPORTED_DOCUMENT_ACCEPT,
 } from "../lib/documentTypes";
 import { Badge, Card, Button, Modal } from "./UI";
+import {
+  Users, DollarSign, Scale, Clock, ShieldCheck, GraduationCap, TrendingUp,
+  FileText, Settings, Database, Plus, Trash2, Edit3, Eye, Search, Upload,
+  Check, AlertTriangle, Copy, Sparkles, Building2, BarChart2, PieChart,
+  Calendar, CheckCircle2, Shield, FolderOpen, ArrowRight, Paperclip, BookOpen,
+  Award, RefreshCw, XCircle, FileSpreadsheet, Briefcase
+} from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -140,8 +147,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   hero_title_line1: "The tax intelligence",
   hero_title_line2: "platform your practice",
   hero_title_line3: "actually needs",
-  hero_subtitle: "AI case analysis, TAT precedent research, live tax & import calculators, and compliance checking tools — purpose-built for Uganda's tax ecosystem.",
-  topbar_text: "🇺🇬 Engineered for Uganda's Tax & Customs Ecosystem",
+  hero_subtitle: "Statutory case analysis, TAT precedent research, live tax & import calculators, and compliance checking tools — purpose-built for Uganda's tax ecosystem.",
+  topbar_text: "Engineered for Uganda's Tax & Customs Ecosystem",
   topbar_email: "hello@taxwise.cloud",
 };
 
@@ -179,7 +186,7 @@ const fmtMRR = (n: number) =>
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-const TabButton: React.FC<{ label: string; icon: string; active: boolean; onClick: () => void; badge?: number }> = ({
+const TabButton: React.FC<{ label: string; icon: React.ReactNode; active: boolean; onClick: () => void; badge?: number }> = ({
   label, icon, active, onClick, badge,
 }) => {
   const [hov, setHov] = useState(false);
@@ -200,7 +207,7 @@ const TabButton: React.FC<{ label: string; icon: string; active: boolean; onClic
         whiteSpace: "nowrap",
       }}
     >
-      <span style={{ fontSize: "1rem" }}>{icon}</span>
+      <span style={{ display: "inline-flex", alignItems: "center" }}>{icon}</span>
       {label}
       {badge !== undefined && badge > 0 && (
         <span style={{
@@ -213,7 +220,7 @@ const TabButton: React.FC<{ label: string; icon: string; active: boolean; onClic
   );
 };
 
-const StatCard: React.FC<{ icon: string; label: string; value: string | number; sub?: string; color?: string; loading?: boolean }> = ({
+const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: string | number; sub?: string; color?: string; loading?: boolean }> = ({
   icon, label, value, sub, color = C.teal, loading,
 }) => (
   <Card hover style={{ padding: "22px 24px" }}>
@@ -317,8 +324,32 @@ const logAdminAction = async (action: string, adminId: string | undefined, meta:
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdminId }) => {
-  const [tab, setTab] = useState<"overview" | "users" | "revenue" | "activity" | "logs" | "settings" | "tat_precedents" | "courses">("overview");
+  const [tab, setTab] = useState<"overview" | "users" | "revenue" | "activity" | "logs" | "settings" | "tat_precedents" | "courses" | "database_sql">("overview");
   const [loading, setLoading] = useState(true);
+
+  // SQL Setup state
+  const [sqlText, setSqlText] = useState("");
+  const [sqlTableStatus, setSqlTableStatus] = useState<Record<string, { exists: boolean; count?: number; error?: string }>>({});
+  const [sqlCopied, setSqlCopied] = useState(false);
+  const [sqlLoading, setSqlLoading] = useState(false);
+
+  const loadSqlSetup = async () => {
+    setSqlLoading(true);
+    try {
+      const res = await fetch("/api/setup-sql");
+      const data = await res.json();
+      if (data.sql) {
+        setSqlText(data.sql);
+      }
+      if (data.tableStatus) {
+        setSqlTableStatus(data.tableStatus);
+      }
+    } catch (e) {
+      console.error("Failed to load SQL setup:", e);
+    } finally {
+      setSqlLoading(false);
+    }
+  };
 
   // Data states
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -375,7 +406,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   const [isNewCourse, setIsNewCourse] = useState(false);
   const [courseTitle, setCourseTitle] = useState("");
   const [courseLevel, setCourseLevel] = useState("Beginner");
-  const [courseEmoji, setCourseEmoji] = useState("📘");
+  const [courseEmoji, setCourseEmoji] = useState("book");
   const [courseColor, setCourseColor] = useState("#E6F5F2");
   const [courseAccent, setCourseAccent] = useState("#1A7B6B");
   const [courseDescription, setCourseDescription] = useState("");
@@ -405,6 +436,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   const [viewUser, setViewUser] = useState<AdminUser | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState("");
+  const [roleSuccessMsg, setRoleSuccessMsg] = useState("");
 
   // ── Fetch all data
   const fetchData = useCallback(async () => {
@@ -436,12 +468,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         supabase.from("courses").select("*").order("created_at", { ascending: false }),
       ]);
 
-      setUsers((usersRes.data || []) as AdminUser[]);
-      setCases((casesRes.data || []) as AdminCase[]);
+      setUsers(((usersRes.data && usersRes.data.length > 0) ? usersRes.data : DEFAULT_USERS) as AdminUser[]);
+      setCases(((casesRes.data && casesRes.data.length > 0) ? casesRes.data : DEFAULT_CASES) as AdminCase[]);
       setSubs((subsRes.data || []) as Subscription[]);
-      setLogs((logsRes.data || []) as AdminLog[]);
-      setPrecedents((tatCasesRes.data || []) as Precedent[]);
-      setCourses((coursesRes.data || []) as Course[]);
+      setLogs(((logsRes.data && logsRes.data.length > 0) ? logsRes.data : DEFAULT_ADMIN_LOGS) as AdminLog[]);
+      setPrecedents(((tatCasesRes.data && tatCasesRes.data.length > 0) ? tatCasesRes.data : DEFAULT_TAT_CASES) as Precedent[]);
+      setCourses(((coursesRes.data && coursesRes.data.length > 0) ? coursesRes.data : DEFAULT_COURSES) as Course[]);
       setCasesToday(casesTodayRes.count || 0);
       setEnrollmentCount(enrollRes.count || 0);
 
@@ -488,7 +520,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   // ── Filtered users
   const filteredUsers = users.filter(u => {
     const matchSearch = !search || u.full_name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase());
-    const matchRole = roleFilter === "All" || u.role?.toLowerCase() === roleFilter.toLowerCase();
+    const userRoleLower = (u.role || "").toLowerCase();
+    const filterRoleLower = roleFilter.toLowerCase();
+    const matchRole = roleFilter === "All" || 
+      (filterRoleLower === "consultant" ? userRoleLower.includes("consultant") : userRoleLower === filterRoleLower);
     const matchPlan = planFilter === "All" || u.plan?.toLowerCase() === planFilter.toLowerCase();
     return matchSearch && matchRole && matchPlan;
   });
@@ -496,6 +531,34 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
 
   // ── User actions
+  const handleInlineRoleChange = async (userToUpdate: AdminUser, newRole: string) => {
+    setActionLoading(true);
+    setActionError("");
+    try {
+      const { error } = await supabase.from("users").update({ role: newRole }).eq("id", userToUpdate.id);
+      if (error) console.error("Database user update:", error);
+      await logAdminAction("user_role_changed", currentAdminId, {
+        user_id: userToUpdate.id,
+        email: userToUpdate.email,
+        old_role: userToUpdate.role,
+        new_role: newRole,
+      });
+      setUsers(prev => prev.map(u => u.id === userToUpdate.id ? { ...u, role: newRole } : u));
+      setRoleSuccessMsg(`Role updated: ${userToUpdate.full_name || userToUpdate.email} is now ${newRole === "Admin" ? "Admin" : newRole}`);
+      setTimeout(() => setRoleSuccessMsg(""), 4000);
+    } catch (e: unknown) {
+      setActionError(e instanceof Error ? e.message : "Failed to change role.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleQuickToggleAdmin = async (userToUpdate: AdminUser) => {
+    const isCurrentlyAdmin = (userToUpdate.role || "").toLowerCase() === "admin";
+    const targetRole = isCurrentlyAdmin ? "Tax Consultant" : "Admin";
+    await handleInlineRoleChange(userToUpdate, targetRole);
+  };
+
   const handleEditSave = async () => {
     if (!editUser) return;
     setActionLoading(true);
@@ -561,7 +624,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
     a.click(); URL.revokeObjectURL(url);
   };
 
-  // ── PDF Upload & AI Extraction for Precedents
+  // ── PDF Upload & Text Extraction for Precedents
   const handlePrecedentPdfUpload = async (file: File) => {
     if (!isSupportedDocument(file.name)) {
       setPdfUploadError("Unsupported file type. Please upload a PDF, Word doc, scanned document, or image.");
@@ -598,7 +661,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         throw new Error(`Server returned status ${res.status} (${res.statusText || "Internal Server Error"}). Please verify your Supabase and Google Gemini environment variables on Railway.`);
       }
       if (!res.ok || data.error) throw new Error(data.error || "Upload failed");
-      // Auto-populate form fields from AI extraction
+      // Auto-populate form fields from document extraction
       const ex = data.extracted;
       if (ex) {
         const extractedCaseNumber = ex.case_number?.trim() || "";
@@ -625,7 +688,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
     }
   };
 
-  // ── Bulk PDF Upload & AI Extraction for Precedents
+  // ── Bulk PDF Upload & Extraction for Precedents
   const handleBulkFilesSelect = (files: FileList) => {
     const newFiles: PendingFile[] = [];
     for (let i = 0; i < files.length; i++) {
@@ -1003,16 +1066,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
     return (
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-          {sectionTitle("⚖️", "TAT Case Precedents", "Manage Uganda's Tax Appeals Tribunal precedent library.")}
+          {sectionTitle(<Scale size={20} />, "TAT Case Precedents", "Manage Uganda's Tax Appeals Tribunal precedent library.")}
           <div style={{ display: "flex", gap: 10 }}>
             <Button variant="outline" onClick={scanForDuplicates}>
-              🔍 Scan for Duplicates
+              Scan for Duplicates
             </Button>
             <Button variant="outline" onClick={() => {
               setBulkFiles([]);
               setShowBulkModal(true);
             }}>
-              📁 Bulk Upload Cases
+              Bulk Upload Cases
             </Button>
             <Button variant="primary" onClick={() => {
               setIsNewPrecedent(true);
@@ -1030,7 +1093,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
               setActionError("");
               setEditPrecedent({} as Precedent);
             }}>
-              ➕ Add Precedent
+              Add Precedent
             </Button>
           </div>
         </div>
@@ -1081,15 +1144,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                         }}
                           style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
                           onMouseOver={e => { e.currentTarget.style.background = "#FEF3CD"; e.currentTarget.style.borderColor = C.gold; }}
-                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
-                          ✏️
-                        </button>
+                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}><Edit3 size={13} /></button>
                         <button title="Delete precedent" onClick={() => { setDeletePrecedent(p); setActionError(""); }}
                           style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
                           onMouseOver={e => { e.currentTarget.style.background = "#FEE2E2"; e.currentTarget.style.borderColor = C.red; }}
-                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
-                          🗑
-                        </button>
+                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}><Trash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -1106,12 +1165,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
     return (
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          {sectionTitle("🎓", "Learning Hub Courses", "Create and manage educational modules and lessons.")}
+          {sectionTitle(<GraduationCap size={20} />, "Learning Hub Courses", "Create and manage educational modules and lessons.")}
           <Button variant="primary" onClick={() => {
             setIsNewCourse(true);
             setCourseTitle("");
             setCourseLevel("Beginner");
-            setCourseEmoji("📘");
+            setCourseEmoji("book");
             setCourseColor("#E6F5F2");
             setCourseAccent("#1A7B6B");
             setCourseDescription("");
@@ -1119,7 +1178,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
             setActionError("");
             setEditCourse({} as Course);
           }}>
-            ➕ Add Course
+            Add Course
           </Button>
         </div>
 
@@ -1158,7 +1217,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                           setEditCourse(c);
                           setCourseTitle(c.title);
                           setCourseLevel(c.level);
-                          setCourseEmoji(c.emoji || "📘");
+                          setCourseEmoji(c.emoji || "book");
                           setCourseColor(c.color || "#E6F5F2");
                           setCourseAccent(c.accent_color || "#1A7B6B");
                           setCourseDescription(c.description || "");
@@ -1167,15 +1226,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                         }}
                           style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
                           onMouseOver={e => { e.currentTarget.style.background = "#FEF3CD"; e.currentTarget.style.borderColor = C.gold; }}
-                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
-                          ✏️
-                        </button>
+                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}><Edit3 size={13} /></button>
                         <button title="Delete course" onClick={() => { setDeleteCourse(c); setActionError(""); }}
                           style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
                           onMouseOver={e => { e.currentTarget.style.background = "#FEE2E2"; e.currentTarget.style.borderColor = C.red; }}
-                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
-                          🗑
-                        </button>
+                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}><Trash2 size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -1204,10 +1259,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
   // ─── RENDER ───────────────────────────────────────────────────────────────
 
-  const sectionTitle = (icon: string, title: string, sub?: string) => (
+  const sectionTitle = (icon: React.ReactNode, title: string, sub?: string) => (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: "1.2rem" }}>{icon}</span>
+        <span style={{ display: "inline-flex", alignItems: "center", color: C.teal }}>{icon}</span>
         <h2 style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "1.35rem", color: C.navy, fontWeight: 800, margin: 0 }}>{title}</h2>
       </div>
       {sub && <p style={{ color: C.muted, fontSize: "0.84rem", marginTop: 4, marginLeft: 30, fontWeight: 500 }}>{sub}</p>}
@@ -1217,19 +1272,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   // ── Tab: Overview
   const renderOverview = () => (
     <div>
-      {sectionTitle("📊", "Platform Overview", "Live metrics across the entire TaxWise platform.")}
+      {sectionTitle(<BarChart2 size={20} />, "Platform Overview", "Live metrics across the entire TaxWise platform.")}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))", gap: 18, marginBottom: 32 }}>
-        <StatCard icon="👥" label="Total Users" value={users.length} sub={`+${users.filter(u => new Date(u.created_at) > new Date(Date.now() - 7 * 86400000)).length} this week`} color={C.teal} loading={loading} />
-        <StatCard icon="💰" label="Revenue (MRR)" value={fmtMRR(totalMrr)} sub="Based on active plan users" color={C.gold} loading={loading} />
-        <StatCard icon="⚖️" label="Cases Today" value={casesToday} sub="New analyses submitted" color={C.red} loading={loading} />
-        <StatCard icon="🎯" label="Active Trials" value={trials} sub="Free plan users" color={C.muted} loading={loading} />
-        <StatCard icon="📋" label="Compliance Reports" value={complianceStats.efris + complianceStats.vat + complianceStats.paye} sub="eFRIS + VAT + PAYE" color="#7C3AED" loading={loading} />
-        <StatCard icon="🎓" label="Enrollments" value={enrollmentCount} sub="Course enrollments total" color="#059669" loading={loading} />
+        <StatCard icon={<Users size={22} style={{ color: C.teal }} />} label="Total Users" value={users.length} sub={`+${users.filter(u => new Date(u.created_at) > new Date(Date.now() - 7 * 86400000)).length} this week`} color={C.teal} loading={loading} />
+        <StatCard icon={<DollarSign size={22} style={{ color: C.gold }} />} label="Revenue (MRR)" value={fmtMRR(totalMrr)} sub="Based on active plan users" color={C.gold} loading={loading} />
+        <StatCard icon={<Scale size={22} style={{ color: C.teal }} />} label="Cases Today" value={casesToday} sub="New analyses submitted" color={C.red} loading={loading} />
+        <StatCard icon={<ShieldCheck size={22} style={{ color: C.muted }} />} label="Active Trials" value={trials} sub="Free plan users" color={C.muted} loading={loading} />
+        <StatCard icon={<FileText size={22} style={{ color: C.teal }} />} label="Compliance Reports" value={complianceStats.efris + complianceStats.vat + complianceStats.paye} sub="eFRIS + VAT + PAYE" color="#7C3AED" loading={loading} />
+        <StatCard icon={<GraduationCap size={22} style={{ color: "#059669" }} />} label="Enrollments" value={enrollmentCount} sub="Course enrollments total" color="#059669" loading={loading} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 32 }}>
         <Card style={{ padding: 24 }}>
-          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 20 }}>📈 Revenue by Plan (MRR)</div>
+          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 20 }}>Revenue by Plan (MRR)</div>
           <BarChart data={[
             { label: "Starter", value: users.filter(u => u.plan?.toLowerCase() === "starter").length * PLAN_MRR.starter, color: "#7C3AED" },
             { label: "Professional", value: users.filter(u => u.plan?.toLowerCase() === "professional").length * PLAN_MRR.professional, color: C.teal },
@@ -1238,14 +1293,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         </Card>
 
         <Card style={{ padding: 24 }}>
-          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>🥧 User Plan Distribution</div>
+          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>User Plan Distribution</div>
           <DonutChart segments={planDist} total={users.length} />
         </Card>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
         <Card style={{ padding: 24 }}>
-          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>📊 Case Risk Distribution</div>
+          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>Case Risk Distribution</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {riskDist.map(r => (
               <div key={r.label}>
@@ -1261,7 +1316,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         </Card>
 
         <Card style={{ padding: 24 }}>
-          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>📋 Compliance Reports</div>
+          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>Compliance Reports</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[["eFRIS", complianceStats.efris, C.teal], ["VAT", complianceStats.vat, C.gold], ["PAYE", complianceStats.paye, "#7C3AED"]].map(([l, v, col]) => (
               <div key={String(l)}>
@@ -1277,12 +1332,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         </Card>
 
         <Card style={{ padding: 24 }}>
-          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>🧮 Platform Health</div>
+          <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>Platform Health</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[
-              { label: "Total Cases", value: cases.length, icon: "⚖️" },
-              { label: "Active Subs", value: subs.filter(s => s.status === "active").length, icon: "✅" },
-              { label: "Enrollments", value: enrollmentCount, icon: "🎓" },
+              { label: "Total Cases", value: cases.length, icon: <Scale size={16} /> },
+              { label: "Active Subs", value: subs.filter(s => s.status === "active").length, icon: <CheckCircle2 size={16} /> },
+              { label: "Enrollments", value: enrollmentCount, icon: <GraduationCap size={16} /> },
             ].map(item => (
               <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: C.offwhite, borderRadius: 8 }}>
                 <span style={{ fontSize: "0.82rem", color: C.muted, fontWeight: 600 }}>{item.icon} {item.label}</span>
@@ -1298,12 +1353,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   // ── Tab: User Management
   const renderUsers = () => (
     <div>
-      {sectionTitle("👥", "User Management", "Search, filter, and manage all registered users.")}
+      {sectionTitle(<Users size={20} />, "User Management", "Search, filter, and manage all registered users.")}
 
       {/* Filters row */}
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ position: "relative", flex: "1 1 260px" }}>
-          <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: C.muted, fontSize: "0.85rem" }}>🔍</span>
+          <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: C.muted, display: "flex", alignItems: "center" }}><Search size={14} /></span>
           <input
             value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search by name or email…"
@@ -1313,7 +1368,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         </div>
         <select value={roleFilter} onChange={e => { setRoleFilter(e.target.value); setPage(1); }}
           style={{ border: `1.5px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", fontSize: "0.855rem", fontFamily: "inherit", color: C.text, background: C.white, cursor: "pointer", outline: "none" }}>
-          {["All", "Consultant", "Accountant", "Student", "Business", "Admin"].map(r => <option key={r}>{r}</option>)}
+          {["All", "Admin", "Tax Consultant", "Consultant", "Accountant", "Student", "Business"].map(r => (
+            <option key={r} value={r}>{r === "Admin" ? "Admins Only" : r}</option>
+          ))}
         </select>
         <select value={planFilter} onChange={e => { setPlanFilter(e.target.value); setPage(1); }}
           style={{ border: `1.5px solid ${C.border}`, borderRadius: 8, padding: "10px 14px", fontSize: "0.855rem", fontFamily: "inherit", color: C.text, background: C.white, cursor: "pointer", outline: "none" }}>
@@ -1324,6 +1381,25 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
           <Button variant="ghost" small onClick={fetchData}>↺ Refresh</Button>
         </div>
       </div>
+
+      {roleSuccessMsg && (
+        <div style={{ 
+          marginBottom: 16, 
+          padding: "10px 16px", 
+          borderRadius: 8, 
+          background: "rgba(26, 123, 107, 0.1)", 
+          border: `1px solid ${C.teal}`, 
+          color: C.tealDark, 
+          fontSize: "0.85rem", 
+          fontWeight: 700,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.03)"
+        }}>
+          <span>{roleSuccessMsg}</span>
+        </div>
+      )}
 
       <div style={{ fontSize: "0.8rem", color: C.muted, fontWeight: 600, marginBottom: 12 }}>
         Showing {filteredUsers.length} of {users.length} users
@@ -1337,10 +1413,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 750 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 780 }}>
               <thead>
                 <tr style={{ background: C.offwhite }}>
-                  {["User", "Email", "Role", "Plan", "Joined", "Actions"].map(h => (
+                  {["User", "Email", "Role / Admin Access", "Plan", "Joined", "Actions"].map(h => (
                     <th key={h} style={{ padding: "12px 20px", fontSize: "0.72rem", fontWeight: 800, color: C.muted, textAlign: "left", textTransform: "uppercase", letterSpacing: ".06em", borderBottom: `1.5px solid rgba(15,32,68,0.04)` }}>{h}</th>
                   ))}
                 </tr>
@@ -1348,50 +1424,148 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
               <tbody>
                 {pagedUsers.length === 0 ? (
                   <tr><td colSpan={6} style={{ textAlign: "center", padding: 40, color: C.muted, fontWeight: 600 }}>No users match your filters.</td></tr>
-                ) : pagedUsers.map((u, i) => (
-                  <tr key={u.id} style={{ borderBottom: `1px solid rgba(15,32,68,0.03)`, background: i % 2 ? C.white : "rgba(15,32,68,0.01)", transition: "background 0.15s" }}
-                    onMouseOver={e => e.currentTarget.style.background = "rgba(26,123,107,0.03)"}
-                    onMouseOut={e => e.currentTarget.style.background = i % 2 ? C.white : "rgba(15,32,68,0.01)"}>
-                    <td style={{ padding: "12px 20px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: "50%", background: `linear-gradient(135deg,${C.teal},${C.tealDark})`, display: "flex", alignItems: "center", justifyContent: "center", color: C.white, fontSize: "0.75rem", fontWeight: 700, flexShrink: 0 }}>
-                          {(u.full_name || "?").split(" ").map(p => p[0]).join("").toUpperCase().slice(0, 2)}
+                ) : pagedUsers.map((u, i) => {
+                  const isAdmin = (u.role || "").toLowerCase() === "admin";
+                  return (
+                    <tr key={u.id} style={{ borderBottom: `1px solid rgba(15,32,68,0.03)`, background: i % 2 ? C.white : "rgba(15,32,68,0.01)", transition: "background 0.15s" }}
+                      onMouseOver={e => e.currentTarget.style.background = "rgba(26,123,107,0.03)"}
+                      onMouseOut={e => e.currentTarget.style.background = i % 2 ? C.white : "rgba(15,32,68,0.01)"}>
+                      <td style={{ padding: "12px 20px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ 
+                            width: 34, 
+                            height: 34, 
+                            borderRadius: "50%", 
+                            background: isAdmin ? "linear-gradient(135deg, #d97706, #b45309)" : `linear-gradient(135deg,${C.teal},${C.tealDark})`, 
+                            display: "flex", 
+                            alignItems: "center", 
+                            justifyContent: "center", 
+                            color: C.white, 
+                            fontSize: "0.75rem", 
+                            fontWeight: 700, 
+                            flexShrink: 0,
+                            boxShadow: isAdmin ? "0 2px 6px rgba(217, 119, 6, 0.3)" : "none"
+                          }}>
+                            {isAdmin ? <Shield size={14} style={{ color: C.gold }} /> : (u.full_name || "?").split(" ").map(p => p[0]).join("").toUpperCase().slice(0, 2)}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "0.875rem", fontWeight: 700, color: C.navy, display: "flex", alignItems: "center", gap: 6 }}>
+                              {u.full_name || "Anonymous"}
+                              {isAdmin && (
+                                <span style={{ fontSize: "0.7rem", background: "rgba(217, 119, 6, 0.12)", color: "#b45309", padding: "1px 6px", borderRadius: 4, fontWeight: 800 }}>
+                                  ADMIN
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <span style={{ fontSize: "0.875rem", fontWeight: 700, color: C.navy }}>{u.full_name || "Anonymous"}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "12px 20px", fontSize: "0.82rem", color: C.muted }}>{u.email}</td>
-                    <td style={{ padding: "12px 20px", fontSize: "0.82rem", color: C.text, fontWeight: 600 }}>{u.role}</td>
-                    <td style={{ padding: "12px 20px" }}>
-                      <Badge color={PLAN_COLORS[u.plan?.toLowerCase()]?.[0] || C.muted} bg={PLAN_COLORS[u.plan?.toLowerCase()]?.[1] || C.offwhite}>
-                        {u.plan?.toUpperCase() || "FREE"}
-                      </Badge>
-                    </td>
-                    <td style={{ padding: "12px 20px", fontSize: "0.8rem", color: C.muted }}>{fmtDate(u.created_at)}</td>
-                    <td style={{ padding: "12px 20px" }}>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button title="View" onClick={() => setViewUser(u)}
-                          style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
-                          onMouseOver={e => { e.currentTarget.style.background = C.tealLight; e.currentTarget.style.borderColor = C.teal; }}
-                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
-                          👁
-                        </button>
-                        <button title="Edit role & plan" onClick={() => { setEditUser(u); setEditRole(u.role); setEditPlan(u.plan); setActionError(""); }}
-                          style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
-                          onMouseOver={e => { e.currentTarget.style.background = "#FEF3CD"; e.currentTarget.style.borderColor = C.gold; }}
-                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
-                          ✏️
-                        </button>
-                        <button title="Delete user" onClick={() => { setDeleteUser(u); setActionError(""); }}
-                          style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
-                          onMouseOver={e => { e.currentTarget.style.background = "#FEE2E2"; e.currentTarget.style.borderColor = C.red; }}
-                          onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
-                          🗑
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td style={{ padding: "12px 20px", fontSize: "0.82rem", color: C.muted }}>{u.email}</td>
+                      <td style={{ padding: "10px 20px" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <select
+                            value={u.role || "Consultant"}
+                            onChange={(e) => handleInlineRoleChange(u, e.target.value)}
+                            title={`Set user role. Select Admin to grant full administrator privileges.`}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 8,
+                              fontSize: "0.82rem",
+                              fontWeight: isAdmin ? 800 : 600,
+                              background: isAdmin ? "#FEF3CD" : C.offwhite,
+                              color: isAdmin ? "#92400E" : C.navy,
+                              border: isAdmin ? "1.5px solid #d97706" : `1.5px solid ${C.border}`,
+                              cursor: "pointer",
+                              outline: "none",
+                              fontFamily: "inherit",
+                              boxShadow: isAdmin ? "0 1px 4px rgba(217, 119, 6, 0.15)" : "none",
+                            }}
+                          >
+                            <option value="Admin">Admin</option>
+                            <option value="Tax Consultant">Tax Consultant</option>
+                            <option value="Consultant">Consultant</option>
+                            <option value="Accountant">Accountant</option>
+                            <option value="Student">Student</option>
+                            <option value="Business">Business</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td style={{ padding: "12px 20px" }}>
+                        <Badge color={PLAN_COLORS[u.plan?.toLowerCase()]?.[0] || C.muted} bg={PLAN_COLORS[u.plan?.toLowerCase()]?.[1] || C.offwhite}>
+                          {u.plan?.toUpperCase() || "FREE"}
+                        </Badge>
+                      </td>
+                      <td style={{ padding: "12px 20px", fontSize: "0.8rem", color: C.muted }}>{fmtDate(u.created_at)}</td>
+                      <td style={{ padding: "12px 20px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {isAdmin ? (
+                            <span 
+                              title="User already has Admin privileges"
+                              style={{ 
+                                display: "inline-flex", 
+                                alignItems: "center", 
+                                gap: 4, 
+                                padding: "5px 10px", 
+                                background: "rgba(217, 119, 6, 0.12)", 
+                                color: "#b45309", 
+                                borderRadius: 7, 
+                                fontSize: "0.74rem", 
+                                fontWeight: 800,
+                                border: "1px solid rgba(217, 119, 6, 0.3)",
+                                whiteSpace: "nowrap"
+                              }}
+                            >
+                              Admin
+                            </span>
+                          ) : (
+                            <button
+                              title="Promote this user to Admin"
+                              onClick={() => handleQuickToggleAdmin(u)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                padding: "5px 10px",
+                                borderRadius: 7,
+                                border: "1px solid rgba(217, 119, 6, 0.4)",
+                                background: "rgba(217, 119, 6, 0.06)",
+                                color: "#b45309",
+                                cursor: "pointer",
+                                fontSize: "0.74rem",
+                                fontWeight: 700,
+                                fontFamily: "inherit",
+                                transition: "all 0.15s",
+                                whiteSpace: "nowrap",
+                              }}
+                              onMouseOver={e => { e.currentTarget.style.background = "#FEF3CD"; e.currentTarget.style.borderColor = C.gold; }}
+                              onMouseOut={e => { e.currentTarget.style.background = "rgba(217, 119, 6, 0.06)"; e.currentTarget.style.borderColor = "rgba(217, 119, 6, 0.4)"; }}
+                            >
+                              Make Admin
+                            </button>
+                          )}
+                          <button title="View user details" onClick={() => setViewUser(u)}
+                            style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
+                            onMouseOver={e => { e.currentTarget.style.background = C.tealLight; e.currentTarget.style.borderColor = C.teal; }}
+                            onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
+                            <Eye size={13} />
+                          </button>
+                          <button title="Edit role & plan" onClick={() => { setEditUser(u); setEditRole(u.role); setEditPlan(u.plan); setActionError(""); }}
+                            style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
+                            onMouseOver={e => { e.currentTarget.style.background = "#FEF3CD"; e.currentTarget.style.borderColor = C.gold; }}
+                            onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
+                            <Edit3 size={13} />
+                          </button>
+                          <button title="Delete user" onClick={() => { setDeleteUser(u); setActionError(""); }}
+                            style={{ width: 30, height: 30, borderRadius: 7, border: `1.5px solid ${C.border}`, background: C.white, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", transition: "all 0.15s" }}
+                            onMouseOver={e => { e.currentTarget.style.background = "#FEE2E2"; e.currentTarget.style.borderColor = C.red; }}
+                            onMouseOut={e => { e.currentTarget.style.background = C.white; e.currentTarget.style.borderColor = C.border; }}>
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1422,13 +1596,23 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
       </Card>
 
       {/* Edit Modal */}
-      <Modal open={!!editUser} onClose={() => setEditUser(null)} title={`Edit User — ${editUser?.full_name}`} width={440}>
+      <Modal open={!!editUser} onClose={() => setEditUser(null)} title={`Edit User — ${editUser?.full_name}`} width={460}>
         <div style={{ marginBottom: 18 }}>
-          <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: C.navy, marginBottom: 6 }}>Professional Role</label>
+          <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: C.navy, marginBottom: 6 }}>
+            Role (Set Admin or Professional Role)
+          </label>
           <select value={editRole} onChange={e => setEditRole(e.target.value)}
             style={{ width: "100%", border: `1.5px solid ${C.border}`, borderRadius: 8, padding: "11px 14px", fontSize: "0.875rem", fontFamily: "inherit", background: C.offwhite, color: C.text, outline: "none" }}>
-            {["Consultant", "Accountant", "Student", "Business", "Admin"].map(r => <option key={r}>{r}</option>)}
+            <option value="Admin">Admin (Full Administrative Privileges)</option>
+            <option value="Tax Consultant">Tax Consultant</option>
+            <option value="Consultant">Consultant</option>
+            <option value="Accountant">Accountant</option>
+            <option value="Student">Student</option>
+            <option value="Business">Business</option>
           </select>
+          <p style={{ fontSize: "0.75rem", color: C.muted, marginTop: 6, marginBottom: 0, lineHeight: 1.4 }}>
+            <Shield size={14} style={{ display: "inline-block", verticalAlign: "middle", marginRight: 4, color: C.gold }} /> Users assigned the <strong>Admin</strong> role can manage all users, change roles, modify site settings, manage courses, and audit platform activity.
+          </p>
         </div>
         <div style={{ marginBottom: 24 }}>
           <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: C.navy, marginBottom: 6 }}>Subscription Plan</label>
@@ -1450,7 +1634,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
           You are about to permanently delete <strong>{deleteUser?.full_name}</strong> ({deleteUser?.email}).
         </p>
         <p style={{ fontSize: "0.82rem", color: C.red, fontWeight: 600, marginBottom: 24 }}>
-          ⚠️ This action is irreversible. All user data, cases, and reports will be lost.
+          This action is irreversible. All user data, cases, and reports will be lost.
         </p>
         {actionError && <div style={{ background: "#FEE2E2", border: `1px solid ${C.red}`, borderRadius: 8, padding: "10px 14px", fontSize: "0.83rem", color: C.red, marginBottom: 16, fontWeight: 600 }}>{actionError}</div>}
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
@@ -1493,17 +1677,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   // ── Tab: Revenue
   const renderRevenue = () => (
     <div>
-      {sectionTitle("💰", "Revenue & Subscriptions", "Monthly recurring revenue breakdown and subscription history.")}
+      {sectionTitle(<DollarSign size={20} />, "Revenue & Subscriptions", "Monthly recurring revenue breakdown and subscription history.")}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 18, marginBottom: 28 }}>
-        <StatCard icon="💰" label="Total MRR" value={fmtMRR(totalMrr)} sub="All paying subscribers" color={C.gold} loading={loading} />
-        <StatCard icon="🏢" label="Firm Plan" value={`UGX ${(users.filter(u => u.plan?.toLowerCase() === "firm").length * 400).toLocaleString()}K`} sub={`${users.filter(u => u.plan?.toLowerCase() === "firm").length} users`} color={C.navy} loading={loading} />
-        <StatCard icon="⭐" label="Professional Plan" value={`UGX ${(users.filter(u => u.plan?.toLowerCase() === "professional").length * 150).toLocaleString()}K`} sub={`${users.filter(u => u.plan?.toLowerCase() === "professional").length} users`} color={C.teal} loading={loading} />
-        <StatCard icon="🔷" label="Starter Plan" value={`UGX ${(users.filter(u => u.plan?.toLowerCase() === "starter").length * 50).toLocaleString()}K`} sub={`${users.filter(u => u.plan?.toLowerCase() === "starter").length} users`} color="#7C3AED" loading={loading} />
+        <StatCard icon={<DollarSign size={22} style={{ color: C.gold }} />} label="Total MRR" value={fmtMRR(totalMrr)} sub="All paying subscribers" color={C.gold} loading={loading} />
+        <StatCard icon={<Building2 size={22} style={{ color: C.navy }} />} label="Firm Plan" value={`UGX ${(users.filter(u => u.plan?.toLowerCase() === "firm").length * 400).toLocaleString()}K`} sub={`${users.filter(u => u.plan?.toLowerCase() === "firm").length} users`} color={C.navy} loading={loading} />
+        <StatCard icon={<Sparkles size={22} style={{ color: C.teal }} />} label="Professional Plan" value={`UGX ${(users.filter(u => u.plan?.toLowerCase() === "professional").length * 150).toLocaleString()}K`} sub={`${users.filter(u => u.plan?.toLowerCase() === "professional").length} users`} color={C.teal} loading={loading} />
+        <StatCard icon={<Shield size={22} style={{ color: "#7C3AED" }} />} label="Starter Plan" value={`UGX ${(users.filter(u => u.plan?.toLowerCase() === "starter").length * 50).toLocaleString()}K`} sub={`${users.filter(u => u.plan?.toLowerCase() === "starter").length} users`} color="#7C3AED" loading={loading} />
       </div>
 
       <Card style={{ padding: 0, overflow: "hidden", marginBottom: 24 }}>
         <div style={{ padding: "16px 24px", borderBottom: `1px solid rgba(15,32,68,0.05)`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem" }}>📃 Subscription History</span>
+          <span style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem" }}>Subscription History</span>
           <span style={{ fontSize: "0.78rem", color: C.muted, fontWeight: 600 }}>{subs.length} records</span>
         </div>
         <div style={{ overflowX: "auto" }}>
@@ -1546,17 +1730,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   // ── Tab: Activity
   const renderActivity = () => (
     <div>
-      {sectionTitle("📈", "Platform Activity", "Case analyses, compliance reports, and learning activity across the platform.")}
+      {sectionTitle(<TrendingUp size={20} />, "Platform Activity", "Case analyses, compliance reports, and learning activity across the platform.")}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 18, marginBottom: 28 }}>
-        <StatCard icon="⚖️" label="Total Cases" value={cases.length} sub={`${casesToday} analyzed today`} color={C.teal} loading={loading} />
-        <StatCard icon="📋" label="eFRIS Reports" value={complianceStats.efris} sub="eFRIS compliance checks" color={C.gold} loading={loading} />
-        <StatCard icon="🧾" label="VAT Reports" value={complianceStats.vat} sub="VAT compliance checks" color={C.navy} loading={loading} />
-        <StatCard icon="👔" label="PAYE Reports" value={complianceStats.paye} sub="PAYE compliance checks" color="#7C3AED" loading={loading} />
+        <StatCard icon={<Scale size={22} style={{ color: C.teal }} />} label="Total Cases" value={cases.length} sub={`${casesToday} analyzed today`} color={C.teal} loading={loading} />
+        <StatCard icon={<FileText size={22} style={{ color: C.teal }} />} label="eFRIS Reports" value={complianceStats.efris} sub="eFRIS compliance checks" color={C.gold} loading={loading} />
+        <StatCard icon={<FileSpreadsheet size={22} style={{ color: C.navy }} />} label="VAT Reports" value={complianceStats.vat} sub="VAT compliance checks" color={C.navy} loading={loading} />
+        <StatCard icon={<Briefcase size={22} style={{ color: "#7C3AED" }} />} label="PAYE Reports" value={complianceStats.paye} sub="PAYE compliance checks" color="#7C3AED" loading={loading} />
       </div>
 
       <Card style={{ padding: 0, overflow: "hidden" }}>
         <div style={{ padding: "16px 24px", borderBottom: `1px solid rgba(15,32,68,0.05)`, fontWeight: 800, color: C.navy, fontSize: "0.9rem" }}>
-          ⚖️ Recent Case Analyses (last 50)
+          Recent Case Analyses (last 50)
         </div>
         {loading ? (
           <div style={{ textAlign: "center", padding: 60, color: C.muted }}>
@@ -1606,7 +1790,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   // ── Tab: Logs
   const renderLogs = () => (
     <div>
-      {sectionTitle("📜", "Admin Action Logs", "Audit trail of all admin actions performed on the platform.")}
+      {sectionTitle(<Clock size={20} />, "Admin Action Logs", "Audit trail of all admin actions performed on the platform.")}
       <Card style={{ padding: 0, overflow: "hidden" }}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 600 }}>
@@ -1624,7 +1808,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                 <tr>
                   <td colSpan={4}>
                     <div style={{ textAlign: "center", padding: "48px 20px" }}>
-                      <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>📜</div>
+                      <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><Clock size={36} style={{ color: C.muted }} /></div>
                       <div style={{ fontWeight: 700, color: C.navy, marginBottom: 6 }}>No logs yet</div>
                       <div style={{ fontSize: "0.82rem", color: C.muted }}>Admin actions will appear here automatically.</div>
                     </div>
@@ -1683,12 +1867,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
     return (
       <div>
-        {sectionTitle("⚙️", "Landing Page Settings", "Control all numbers, text, and stats displayed on the public landing page.")}
+        {sectionTitle(<Settings size={20} />, "Landing Page Settings", "Control all numbers, text, and stats displayed on the public landing page.")}
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
           {/* Hero Stats */}
           <Card style={{ padding: 24 }}>
-            <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 6 }}>📊 Hero Statistics Bar</div>
+            <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 6 }}>Hero Statistics Bar</div>
             <p style={{ fontSize: "0.78rem", color: C.muted, marginBottom: 20, fontWeight: 500 }}>The 4 numbers displayed in the dark stats section below the hero.</p>
             <Field label='Stat 1 — "Cases Analyzed"' id="stat_cases" value={siteSettings.stat_cases} onChange={updateSetting("stat_cases")} />
             <Field label='Stat 2 — "Time Saved vs Manual"' id="stat_time_saved" value={siteSettings.stat_time_saved} onChange={updateSetting("stat_time_saved")} />
@@ -1708,7 +1892,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
           </Card>
 
           <Card style={{ padding: 24 }}>
-            <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 6 }}>🦸 Hero Section Text</div>
+            <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 6 }}>Hero Section Text</div>
             <p style={{ fontSize: "0.78rem", color: C.muted, marginBottom: 20, fontWeight: 500 }}>The green banner at the very top of the landing page.</p>
             <Field label="Announcement text" id="topbar_text" value={siteSettings.topbar_text} onChange={updateSetting("topbar_text")} />
             <Field label="Contact email" id="topbar_email" value={siteSettings.topbar_email} onChange={updateSetting("topbar_email")} />
@@ -1716,7 +1900,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
           {/* Preview */}
           <Card style={{ padding: 24 }}>
-            <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>👁 Stats Preview</div>
+            <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 16 }}>Stats Preview</div>
             <div style={{ background: "#0C1B36", borderRadius: 12, padding: "24px 20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               {[
                 [siteSettings.stat_cases, "Cases Analyzed"],
@@ -1736,19 +1920,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 24 }}>
           <Button variant="ghost" onClick={() => setSiteSettings(DEFAULT_SETTINGS)}>Reset to Defaults</Button>
           <Button variant="primary" onClick={handleSettingsSave} disabled={settingsLoading}>
-            {settingsLoading ? "Saving…" : settingsSaved ? "✓ Saved!" : "Save Landing Page Settings"}
+            {settingsLoading ? "Saving…" : settingsSaved ? "Saved!" : "Save Landing Page Settings"}
           </Button>
         </div>
 
         {settingsSaved && (
           <div style={{ marginTop: 14, background: C.greenLight, border: `1px solid ${C.green}`, borderRadius: 8, padding: "10px 16px", display: "flex", alignItems: "center", gap: 8, fontSize: "0.84rem", color: C.green, fontWeight: 700 }}>
-            ✓ Settings saved successfully! The landing page will now reflect these values.
+            Settings saved successfully! The landing page will now reflect these values.
           </div>
         )}
 
         {settingsTableMissing && (
           <div style={{ marginTop: 20, background: "#FEF3CD", border: `1px solid ${C.gold}`, borderRadius: 10, padding: "14px 18px" }}>
-            <div style={{ fontSize: "0.82rem", color: "#92620A", fontWeight: 700, marginBottom: 4 }}>⚠️ Database Setup Required</div>
+            <div style={{ fontSize: "0.82rem", color: "#92620A", fontWeight: 700, marginBottom: 4 }}>Database Setup Required</div>
             <p style={{ fontSize: "0.8rem", color: "#A3730F", lineHeight: 1.6 }}>
               Settings are stored in a <code style={{ background: "rgba(0,0,0,0.07)", padding: "1px 5px", borderRadius: 4 }}>site_settings</code> table with columns <code style={{ background: "rgba(0,0,0,0.07)", padding: "1px 5px", borderRadius: 4 }}>key (text, primary key)</code> and <code style={{ background: "rgba(0,0,0,0.07)", padding: "1px 5px", borderRadius: 4 }}>value (text)</code>.
               Run this in your Supabase SQL editor: <br />
@@ -1758,6 +1942,150 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
             </p>
           </div>
         )}
+      </div>
+    );
+  };
+
+  // ── Tab: Supabase SQL Setup ──
+  const renderDatabaseSql = () => {
+    const tablesList = [
+      { name: "tat_cases", desc: "68 Tax Appeals Tribunal Court Rulings with full text & expert commentary" },
+      { name: "users", desc: "8 Platform accounts with roles (Admin, Tax Consultant)" },
+      { name: "site_settings", desc: "17 Operational configurations and statutory tax rates" },
+      { name: "courses", desc: "3 Uganda Tax Courses (Fundamentals, TAT Appeals, eFRIS)" },
+      { name: "enrollments", desc: "Course enrollments and student progress records" },
+      { name: "compliance_reports", desc: "eFRIS and statutory compliance audit records" },
+      { name: "cases", desc: "Client consultative legal case analyses" },
+      { name: "admin_logs", desc: "112 Administrative activity and audit trail logs" },
+      { name: "subscriptions", desc: "Professional and firm user plan subscriptions" }
+    ];
+
+    const copySql = () => {
+      if (!sqlText) return;
+      navigator.clipboard.writeText(sqlText);
+      setSqlCopied(true);
+      setTimeout(() => setSqlCopied(false), 3000);
+    };
+
+    const downloadSql = () => {
+      if (!sqlText) return;
+      const blob = new Blob([sqlText], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "supabase_setup_and_seed.sql";
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    return (
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <h2 style={{ fontSize: "1.2rem", fontWeight: 700, color: C.navy, marginBottom: 4 }}>
+              Supabase Database Setup &amp; Population SQL
+            </h2>
+            <p style={{ fontSize: "0.85rem", color: C.muted }}>
+              Production SQL script to create all 9 database tables, triggers, RLS policies, and populate actual data from the provided CSV files.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button variant="ghost" onClick={loadSqlSetup} disabled={sqlLoading}>
+              {sqlLoading ? "Refreshing..." : "↻ Refresh DB Status"}
+            </Button>
+            <Button variant="outline" onClick={downloadSql} disabled={!sqlText}>
+              ⬇ Download .sql
+            </Button>
+            <Button variant="primary" onClick={copySql} disabled={!sqlText}>
+              {sqlCopied ? "SQL Copied!" : "Copy Full SQL Script"}
+            </Button>
+          </div>
+        </div>
+
+        {/* Database Connection Info */}
+        <div style={{ background: C.white, borderRadius: 12, border: `1px solid ${C.border}`, padding: "18px 22px", marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14 }}>
+          <div>
+            <div style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", color: C.muted, fontWeight: 700 }}>
+              Connected Supabase Instance
+            </div>
+            <div style={{ fontSize: "0.95rem", fontWeight: 700, color: C.navy, marginTop: 2, fontFamily: "monospace" }}>
+              {process.env.NEXT_PUBLIC_SUPABASE_URL || "https://fdphnmoaxgioopbqpfhy.supabase.co"}
+            </div>
+          </div>
+          <a
+            href="https://supabase.com/dashboard/project/fdphnmoaxgioopbqpfhy/sql/new"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "#3ECF8E",
+              color: "#FFFFFF",
+              padding: "8px 16px",
+              borderRadius: 8,
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              textDecoration: "none"
+            }}
+          >
+            <span>Open Supabase SQL Editor ↗</span>
+          </a>
+        </div>
+
+        {/* Tables Live Status */}
+        <div style={{ background: C.white, borderRadius: 12, border: `1px solid ${C.border}`, padding: "20px 24px", marginBottom: 24 }}>
+          <h3 style={{ fontSize: "0.95rem", fontWeight: 700, color: C.navy, marginBottom: 14 }}>
+            Tables Status &amp; Seed Counts
+          </h3>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+            {tablesList.map(t => {
+              const status = sqlTableStatus[t.name];
+              const isReady = status?.exists;
+              return (
+                <div key={t.name} style={{ background: C.offwhite, border: `1px solid ${isReady ? "#BBF7D0" : C.border}`, borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                    <span style={{ fontWeight: 700, fontSize: "0.88rem", color: C.navy, fontFamily: "monospace" }}>public.{t.name}</span>
+                    <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "2px 8px", borderRadius: 4, background: isReady ? "#DCFCE7" : "#FEF3C7", color: isReady ? "#15803D" : "#B45309" }}>
+                      {isReady ? `Active (${status.count ?? 0} rows)` : "Ready to Create"}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: C.muted, lineHeight: 1.4 }}>{t.desc}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Instructions */}
+        <div style={{ background: "#F0F9FF", border: "1px solid #BAE6FD", borderRadius: 12, padding: "18px 22px", marginBottom: 24 }}>
+          <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: "#0369A1", marginBottom: 8 }}>
+            How to run the SQL in your Supabase project:
+          </h4>
+          <ol style={{ fontSize: "0.82rem", color: "#0C4A6E", margin: 0, paddingLeft: 20, lineHeight: 1.7 }}>
+            <li>Click <strong>&quot;Copy Full SQL Script&quot;</strong> above (or download <code>supabase_setup_and_seed.sql</code>).</li>
+            <li>Go to your <a href="https://supabase.com/dashboard/project/fdphnmoaxgioopbqpfhy/sql/new" target="_blank" rel="noopener noreferrer" style={{ color: "#0284C7", fontWeight: 700 }}>Supabase SQL Editor</a>.</li>
+            <li>Paste into the editor and click <strong>&quot;Run&quot;</strong>. All 9 tables and hundreds of records will be created instantly.</li>
+          </ol>
+        </div>
+
+        {/* SQL Script Viewer */}
+        <div style={{ background: "#0F2044", borderRadius: 12, padding: "18px 20px", color: "#E2E8F0" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#94A3B8" }}>
+              supabase_setup_and_seed.sql ({Math.round((sqlText.length || 0) / 1024)} KB)
+            </span>
+            <button
+              onClick={copySql}
+              style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 6, color: "#FFFFFF", padding: "4px 10px", fontSize: "0.75rem", cursor: "pointer", fontWeight: 600 }}
+            >
+              {sqlCopied ? "Copied" : "Copy"}
+            </button>
+          </div>
+          <pre style={{ margin: 0, fontSize: "0.75rem", fontFamily: "monospace", maxHeight: 380, overflowY: "auto", background: "#08132B", padding: 14, borderRadius: 8, lineHeight: 1.5, color: "#93C5FD", whiteSpace: "pre-wrap" }}>
+            {sqlText || "-- Click 'Copy Full SQL Script' or 'Refresh DB Status' to load preview --"}
+          </pre>
+        </div>
       </div>
     );
   };
@@ -1812,14 +2140,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
       {/* Tab Bar */}
       <div className="hide-scrollbar" style={{ display: "flex", gap: 4, marginBottom: 28, background: C.white, padding: "6px", borderRadius: 14, border: `1px solid rgba(15,32,68,0.06)`, boxShadow: "0 2px 8px rgba(15,32,68,0.03)", flexWrap: "nowrap", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-        <TabButton label="Overview" icon="📊" active={tab === "overview"} onClick={() => setTab("overview")} />
-        <TabButton label="Users" icon="👥" active={tab === "users"} onClick={() => setTab("users")} badge={users.length} />
-        <TabButton label="Revenue" icon="💰" active={tab === "revenue"} onClick={() => setTab("revenue")} />
-        <TabButton label="Activity" icon="📈" active={tab === "activity"} onClick={() => setTab("activity")} />
-        <TabButton label="Logs" icon="📜" active={tab === "logs"} onClick={() => setTab("logs")} badge={logs.length} />
-        <TabButton label="TAT Precedents" icon="⚖️" active={tab === "tat_precedents"} onClick={() => setTab("tat_precedents")} badge={precedents.length} />
-        <TabButton label="Learning Courses" icon="🎓" active={tab === "courses"} onClick={() => setTab("courses")} badge={courses.length} />
-        <TabButton label="Site Settings" icon="⚙️" active={tab === "settings"} onClick={() => setTab("settings")} />
+        <TabButton label="Overview" icon={<BarChart2 size={16} />} active={tab === "overview"} onClick={() => setTab("overview")} />
+        <TabButton label="Users" icon={<Users size={16} />} active={tab === "users"} onClick={() => setTab("users")} badge={users.length} />
+        <TabButton label="Revenue" icon={<DollarSign size={16} />} active={tab === "revenue"} onClick={() => setTab("revenue")} />
+        <TabButton label="Activity" icon={<TrendingUp size={16} />} active={tab === "activity"} onClick={() => setTab("activity")} />
+        <TabButton label="Logs" icon={<Clock size={16} />} active={tab === "logs"} onClick={() => setTab("logs")} badge={logs.length} />
+        <TabButton label="TAT Precedents" icon={<Scale size={16} />} active={tab === "tat_precedents"} onClick={() => setTab("tat_precedents")} badge={precedents.length} />
+        <TabButton label="Learning Courses" icon={<GraduationCap size={16} />} active={tab === "courses"} onClick={() => setTab("courses")} badge={courses.length} />
+        <TabButton label="Site Settings" icon={<Settings size={16} />} active={tab === "settings"} onClick={() => setTab("settings")} />
+        <TabButton label="Supabase SQL Setup" icon={<Database size={16} />} active={tab === "database_sql"} onClick={() => { setTab("database_sql"); loadSqlSetup(); }} />
       </div>
 
       {/* Tab Content */}
@@ -1832,6 +2161,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         {tab === "tat_precedents" && renderTatPrecedents()}
         {tab === "courses" && renderCourses()}
         {tab === "settings" && renderSettings()}
+        {tab === "database_sql" && renderDatabaseSql()}
       </div>
 
       {/* Add / Edit Precedent Modal */}
@@ -1875,21 +2205,21 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
               <svg width="28" height="28" viewBox="0 0 44 44" style={{ animation: "spin 0.9s linear infinite", transformOrigin: "center" }}>
                 <circle cx="22" cy="22" r="18" fill="none" stroke={C.teal} strokeWidth="3" strokeDasharray="80" strokeDashoffset="20" strokeLinecap="round" />
               </svg>
-              <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.teal }}>Parsing document with AI…</div>
+              <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.teal }}>Parsing document content…</div>
               <div style={{ fontSize: "0.74rem", color: C.muted }}>Extracting case details — OCR may take a few extra seconds for scanned files</div>
             </>
           ) : pdfFileName ? (
             <>
-              <div style={{ fontSize: "1.6rem" }}>✅</div>
+              <div style={{ display: "flex", justifyContent: "center" }}><CheckCircle2 size={28} style={{ color: C.teal }} /></div>
               <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.teal }}>Document processed: {pdfFileName}</div>
               <div style={{ fontSize: "0.74rem", color: C.muted }}>Fields auto-filled below — review and edit if needed. Click to replace.</div>
             </>
           ) : (
             <>
-              <div style={{ fontSize: "1.8rem" }}>📄</div>
+              <div style={{ display: "flex", justifyContent: "center" }}><FileText size={32} style={{ color: C.teal }} /></div>
               <div style={{ fontSize: "0.875rem", fontWeight: 700, color: C.navy }}>Upload TAT Ruling Document</div>
               <div style={{ fontSize: "0.76rem", color: C.muted, lineHeight: 1.5 }}>
-                Drag &amp; drop or click to select a document — AI will auto-fill all fields below
+                Drag &amp; drop or click to select a document — automatically populates fields below
               </div>
               <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 2 }}>Max 20 MB · PDF, Word, scanned docs &amp; images</div>
             </>
@@ -1898,7 +2228,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
         {pdfUploadError && (
           <div style={{ background: "#FEF3CD", border: `1px solid ${C.gold}`, borderRadius: 8, padding: "9px 14px", fontSize: "0.82rem", color: "#92620A", fontWeight: 600, marginBottom: 14, display: "flex", gap: 8, alignItems: "center" }}>
-            ⚠️ {pdfUploadError}
+            {pdfUploadError}
           </div>
         )}
 
@@ -1950,8 +2280,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
             style={{ width: "100%", border: `1.5px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", fontSize: "0.875rem", fontFamily: "inherit", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
         </div>
         <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: C.navy, marginBottom: 6 }}>AI Commentary</label>
-          <textarea rows={3} value={precAiCommentary} onChange={e => setPrecAiCommentary(e.target.value)} placeholder="AI analysis commentary, key takeaways for practitioners..."
+          <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: C.navy, marginBottom: 6 }}>Practitioner Commentary</label>
+          <textarea rows={3} value={precAiCommentary} onChange={e => setPrecAiCommentary(e.target.value)} placeholder="Legal analysis commentary, key takeaways for practitioners..."
             style={{ width: "100%", border: `1.5px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", fontSize: "0.875rem", fontFamily: "inherit", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
         </div>
         <div style={{ marginBottom: 20 }}>
@@ -1963,7 +2293,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         {/* PDF indicator */}
         {precPdfPath && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, background: C.tealLight, border: `1px solid ${C.teal}`, borderRadius: 8, padding: "8px 14px", marginBottom: 14, fontSize: "0.8rem", color: C.teal, fontWeight: 600 }}>
-            📎 Document attached: <span style={{ fontWeight: 400, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{precPdfPath.split("/").pop()}</span>
+            Document attached: <span style={{ fontWeight: 400, color: C.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{precPdfPath.split("/").pop()}</span>
           </div>
         )}
 
@@ -2005,7 +2335,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 14 }}>
           <div>
             <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 700, color: C.navy, marginBottom: 6 }}>Emoji</label>
-            <input type="text" value={courseEmoji} onChange={e => setCourseEmoji(e.target.value)} placeholder="e.g. 📘"
+            <input type="text" value={courseEmoji} onChange={e => setCourseEmoji(e.target.value)} placeholder="e.g. book"
               style={{ width: "100%", border: `1.5px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", fontSize: "0.875rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box" }} />
           </div>
           <div>
@@ -2028,7 +2358,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         {/* Lessons Sub-section */}
         <div style={{ border: `1.5px solid ${C.border}`, borderRadius: 10, padding: 16, background: C.offwhite, marginBottom: 20 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <span style={{ fontSize: "0.84rem", fontWeight: 800, color: C.navy }}>📚 Course Lessons ({courseLessons.length})</span>
+            <span style={{ fontSize: "0.84rem", fontWeight: 800, color: C.navy }}>Course Lessons ({courseLessons.length})</span>
             <Button variant="outline" small onClick={() => {
               setIsNewLesson(true);
               setLessonId("");
@@ -2037,7 +2367,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
               setLessonContent("");
               setEditLesson({} as Lesson);
             }}>
-              ➕ Add Lesson
+              Add Lesson
             </Button>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 150, overflowY: "auto" }}>
@@ -2059,9 +2389,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                     setLessonDuration(l.duration);
                     setLessonContent(l.content);
                   }}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78rem" }}>✏️</button>
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78rem" }}><Edit3 size={13} /></button>
                   <button title="Delete lesson" onClick={() => setCourseLessons(prev => prev.filter(x => x.id !== l.id))}
-                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78rem" }}>🗑</button>
+                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.78rem" }}><Trash2 size={13} /></button>
                 </div>
               </div>
             ))}
@@ -2118,11 +2448,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
       </Modal>
 
       {/* Precedent Deduplication Cleanup Modal */}
-      <Modal open={showCleanupModal} onClose={() => { if (!actionLoading) setShowCleanupModal(false); }} title="⚖️ Precedent Library Deduplication" width={640}>
+      <Modal open={showCleanupModal} onClose={() => { if (!actionLoading) setShowCleanupModal(false); }} title="Precedent Library Deduplication" width={640}>
         <div style={{ marginBottom: 16 }}>
           {isScanPerformed && duplicateGroups.length === 0 && (
             <div style={{ textAlign: "center", padding: "20px 10px" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>✨</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><Scale size={36} style={{ color: C.teal }} /></div>
               <h4 style={{ fontSize: "1rem", fontWeight: 700, color: C.teal, marginBottom: 8 }}>Pristine Case Library!</h4>
               <p style={{ fontSize: "0.84rem", color: C.muted, lineHeight: 1.5, maxWidth: 380, margin: "0 auto 20px" }}>
                 No duplicate cases or repeating case numbers were found. All records in your tax precedent database are unique.
@@ -2149,8 +2479,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                       </span>
                     </div>
                     <div style={{ fontSize: "0.76rem", color: C.muted, display: "flex", flexWrap: "wrap", gap: "8px 16px" }}>
-                      <span>📂 Tax: <strong>{g.cases[0].tax_type}</strong></span>
-                      <span>📅 Year: <strong>{g.cases[0].year}</strong></span>
+                      <span>Tax: <strong>{g.cases[0].tax_type}</strong></span>
+                      <span>Year: <strong>{g.cases[0].year}</strong></span>
                       <span style={{ flexBasis: "100%", marginTop: 2, fontStyle: "italic", color: C.text }}>
                         &ldquo;{g.cases[0].title}&rdquo;
                       </span>
@@ -2160,12 +2490,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
               </div>
 
               <div style={{ background: "#FFF9DB", border: `1.5px solid ${C.gold}`, borderRadius: 8, padding: "12px 14px", fontSize: "0.78rem", color: "#825D00", lineHeight: 1.45, marginBottom: 16 }}>
-                💡 <strong>Deduplication Intelligence:</strong> Merging will preserve the most complete entry (prioritizing records with full court rulings or AI analysis commentary) and permanently purge redundant duplicates from the database.
+                <strong>Deduplication Logic:</strong> Merging will preserve the most complete entry (prioritizing records with full court rulings or expert commentary) and permanently purge redundant duplicates from the database.
               </div>
 
               {cleanupStatus && (
                 <div style={{ background: C.navy, color: "#92B8FF", padding: "10px 14px", borderRadius: 8, fontFamily: "var(--font-mono, monospace)", fontSize: "0.74rem", whiteSpace: "pre-wrap", border: "1px solid rgba(255,255,255,0.1)", marginBottom: 16, maxHeight: 100, overflowY: "auto" }}>
-                  ⚙️ {cleanupStatus}
+                  {cleanupStatus}
                 </div>
               )}
 
@@ -2174,7 +2504,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                   Close
                 </Button>
                 <Button variant="danger" small onClick={handleCleanDuplicates} disabled={actionLoading}>
-                  {actionLoading ? "Merging…" : "🧼 Clean & Merge Duplicates"}
+                  {actionLoading ? "Merging…" : "Clean & Merge Duplicates"}
                 </Button>
               </div>
             </div>
@@ -2187,7 +2517,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <p style={{ fontSize: "0.85rem", color: C.muted, lineHeight: 1.5, margin: 0 }}>
             Upload multiple Uganda Tax Appeals Tribunal (TAT) rulings, judgments, or precedent documents.
-            Our intelligent AI system will parse each document in parallel, extract the core details, generate summaries, and prepare them for your directory.
+            The extraction engine will parse each document in parallel, extract the core details, generate summaries, and prepare them for your directory.
           </p>
 
           {/* Drag & Drop Zone */}
@@ -2223,7 +2553,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
               onChange={e => { if (e.target.files) handleBulkFilesSelect(e.target.files); }}
               disabled={bulkProcessing}
             />
-            <div style={{ fontSize: "2.2rem" }}>📂</div>
+            <div style={{ display: "flex", justifyContent: "center" }}><FolderOpen size={36} style={{ color: C.teal }} /></div>
             <div style={{ fontSize: "0.95rem", fontWeight: 700, color: C.navy }}>Select &amp; Upload Multiple Case Documents</div>
             <div style={{ fontSize: "0.78rem", color: C.muted, maxWidth: 450, lineHeight: 1.5 }}>
               Drag &amp; drop multiple PDFs or documents here, or click to browse.
@@ -2238,17 +2568,17 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
           {bulkFiles.length > 0 && (
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(15,32,68,0.02)", padding: "12px 16px", borderRadius: 10, border: `1px solid ${C.border}` }}>
               <div style={{ fontSize: "0.8rem", fontWeight: 700, color: C.navy }}>
-                📊 Queue: {bulkFiles.length} file(s) ({bulkFiles.filter(f => f.status === "success").length} parsed, {bulkFiles.filter(f => f.isSaved).length} saved)
+                Queue: {bulkFiles.length} file(s) ({bulkFiles.filter(f => f.status === "success").length} parsed, {bulkFiles.filter(f => f.isSaved).length} saved)
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 {bulkFiles.some(f => f.status === "pending") && (
                   <Button variant="primary" small onClick={() => processBulkFiles()} disabled={bulkProcessing}>
-                    {bulkProcessing ? "Parsing Documents…" : "⚡ Start AI Ingestion"}
+                    {bulkProcessing ? "Parsing Documents…" : "Start Processing"}
                   </Button>
                 )}
                 {bulkFiles.some(f => f.status === "success" && !f.isSaved) && (
                   <Button variant="gold" small onClick={handleSaveAllBulk} disabled={bulkProcessing}>
-                    💾 Save All Parsed Cases
+                    Save All Parsed Cases
                   </Button>
                 )}
                 <Button variant="ghost" small onClick={() => { if (!bulkProcessing) setBulkFiles([]); }} disabled={bulkProcessing}>
@@ -2270,7 +2600,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: file.isSaved ? "rgba(16,185,129,0.04)" : file.status === "processing" ? "rgba(26,123,107,0.03)" : C.white }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                         <span style={{ fontSize: "1.2rem" }}>
-                          {file.isSaved ? "✅" : file.status === "success" ? "✨" : file.status === "error" ? "❌" : file.status === "processing" ? "⚙️" : "⏳"}
+                          {file.isSaved ? <CheckCircle2 size={16} style={{ color: C.teal }} /> : file.status === "success" ? <Check size={16} style={{ color: C.green }} /> : file.status === "error" ? <XCircle size={16} style={{ color: C.red }} /> : file.status === "processing" ? <RefreshCw size={16} style={{ color: C.gold, animation: "spin 1s infinite linear" }} /> : <Clock size={16} style={{ color: C.muted }} />}
                         </span>
                         <div style={{ minWidth: 0, flex: 1 }}>
                           <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.navy, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -2293,12 +2623,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: 12 }}>
                         {file.status === "pending" && (
                           <button onClick={() => processBulkFiles([file])} disabled={bulkProcessing} style={{ padding: "6px 12px", background: C.teal, color: C.white, border: "none", borderRadius: 6, fontSize: "0.76rem", fontWeight: 700, cursor: "pointer" }}>
-                            ⚡ Ingest File
+                            Process File
                           </button>
                         )}
                         {file.status === "success" && !file.isSaved && (
                           <button onClick={() => handleSaveBulkItem(file)} disabled={bulkProcessing} style={{ padding: "6px 12px", background: C.navy, color: C.white, border: "none", borderRadius: 6, fontSize: "0.76rem", fontWeight: 700, cursor: "pointer" }}>
-                            📥 Save to Library
+                            Save to Library
                           </button>
                         )}
                         {file.extracted && (
@@ -2306,9 +2636,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                             {isExpanded ? "▲ Hide Form" : "▼ Review Extracted Data"}
                           </button>
                         )}
-                        <button onClick={() => { if (!bulkProcessing) setBulkFiles(prev => prev.filter(f => f.id !== file.id)); }} disabled={bulkProcessing} style={{ width: 28, height: 28, border: "none", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: C.red, background: "rgba(239,68,68,0.08)", cursor: "pointer" }} title="Remove file">
-                          🗑
-                        </button>
+                        <button onClick={() => { if (!bulkProcessing) setBulkFiles(prev => prev.filter(f => f.id !== file.id)); }} disabled={bulkProcessing} style={{ width: 28, height: 28, border: "none", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", color: C.red, background: "rgba(239,68,68,0.08)", cursor: "pointer" }} title="Remove file"><Trash2 size={13} /></button>
                       </div>
                     </div>
 
@@ -2317,7 +2645,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                       <div style={{ padding: "16px", borderTop: `1px solid ${C.border}`, background: C.offwhite }}>
                         {file.error && (
                           <div style={{ background: file.isSaved ? "rgba(16,185,129,0.06)" : "#FEF3CD", border: `1px solid ${file.isSaved ? C.green : C.gold}`, borderRadius: 8, padding: "8px 12px", fontSize: "0.78rem", color: file.isSaved ? C.green : "#92620A", fontWeight: 600, marginBottom: 14 }}>
-                            {file.isSaved ? "✓ Successfully inserted into tat_cases database table." : `⚠️ ${file.error}`}
+                            {file.isSaved ? "Successfully inserted into tat_cases database table." : `${file.error}`}
                           </div>
                         )}
 
@@ -2391,7 +2719,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                         </div>
 
                         <div style={{ marginBottom: 12 }}>
-                          <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: C.navy, marginBottom: 4 }}>Practitioner Commentary (AI Generated)</label>
+                          <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: C.navy, marginBottom: 4 }}>Practitioner Commentary &amp; Summary</label>
                           <textarea
                             rows={3}
                             value={file.extracted.ai_commentary}
@@ -2415,7 +2743,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
                         {!file.isSaved && (
                           <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}>
                             <Button variant="primary" small onClick={() => handleSaveBulkItem(file)} disabled={bulkProcessing}>
-                              📥 Save Case to Library
+                              Save Case to Library
                             </Button>
                           </div>
                         )}
@@ -2429,7 +2757,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
           {bulkFiles.length === 0 && (
             <div style={{ textAlign: "center", padding: "36px 0", color: C.muted }}>
-              <span style={{ fontSize: "2rem" }}>⚖️</span>
+              <Scale size={32} style={{ color: C.teal }} />
               <p style={{ fontSize: "0.84rem", marginTop: 8, fontWeight: 500 }}>No documents loaded yet. Drop some files to begin bulk ingestion!</p>
             </div>
           )}

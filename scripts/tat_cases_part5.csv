@@ -1,0 +1,187 @@
+id,case_number,title,year,tax_type,outcome,summary,full_text,ai_commentary,created_at
+41324fa0-22c7-4dab-9de3-e48bb0bc7170,APPLICATION NO. 218 OF 2022,VERMA COMPANY LIMITED v UGANDA REVENUE AUTHORITY,2026,VAT,Allowed,"The Applicant challenged additional VAT assessments by URA, arguing that inter-branch stock transfers were wrongly treated as taxable sales. The Tribunal found that the Applicant provided sufficient evidence, including detailed stock movement records and FDN-linked e-invoices, to reconcile stock movements with declared sales. The Tribunal ruled that inter-branch transfers within a single legal entity are not taxable supplies and that EFRIS requirements for reporting stock transfers were not in force for the audit period. Consequently, the additional VAT assessments were set aside.","55. On the other hand, the Applicant asserted that the assessments rested on a mischaracterisation of 'stock issued' as sales. It maintained that those movements were inter-branch transfers within a single legal entity and that sales were recorded upon sale to customers. The Applicant went ahead to produce registers/GRNs, bike delivery registers with chassis/engine/registration numbers and FDNs, and sample invoices/delivery notes tracing items into VAT returns; and highlighted that, after Tribunal directed verification in 2025, the Respondent acknowledged the bikes presented as transfers were eventually sold and declared.
+56. The Tribunal noted that, because the pleaded basis was 'undeclared sales', the Respondent had to particularise transaction-level omissions for the review months. The post-audit pivot to 'expected sales' and the late inclusion of spares, without segregation or reassessment, cannot retrospectively broaden the dispute beyond the objection decisions. On the record, the pleaded undeclared-sales basis was not maintained coherently through reconciliation.
+57. During the hearing, the Tribunal asked the Applicant to demonstrate the applicability of closing stock and opening stock. Upon demonstration by the Applicant's witness, the Tribunal noted that this issue, as alleged by the Applicant regarding the stock of motor bikes, was verifiable.
+Inter-branch movements vs taxable supplies
+58. The Respondent equated 'stock issued to branches' to sales and argued that, in the absence of transfer traces in EFRIS for the period, these movements were not mere internal transfers. The Applicant's centralised model and evidence (registers/GRNs, delivery notes, FDN-linked e-invoices) demonstrate that movement to a branch did not of itself effect a taxable supply; rather, VAT was declared upon sale to customers. A sample highlighted in testimony shows an invoice dated 29 Sep 2021 with delivery in Oct 2021, which explains the timing differences while remaining within the review period.
+59. The Tribunal therefore notes that, inter-branch transfers within a single legal person are not taxable supplies. The Applicant's primary records credibly link stock movements to later sales appearing in VAT returns. Critically, when pressed for bike-by-bike exceptions (chassis/FDN/registration) for Oct 2021 to Jan 2022, the Respondent's counts oscillated, that is, from 11,603 missing bikes to 6,957 missing bikes and later to 115, and, after verification, it acknowledged the bikes presented as transfers were sold and declared. On a balance of probabilities, the undeclared-sales thesis is not sustained.
+EFRIS obligations and timing
+60. In a bid to resolve this, the Respondent invoked EFRIS expectations to question inter-branch transfers; however, URA's own public communication that ran on 20 May 2022, on the Respondent's website, places enforcement for domestic goods in transit and route sales from 1 June 2022. The review period in question ended in January 2022. The Tribunal does not retrospectively impose those expectations to re-characterise Oct 2021-Jan 2022 movements as taxable supplies.","This ruling provides crucial clarity for Uganda tax practitioners regarding the treatment of inter-branch stock transfers for VAT purposes. The key takeaway is that internal stock movements within a single legal entity are not considered taxable supplies until an actual sale to a customer occurs. This decision also highlights the importance of URA's audit methodology being precise and consistent, and that taxpayers can discharge their burden of proof by providing verifiable primary records, even if the assessing authority struggles to produce a coherent transaction-level counter-schedule. Practitioners should note the Tribunal's stance on the retrospective application of EFRIS requirements, emphasizing that compliance obligations are not imposed for periods before their effective date.
+
+*   **Clear Takeaway:** Inter-branch stock transfers are generally not taxable supplies for VAT purposes.
+*   **Main Risk/Precedent:** URA must demonstrate clear, transaction-level undeclared sales, not just 'expected sales' variances, and cannot retroactively apply new compliance requirements.
+*   **Relevant Acts/Sections:** Section 4(1) and Section 18 of the VAT Act (on taxable supplies), Section 26 of the Tax Procedures Code Act (burden of proof), Section 18 of the Tax Appeals Tribunal Act (burden of proof), Section 123 of the Income Tax Act (interest on refunds).",2026-07-04 16:17:38.075512+00
+4590a190-ed06-494d-b59b-ed7124eb57c7,TAT APPLICATION NO. 73 OF 2023,PREMIER RECRUITMENT LIMITED VERSUS UGANDA REVENUE AUTHORITY,2025,VAT,Allowed,"The Applicant, a labour recruitment company, claimed a VAT refund for services provided to foreign clients, arguing these were zero-rated exports. The Uganda Revenue Authority (URA) reclassified these services as standard-rated domestic supplies, leading to a significant VAT assessment and rejection of the refund claim. The Tribunal ruled that the labour recruitment services were indeed exported services, consumed outside Uganda, and therefore zero-rated, setting aside the URA's assessment and ordering the full refund of input tax credit.","This ruling, is in respect of an application, challenging the reclassification by the Respondent, of the supply of labour recruitment services by a Ugandan based company, to foreign based clients.
+
+1. Background
+The Applicant, a company, incorporated in Uganda, specializes in labour recruitment for local and foreign clients. In the year 2022, the Applicant made a claim for a VAT refund of Shs. 191,122,281. Pursuant to the above claim, the Respondent conducted an audit on the Applicant. Following the audit the Respondent reclassified the supply of labour recruitment services by the Applicant, to its foreign-based clients, from zero-rated exports to standard rated supplies and issued a VAT assessment of Shs. 1,225,954,437 which was later revised to Shs. 1,406,238,422.39. The Respondent also rejected the Applicant's Input VAT refund claim and upon objection, the Respondent disallowed it on 27 April 2023. Hence this Application.
+
+2. Issues
+At the scheduling, the following issues were set down for hearing.
+1. Whether the Applicant is entitled to the VAT refund claimed?
+2. Whether the Applicant is liable to pay the tax assessed?
+3. What remedies are available to the parties?
+
+Applying the provisions of Paragraph 1(a) and 2(b) of Schedule 4 to the VAT Act, to the facts of our case, we find that the labour recruitment services were exported services and are for that reason, zero-rated.
+
+It is hereby ORDERED as follows;
+1. This Application is allowed with costs.
+2. The assessment of Shs. 1,406,238,422.39 for the period 1/1/2018 to 31/07/2022 is hereby set aside.
+3. The sum of Shs. 191,122,281 being the Applicant's claim for input tax credit, made in the year 2022, will be paid in full by the Respondent.","This ruling is a significant win for Ugandan labour recruitment agencies serving foreign clients, clarifying the VAT treatment of their services. The Tribunal's emphasis on the 'destination principle' and the actual consumption of services abroad, as codified in Paragraph 2(b) of Schedule 4 of the VAT Act and Regulation 12 of the VAT Regulations, provides crucial guidance. Tax practitioners should advise clients in similar industries to meticulously document evidence of services being used or consumed outside Uganda to support zero-rating claims. The case also reinforces that URA's business policy guidance cannot override statutory provisions.
+
+Key practical lessons:
+* Document foreign consumption: Ensure robust evidence that services are consumed outside Uganda.
+* Challenge policy over law: URA policy guidance does not supersede the VAT Act.
+* Burden of proof: While the taxpayer must provide initial evidence, the URA has a duty to verify third-party declarations.
+* Input tax credit: URA cannot reject input tax credit solely because third parties have not remitted VAT, provided the taxpayer has proof of payment.",2026-07-04 15:55:01.348351+00
+45c248a0-edfa-4ffd-9cc2-3a7380ef399d,TAT APPLICATION NO. 103 OF 2022,JAVA HOUSE COFFEE SHOP UGANDA LIMITED (JHCSUL) v UGANDA REVENUE AUTHORITY,2026,Income Tax | VAT,Partial,"The Applicant challenged URA's reclassification of a shareholder loan of Shs. 3,163,834,930 as income and the denial of an input VAT claim. The Tribunal upheld URA's recharacterization of the unsupported loans as income due to insufficient documentation from the Applicant regarding the loan's authenticity and the transfer of liabilities from a predecessor company. However, the Tribunal allowed the input VAT claim for construction and refurbishment services, finding that the Applicant provided credible evidence of receiving and paying for these taxable supplies.","This ruling is in respect of an application challenging an assessment arising from the Respondent's reclassification of a shareholder loan of Shs. 3,163,834,930 as income and a denied input VAT claim.
+
+The Applicant is a subsidiary of Java House Mauritius and has been operating Java House Restaurants and Coffee Shops in Uganda since July 2014. The Respondent conducted an audit of the Applicant's tax affairs for the period July 2014 to June 2020 and issued a VAT assessment totalling Shs. 2,643,988,314 arising from input credit disallowed and the undeclared income.
+
+The Applicant incurred VAT on the construction and refurbishment of its branches at Grand Imperial, Shell Lugogo, Acacia Kisementi, Shell Jinja, Imperial Mall Entebbe, and Gapco Shop Kamwokya. The Contractor undertaking the construction was called Sarova International Builders Uganda Limited (SIBUL), which issued invoices marked AE16-AE22 of the Joint Trial Bundle.
+
+6. According to the Applicant, after taking over Java Coffee and Tea Limited (JCTL) in 2015, it executed a shareholder loan agreement with the parent company in 2016 (AE8 of the Joint Trial Bundle). The total shareholder loan amounted to Shs. 16,506,644,639. During the audit, the Respondent verified Shs. 13,334,807,709 leaving Shs. 3,163,834,930 as unsupported, which the Respondent treated as undeclared sales.
+
+7. According to the Respondent, the Applicant failed to adduce any documentation to illustrate how the purported loans were received, transferred, or utilised. However, after mediation, the tax liability was reduced to Shs. 935,250,774, which is the disputed amount before the Tribunal.
+
+94. In the circumstances, the Tribunal orders as follows:
+(i) The income tax and VAT assessments that arose from the treatment of the unsupported loans as income are hereby maintained.
+(ii) The Respondent should refund the Applicant the input VAT of Shs. 237,369,865.
+(iii) Interest on the refundable amount in (ii) above should be computed in accordance with the provisions of section 34 of the VAT Act.
+(iv) 75% of the costs of this Application are hereby awarded to the Respondent.","This ruling underscores the critical importance of meticulous record-keeping and clear documentation for all financial transactions, especially inter-company loans and business transfers, to avoid adverse tax recharacterizations. Taxpayers, particularly multinational entities, are expected to maintain robust financial records to substantiate their tax positions. The Tribunal's decision to uphold the recharacterization of unsupported loans as income highlights URA's powers under Section 91 of the Income Tax Act and Section 47 of the Value Added Tax Act to recharacterize transactions where documentation is lacking. Conversely, the successful input VAT claim demonstrates that even with initial discrepancies, sufficient credible evidence can lead to a favorable outcome for taxpayers regarding VAT credits under Section 28 of the VAT Act.
+
+Key practical lessons:
+* Maintain comprehensive documentation for all loans, especially shareholder loans.
+* Ensure clear agreements and resolutions for business transfers and liability assumptions.
+* Reconcile payments with invoices meticulously to support input VAT claims.",2026-07-04 15:24:41.096926+00
+45efd14b-0048-4abc-84c9-4827e98ab305,TAT No. 185 of 2025,ECOBANK UGANDA LIMITED v UGANDA REVENUE AUTHORITY,2026,Income Tax | VAT,Partial,"Ecobank Uganda Limited challenged URA's additional assessments for withholding tax and VAT on payments made to VISA International for payment processing services. The Tribunal found that the payments to VISA International were subject to withholding tax under Section 84 of the Income Tax Act as income derived from a Ugandan-source services contract, and that Ecobank was the payer. However, the Tribunal ruled that the services provided by VISA International, being integral to financial transactions, were exempt from VAT under Section 19(1) and Paragraph 2(b) of the Second Schedule to the VAT Act.","1. This ruling is in respect of an application challenging the Respondent's objection decision confirming additional assessments of withholding tax and Value Added Tax of Shs. 225,843,363.
+...
+55. Visa charges transaction fees for its payment facilitation services. It is these very fees that are at the heart of this dispute, specifically whether they are subject to withholding tax and VAT.
+56. We shall address each tax head separately.
+Withholding tax
+57. The Applicant has argued that the transaction fees are outside the scope of withholding tax since they are neither management fees nor royalties under section 82 of the ITA. In addition, the Applicant stated that transaction fees are paid by its customers and that the bank is merely an intermediary. Therefore, the withholding tax obligation, if any, lies with the customers.
+58. On the other hand, the Respondent has argued that the fees are taxable under section 84 of the ITA, which deals with income derived from a Uganda-source services contract.
+...
+72. It is clear from the above steps that at all material times, the Applicant is working together with Visa to settle the payments. At no point does the end customer interface with Visa. It is clear that the person paying the transactional fees for the purposes of S. 137(1) of the ITA is the Applicant, not the customer. Therefore, the Applicant was duty-bound to withhold tax, which they did not.
+73. We therefore find that the Respondent was justified in assessing the additional tax.
+Value Added Tax
+74. The Respondent imposed VAT on the grounds that the transactional fees and charges are payments for imported services, which are liable to VAT in accordance with section 4 (2) of the VAT Act. The Respondent supports this assertion by citing Visa's non-resident status, as it is a foreign-based entity.
+75. On the other hand, the Applicant contends that the visa charges fall within the scope of financial services, which are exempt from VAT under section 19 of the VAT Act.
+...
+87. Consequently, the Applicant succeeds on the VAT point.
+...
+89. In the present case, the Tribunal's finding is that:
+(i) The withholding tax assessments were properly raised;
+(ii) The VAT assessments are incorrect and cannot be sustained.
+Orders
+90. In view of the above, the Tribunal makes the following orders:
+(i) The withholding tax assessment is upheld.
+(ii) The VAT assessment is hereby set aside.
+(iii) Each party shall bear their own costs.","This ruling clarifies the tax treatment of fees paid to international payment networks like VISA. Tax practitioners should note that while such payments are generally subject to withholding tax under Section 84 of the Income Tax Act as services sourced in Uganda, the associated services are likely exempt from VAT under Section 19(1) and Paragraph 2(b) of the VAT Act, provided they constitute integral financial services. The Tribunal emphasized the functional nature of financial services for VAT exemption, aligning with European Court of Justice precedents.",2026-07-04 09:41:19.490453+00
+46fcca74-7a7a-44d5-8c83-879f134f6f3a,TAT APPLICATION NO. 10 OF 2024,SCOVIA GATETE SANYU v UGANDA REVENUE AUTHORITY,2026,VAT,Dismissed,"The Applicant, a landlord of commercial properties, claimed input VAT on utility bills (water and electricity) which the Respondent (URA) disallowed, arguing that the utilities were for the tenants' businesses, not the landlord's, and that third-party declarations could not be verified. The Tribunal dismissed the application, finding that the utilities were primarily for the tenants' business use, even if the landlord paid the bills to avoid disconnections, and therefore the input tax credit was not allowable to the landlord.","The Tribunal notes that this dispute revolves around one issue; whether the utilities were put to business use by the Applicant or its tenants. The Applicant offers commercial property to many business men/women by dividing each floor into outlets to rent. The commercial building will have no value and remain with no value when not occupied. These rooms are rented and the business persons put in their merchandise for sell. The issue is who puts these utilities to use. The Landlord in this case the Applicant or the Tenants.
+
+The Tribunal imagines who among the two will raise an alarm if the Tribunal walks into these buildings and puts off the lights or switches off the water of the building.
+
+In the affidavit of Mr. Mukasa, he depones that the Respondent visited the buildings 2 times but in the Affidavit of Mr. Kisoro or the submissions of the Respondent, nothing is mentioned on any information on utilities from the Tenants.
+
+International Standards on auditing guides auditors to do their work diligently and one of the key aspects is to circularize while doing their work for proper reporting. The Respondent visited the Applicant businesses twice where tenants carry out their businesses but only stopped at checking out the meter numbers and sequences without asking the tenants who operate the businesses there how they pay and who pays for the utilities. Both parties are silent on this crucial information from the horses' mouth. If these rooms remain with no light, the public or buyers will not be attracted to the merchandise. So, the businessmen put in light to their satisfaction and decoration to attract buyers. If the business man does not attract the buyers, he or she will have no use to rent these rooms.
+
+In ""H"" attached to the affidavit for Mr. Kyambadde, paragraph 1 reads: ""that the land lord is the registered and lawful proprietor of the property comprised in Plot 24, Mackay Road, Kampala and all of the developments, fixtures and fittings there on the premises. The paragraph states that, ""The land lord is desirous of letting the property of the premises to the tenant and the tenant is desirous of renting the same from the landlord up on the terms and conditions herein contained"".
+
+Paragraph 4 (d) provides:
+""the tenant hereby covenants with the landlord to pay or cause to be paid and discharged all electricity charges incurred during the term hereby created and for any period over and above the said period during which the tenant remains in occupation of the premises whether with or without the landlord authority"".
+
+Paragraph 5 (a) states that ""the landlord hereby covenants with the tenant as follows: To clear and or take responsibility for all the outstanding utility bills including as applicable but not limited to electricity, water and Sewage and telephone touching on the premises as let to the tenant that were incurred before the commencement of the term of this tenancy and that should there be a disconnection of the said utilities owing to non-payment by the landlord herein above obliged, the expense incurred upon re-connection of the same shall be borne by the landlord"".
+
+This is clear that the landlord will meet the unpaid bill of any utility should there be any disconnection of the utility due to non-payment. It is mentioned in the agreement that it happens when the tenant leaves the outlet with pending bills. No new tenant would take the outlet for business when electricity has been connected. The electricity and water (utility) used is for the use in the business of the tenant.
+
+The landlord put up a commercial property and leaves the rest to the tenants and the tenants are the ones who put the light to use by putting light in their shops, so that the merchandise is seen by the shoppers and the shop keepers use the lights to decorate the shop to attract customers.
+
+The tenants are the ones who use the water to clean their shops, and a toilet as a place of convenience for a nature call or that of their customers. The shop keepers sit all day in the shops, eat and drink thus using water for washing and convenience. In most times to access the toilet the user of these convenience places go through a person who collects money from them and this person would deny access to those who do not part with the coins. These people use the money to clean up the place and pay for the water. This money comes from the shop attendants, not the landlord.
+
+So, whether the electricity or water may be paid for by the landlord or their managers who manage and supervise the building, this money is raised by the tenants and the tenants are the ones who put the supply of electricity and water to their business use.
+
+In rejoinder, the applicant clarifies that in the present matter, the bills are borne and paid for by the Applicant/landlord. In so many commercial properties, the landlord charges service charge to the tenants which the landlord uses to pay for common area usage. The Applicant narrates that when it leaves the bills to the tenants to pay, the tenants never pay or pay on time which leads to disconnections and business interruptions. The Tribunal asks itself that whose business is interrupted, that of the landlord or the tenant? The landlord puts up a building and, in most cases, may be residing elsewhere when electricity is off, the land lord's business of renting the outlet continues when the shop keeper's (tenant's) business is in darkness and no customer would enter his shop for failure to see the merchandise. So, the electricity is put to use by the shopkeeper. In so many commercial buildings and apartments, service charge and its treatment is mentioned in the tenancy agreement. In this present case, there was no service charge mentioned.
+
+In the same rejoinder, the landlord states that it bills the tenants a consolidated amount which includes utility costs and rent. However, it is stated in paragraph 5(a) of the Tenancy Agreement that the landlord hereby covenants with the tenant to clear and or take responsibility for all outstanding utility bills including as applicable but not limited to electricity, water and sewerage and telephone touching on the premises as let to the tenant that were incurred before the commencement of the term of this tenancy AND THAT should there be disconnection of the said utilities owing to non-payment...... the expense incurred upon re-connection of the same shall be borne by the landlord.
+
+This means that there are utility bills paid by the landlord (Applicant) before tenants' occupancy of the building and utility bills unpaid by a tenant who has vacated the building or property.
+
+The Applicant had a duty to separate such bills and to inform the Respondent when the Respondent visited the properties. This input tax credit ought to have been credited to the Applicant. Similarly, both parties did not mention the electricity that is incurred when the tenants/shopkeepers close their shops and go home at night and during holidays and weekends.
+
+This the Tribunal is not to look into it since it was not raised by the Applicant on how it is treated and to whose benefit it is. This clearly shows that the utility bills are paid by the tenants. Paying through the bank does not show business use in this context. The agent of the landlord may collect the money for utilities and pay it into the bank.
+
+The Applicant reiterated that the Respondent did not make any effort to verify with National Water and Sewerage Corporation or UMEME to ascertain whether the Applicant paid or never paid these utilities. The issue is not on payment, but business use. Who puts the utilities to business use in this case. It is the tenant not the landlord. Although some utility accounts remained in the previous owner's name, this is merely a matter of form.
+
+Our focus is on who put the utilities to business use. Even though the Utility companies declared the output tax, the corresponding input tax from the Applicant was not put to use by the Applicant. The Applicant accepted that some of its input tax was not in its name but in the names of Mr. Mabirizi the former landlord. The Applicant cannot claim the corresponding input tax to the output tax when the Applicant never put this input tax to its business use. The Applicant transferred the use in business when it contracted the tenant after putting up the property to use in form of rent but not operating the shop/outlet itself.
+
+The Tribunal will allow input tax credit where:
+(i) the supplier of goods or services was a VAT-registered person;
+(ii) A registered person put to use the utility services whether used wholly or partly for business use.
+
+The Tribunal would look at who uses the utilities of commercial properties before spacing for public use and who uses the utilities in conducting business after opening to public use and how the issue of common use is treated in the agreement/real use.
+
+Taking the above in consideration, the Respondent was justified to deny the input tax credit of Shs. 171.868,138 to the Applicant. The Respondent was justified to raise the additional Assessment which has been reduced to this amount.
+
+In the circumstances, I dismiss this application with costs to the Respondent.","This ruling underscores the 'use in business' principle for input VAT claims under Section 28 of the VAT Act, Cap. 344. The key takeaway for tax practitioners is that merely paying for an expense, even if it facilitates one's business (like a landlord paying utilities to prevent disconnections), does not automatically entitle one to input VAT credit if the ultimate 'business use' is by a third party (the tenants). The Tribunal emphasized the 'substance over form' principle, but in this case, it worked against the Applicant, as the economic benefit and direct use of the utilities were attributed to the tenants. This creates a significant risk for landlords who adopt all-inclusive rental models without clearly structuring the utility charges to reflect the landlord's direct business use or ensuring proper documentation for input tax claims.
+
+Key practical lessons:
+*   **Direct Business Use:** Input VAT is creditable only if the goods/services are used wholly or partly in making the taxable person's own taxable supplies.
+*   **Substance Over Form:** While important, this principle can cut both ways; the Tribunal will look beyond who nominally pays to who actually benefits and uses the supply in their business.
+*   **Documentation:** Even with proof of payment, the nexus between the expense and the claimant's direct taxable supplies must be clearly established.",2026-07-04 15:58:38.58124+00
+54b65085-fd68-4dc7-baa3-eea4e54f65ac,APPLICATION NO. 29 OF 2024,MADA HOLDINGS (U) LTD v UGANDA REVENUE AUTHORITY,2025,VAT,Dismissed,"The Applicant challenged a VAT assessment, but the Respondent raised a preliminary objection that the application was time-barred. The Tribunal found that the Applicant filed its application significantly beyond the 30-day statutory period from the objection decision date. The Tribunal dismissed the application, upholding the preliminary objection and ordering the Applicant to bear the costs.","This ruling is in respect of preliminary objection that the Application is time-barred
+
+1. Background
+On 18th November 2022, the Respondent issued an Administrative Additional
+Assessment in respect of VAT for the period 01/10/2015 to 31/10/2015 amounting to Shs.
+27,971,885. The Applicant objected to this assessment on 6th December 2022. On 25th
+February 2023, the Respondent issued its objection decision disallowing the Applicant's
+objection. On 22nd February 2024, the Applicant lodged this application for review before
+the Tax Appeals Tribunal, claiming to have received the Respondent's objection decision
+on 10th January 2024, although the same is dated 20th September 2023. The
+Respondent contends that this Application has been lodged outside the statutory period
+and is therefore time barred.
+
+5. Respondent's submissions on the preliminary objection
+Counsel for the Respondent submitted that under Section 16(1)(c) of the Tax Appeals
+Tribunal Act (TAT Act) an application for review of a taxation decision must be lodged
+with the Tribunal within 30 days after being served with the notice of the Respondent's
+objection decision.
+
+The Respondent referred the Tribunal to the decision in Uganda Revenue Authority v.
+Uganda Consolidated Properties Ltd, Court of Appeal Civil Appeal No. 75, where it
+was held that timelines set by statutes are matters of substantive law and must be strictly
+complied with. Consequently, the application should be dismissed as being time-barred.
+
+The Respondent submitted that objection decision in this case was issued on 25th
+February 2023, and the Applicant had until 27th March 2023 to file an application. The
+current application, lodged on 22nd February 2024, was, therefore, time-barred.
+
+This Tribunal finds that the objection decision in this matter is set out in Objection Decision
+Notice number 30582562 dated 25 February 2023. The Applicant's claim that they
+received the objection decision on 22nd February 2024 is based on their interpretation of
+events, including a letter dated 20th September 2023 and sent on 10th January 2024.
+Even in that letter itself, the Respondent maintained that the objection decision dated 25
+February 2023 has not been varied. Besides since that letter is marked ""Without
+Prejudice"" it is precluded from being presented as evidence in legal proceedings. A party
+cannot rely on a letter marked ""without prejudice"" to support an application in the Tribunal.
+
+Therefore, the Tribunal finds that 25 February 2023 is the correct date from which the
+statutory timeline for the Applicant to file an application for review is calculated.
+Consequently, the Applicant ought to have filed its application to the Tribunal by 27th
+March 2023.
+
+We concur with the Respondent's submission that statutory timelines must be adhered to
+strictly. Consequently, we determine that the Applicant's application for review, filed on
+February 22, 2024, is time-barred under Section 16(1)(c) of the TAT Act. The Tribunal is
+unable to entertain an application submitted more than six months after the objection
+decision.
+
+In light of the foregoing considerations, the Tribunal rules as follows:
+1. The preliminary objection raised by the Respondent is upheld.
+2. The Applicant's application for review is dismissed as being time-barred.
+3. The Applicant shall bear the costs of the Respondent.","This ruling serves as a critical reminder for Uganda tax practitioners regarding strict adherence to statutory timelines for lodging applications with the Tax Appeals Tribunal. The Tribunal emphasized that timelines under Section 16(1)(c) of the Tax Appeals Tribunal Act are matters of substantive law and must be strictly complied with. The case also highlights the inadmissibility of 'Without Prejudice' communications as evidence to support an application, reinforcing the importance of formal communication and clear record-keeping. Practitioners must ensure that clients understand the strict deadlines and the implications of late filings, as the Tribunal cannot entertain applications submitted more than six months after the objection decision.
+
+*   Strictly adhere to the 30-day deadline for filing TAT applications from the date of receiving the objection decision.
+*   'Without Prejudice' communications are generally inadmissible as evidence in legal proceedings.
+*   Ensure clear and verifiable proof of the date of receipt of URA's objection decision.",2026-07-04 15:46:38.749261+00

@@ -1,4 +1,4 @@
-// Validation helpers, constants, and shared types for TaxWise Uganda AI Compliance Review
+// Validation helpers, constants, and shared types for TaxWise Uganda Compliance Review
 
 export interface TaxPeriodBundle {
   period_name: string;

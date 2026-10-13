@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No text content or file was provided for analysis." }, { status: 400 });
     }
 
-    const systemPrompt = `You are TaxWise, an AI specializing in Uganda tax law (URA, TAT, Income Tax Act, VAT Act, PAYE, eFRIS). Analyze the case/scenario. Respond ONLY in valid JSON.
+    const systemPrompt = `You are TaxWise, a legal intelligence analyst specializing in Uganda tax law (URA, TAT, Income Tax Act, VAT Act, PAYE, eFRIS). Analyze the case/scenario. Respond ONLY in valid JSON.
 JSON format:
 {
   "summary": "2-3 sentence plain summary",
@@ -122,7 +122,7 @@ JSON format:
     } catch {
       console.error("Failed to parse JSON response from Gemini:", responseText);
       return NextResponse.json(
-        { error: "AI analysis was successfully generated but failed to parse into structured format." },
+        { error: "Analysis was successfully generated but failed to parse into structured format." },
         { status: 500 }
       );
     }
@@ -186,7 +186,7 @@ JSON format:
               outcome: mappedOutcome,
               summary: parsedResult.summary || "Case analyzed by TaxWise user.",
               full_text: textToAnalyze,
-              ai_commentary: parsedResult.advice || "AI professional advice provided."
+              ai_commentary: parsedResult.advice || "Professional statutory advice provided."
             });
 
           if (libInsertError) {

@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
     } catch {
       console.error("Gemini JSON parse failed:", rawResponse);
       return NextResponse.json(
-        { error: "AI extraction succeeded but returned an unreadable format. Please fill in the form manually." },
+        { error: "Automated extraction succeeded but returned an unreadable format. Please fill in the form manually." },
         { status: 500 }
       );
     }

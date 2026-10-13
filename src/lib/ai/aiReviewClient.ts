@@ -47,7 +47,7 @@ CRITICAL NON-NEGOTIABLE COMPLIANCE RULES:
     });
     return response;
   } catch (error) {
-    console.error("Failed to generate compliance review AI narrative summary:", error);
+    console.error("Failed to generate compliance review narrative summary:", error);
     return null;
   }
 }

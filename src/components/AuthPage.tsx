@@ -1,8 +1,11 @@
+"use client";
+
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, safeStorage } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { LegalPortal } from "./LegalPortal";
 import { Card, Button } from "./UI";
+import { AlertTriangle, Check, CheckCircle2, Building2, HelpCircle } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -181,7 +184,7 @@ const OtpInput: React.FC<OtpInputProps> = ({ value, onChange, error, length = 6,
       </div>
       {error && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginTop: 8, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
-          <span>⚠</span> {error}
+          <AlertTriangle size={13} /> {error}
         </div>
       )}
     </div>
@@ -198,7 +201,7 @@ const FormField: React.FC<{ label: string; required?: boolean; error?: string; c
     {children}
     {error && (
       <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
-        <span>⚠</span> {error}
+        <AlertTriangle size={13} /> {error}
       </div>
     )}
   </div>
@@ -282,7 +285,7 @@ const PasswordField: React.FC<{
       )}
       {error && (
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
-          <span>⚠</span> {error}
+          <AlertTriangle size={13} /> {error}
         </div>
       )}
     </div>
@@ -341,12 +344,12 @@ const ConfirmPasswordField: React.FC<{
       </div>
       {matches && (
         <div style={{ fontSize: "0.72rem", color: C.green, fontWeight: 700, marginTop: 5, display: "flex", alignItems: "center", gap: 4 }}>
-          ✓ Passwords match
+          <Check size={13} /> Passwords match
         </div>
       )}
       {error && (
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
-          <span>⚠</span> {error}
+          <AlertTriangle size={13} /> {error}
         </div>
       )}
     </div>
@@ -483,16 +486,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
 
       // Save code locally so verifyOtp or local check can match it
       if (typeof window !== "undefined") {
-        localStorage.setItem("mock_otp_code", result.code);
-        localStorage.setItem("mock_otp_email", email);
+        safeStorage.setItem("mock_otp_code", result.code);
+        safeStorage.setItem("mock_otp_email", email);
       }
 
       // Transition to code entry screen
       switchMode("reset-code");
       if (result.warning) {
-        setSuccessMsg(`⚠️ Email delivery failed (${result.warning}). For testing, please enter code: ${result.code}`);
+        setSuccessMsg(`Email delivery note (${result.warning}). For testing, please enter code: ${result.code}`);
       } else {
-        setSuccessMsg("✅ Reset code sent! Please check your email inbox.");
+        setSuccessMsg("Reset code sent! Please check your email inbox.");
       }
     } catch (err: unknown) {
       setGlobalError(err instanceof Error ? err.message : "Failed to send reset email.");
@@ -517,7 +520,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
       // Sign out recovery session, go to login
       await supabase.auth.signOut();
       switchMode("login");
-      setSuccessMsg("✅ Password reset! You can now sign in with your new password.");
+      setSuccessMsg("Password reset! You can now sign in with your new password.");
     } catch (err: unknown) {
       setGlobalError(err instanceof Error ? err.message : "Invalid or expired code. Please try again.");
     } finally {
@@ -535,7 +538,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
       // Sign out recovery session, go to login
       await supabase.auth.signOut();
       switchMode("login");
-      setSuccessMsg("✅ Password updated successfully! You can now sign in.");
+      setSuccessMsg("Password updated successfully! You can now sign in.");
     } catch (err: unknown) {
       setGlobalError(err instanceof Error ? err.message : "Failed to update password.");
     } finally {
@@ -564,15 +567,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
       }
 
       if (typeof window !== "undefined") {
-        localStorage.setItem("mock_otp_code", result.code);
-        localStorage.setItem("mock_otp_email", email);
+        safeStorage.setItem("mock_otp_code", result.code);
+        safeStorage.setItem("mock_otp_email", email);
       }
 
       setOtpCode("");
       if (result.warning) {
-        setSuccessMsg(`⚠️ Email delivery failed (${result.warning}). For testing, please enter code: ${result.code}`);
+        setSuccessMsg(`Email delivery note (${result.warning}). For testing, please enter code: ${result.code}`);
       } else {
-        setSuccessMsg("✅ New reset code sent! Check your inbox.");
+        setSuccessMsg("New reset code sent! Check your inbox.");
       }
     } catch (err: unknown) {
       setGlobalError(err instanceof Error ? err.message : "Failed to resend reset email.");
@@ -626,8 +629,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
     if (!validate()) return;
     setLoading(true); setGlobalError(""); setSuccessMsg("");
     try {
-      const savedCode = expectedSignupOtp || (typeof window !== "undefined" ? localStorage.getItem("mock_signup_otp") : "") || "";
-      const savedEmail = email || (typeof window !== "undefined" ? localStorage.getItem("mock_signup_email") : "") || "";
+      const savedCode = expectedSignupOtp || (typeof window !== "undefined" ? safeStorage.getItem("mock_signup_otp") : "") || "";
+      const savedEmail = email || (typeof window !== "undefined" ? safeStorage.getItem("mock_signup_email") : "") || "";
 
       if (!savedCode || savedCode.trim().toUpperCase() !== otpCode.trim().toUpperCase()) {
         throw new Error("Invalid verification code. Please check and try again.");
@@ -660,8 +663,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
       if (signInError) throw signInError;
 
       if (typeof window !== "undefined") {
-        localStorage.removeItem("mock_signup_otp");
-        localStorage.removeItem("mock_signup_email");
+        safeStorage.removeItem("mock_signup_otp");
+        safeStorage.removeItem("mock_signup_email");
       }
 
       onLoginSuccess();
@@ -698,15 +701,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
 
       setExpectedSignupOtp(result.code);
       if (typeof window !== "undefined") {
-        localStorage.setItem("mock_signup_otp", result.code);
-        localStorage.setItem("mock_signup_email", email);
+        safeStorage.setItem("mock_signup_otp", result.code);
+        safeStorage.setItem("mock_signup_email", email);
       }
 
       setOtpCode("");
       if (result.warning) {
-        setSuccessMsg(`⚠️ New code delivery failed (${result.warning}). For testing, please enter code: ${result.code}`);
+        setSuccessMsg(`New code delivery note (${result.warning}). For testing, please enter code: ${result.code}`);
       } else {
-        setSuccessMsg("✅ New verification code sent! Check your inbox.");
+        setSuccessMsg("New verification code sent! Check your inbox.");
       }
     } catch (err: unknown) {
       setGlobalError(err instanceof Error ? err.message : "Failed to resend verification code.");
@@ -937,7 +940,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
             Tax<span style={{ color: "#4DD9C0" }}>Wise</span>
           </a>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", padding: "5px 12px", borderRadius: 50, fontSize: ".68rem", color: "rgba(255,255,255,0.75)", fontWeight: 600, width: "fit-content", marginTop: 8 }}>
-            🏛️ ICPAU CPD-Eligible Platform
+            <Building2 size={13} style={{ color: "#2DD4BF" }} />
+            <span>ICPAU CPD-Eligible Platform</span>
           </div>
         </div>
 
@@ -961,9 +965,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {["Instant AI TAT Precedents Risk Analyzer", "PAYE, VAT, Corporate & Vehicle Import Calculators", "Up-to-date URA Practice Notes & Statutory Checklists"].map((f) => (
+            {["Instant TAT Precedents Risk Analyzer", "PAYE, VAT, Corporate & Vehicle Import Calculators", "Up-to-date URA Practice Notes & Statutory Checklists"].map((f) => (
               <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.85rem", color: "rgba(255,255,255,0.8)" }}>
-                <span style={{ color: "#4DD9C0", fontWeight: 800, lineHeight: 1 }}>✓</span>
+                <Check size={14} style={{ color: "#4DD9C0", marginTop: 2, flexShrink: 0 }} />
                 <span>{f}</span>
               </div>
             ))}
@@ -1062,7 +1066,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
 
                 {/* OTP hint */}
                 <div className="otp-hint-row" style={{ marginBottom: 18 }}>
-                  <span>💡</span>
+                  <HelpCircle size={14} style={{ color: C.teal, flexShrink: 0 }} />
                   <span>You can also click the reset link in your email to reset via browser.</span>
                 </div>
 
@@ -1364,7 +1368,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                     </div>
                     {fieldErrors.agreeTerms && (
                       <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
-                        <span>⚠</span> {fieldErrors.agreeTerms}
+                        <AlertTriangle size={13} /> {fieldErrors.agreeTerms}
                       </div>
                     )}
                   </div>
@@ -1378,62 +1382,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                 <Button onClick={handleAuth} disabled={loading} style={{ width: "100%", justifyContent: "center", marginTop: 4 }}>
                   {loading ? "⟳ Authenticating..." : mode === "login" ? "Sign In →" : "Create My Account →"}
                 </Button>
-
-                {/* Instant Demo Sandbox Access */}
-                <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px dashed #E5E7EB" }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        const demoSession = {
-                          access_token: "mock-token",
-                          token_type: "bearer",
-                          expires_in: 3600,
-                          refresh_token: "mock-refresh",
-                          user: {
-                            id: "demo-user",
-                            email: "demo.taxwise@example.com",
-                            user_metadata: {
-                              full_name: "Demo Professional",
-                              role: "Admin",
-                            },
-                            app_metadata: {},
-                            aud: "authenticated",
-                            created_at: new Date().toISOString(),
-                          }
-                        };
-                        localStorage.setItem("mock_supabase_session", JSON.stringify(demoSession));
-                        localStorage.setItem("mock_profile", JSON.stringify({
-                          id: "demo-user",
-                          email: "demo.taxwise@example.com",
-                          full_name: "Demo Professional",
-                          role: "Admin",
-                          plan: "premium",
-                          created_at: new Date().toISOString()
-                        }));
-                      }
-                      onLoginSuccess();
-                    }}
-                    style={{
-                      width: "100%",
-                      padding: "10px 14px",
-                      background: "#F0FDF4",
-                      border: "1px solid #BBF7D0",
-                      borderRadius: 8,
-                      fontSize: "0.82rem",
-                      fontWeight: 700,
-                      color: "#166534",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      transition: "all 0.15s ease"
-                    }}
-                  >
-                    <span>⚡</span> <span>Instant Sandbox Demo Access (1-Click)</span>
-                  </button>
-                </div>
 
                 {/* Footer */}
                 <div style={{ textAlign: "center", marginTop: 18, fontSize: "0.75rem", color: C.muted, fontWeight: 500, lineHeight: 1.5 }}>

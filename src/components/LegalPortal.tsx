@@ -240,7 +240,7 @@ export const LegalPortal: React.FC<LegalPortalProps> = ({
                       <span style={{ color: "#2DD4BF" }}>1.</span> Scope and Overview
                     </h4>
                     <p>
-                      TaxWise Uganda (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) operates as East Africa’s premier AI-powered tax intelligence suite designed specifically for tax consultants, certified public accountants, corporate legal practitioners, and clearing agents. This Privacy Policy details how we collect, store, transmit, and securely process your professional credentials and the sensitive taxation parameters you introduce onto our computing cluster. We are fully aligned with the statutory rules governed by the <strong>Uganda Data Protection and Privacy Act, 2019</strong>.
+                      TaxWise Uganda (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) operates as East Africa’s premier statutory tax intelligence suite designed specifically for tax consultants, certified public accountants, corporate legal practitioners, and clearing agents. This Privacy Policy details how we collect, store, transmit, and securely process your professional credentials and the sensitive taxation parameters you introduce onto our computing cluster. We are fully aligned with the statutory rules governed by the <strong>Uganda Data Protection and Privacy Act, 2019</strong>.
                     </p>
                   </section>
 
@@ -259,7 +259,7 @@ export const LegalPortal: React.FC<LegalPortalProps> = ({
                         <strong>Transactional & Tax Filings:</strong> Under-appeal URA assessment documents, tax appeal drafts (TAT appeal timelines), monthly PAYE ledgers, custom VAT transaction histories, and vehicle specifications uploaded for clearing calculations.
                       </li>
                       <li>
-                        <strong>AI Training Exclusions:</strong> Documents processed by our AI Case Analyzer are processed in safe, isolated memory sandboxes. <strong>We strictly do not use</strong> your proprietary tax advisory briefs, private client filings, or client transaction ledgers to train public models.
+                        <strong>Confidentiality Protection:</strong> Documents processed by our Case Analyzer are evaluated in safe, isolated memory environments. <strong>We strictly do not share</strong> or disclose your proprietary tax advisory briefs, private client filings, or client transaction ledgers.
                       </li>
                     </ul>
                   </section>

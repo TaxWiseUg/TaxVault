@@ -47,7 +47,7 @@ export async function runComplianceEngine(
   // 3. Aggregate risk parameters
   const risk = calculateRisk(findings);
 
-  // 4. Generate AI professional summary (if enabled)
+  // 4. Generate professional statutory summary (if enabled)
   let professionalSummary: string | null = null;
   if (enableAi) {
     professionalSummary = await generateReviewSummary(findings);

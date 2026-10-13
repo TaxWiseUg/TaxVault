@@ -153,10 +153,10 @@ function runAllTests() {
 
   function assert(testName: string, condition: boolean, messageOnFailure?: string) {
     if (condition) {
-      console.log(`✅ PASS: ${testName}`);
+      console.log(`[PASS] ${testName}`);
       passed++;
     } else {
-      console.error(`❌ FAIL: ${testName}`);
+      console.error(`[FAIL] ${testName}`);
       if (messageOnFailure) console.error(`   Reason: ${messageOnFailure}`);
       failed++;
     }
@@ -283,8 +283,8 @@ function runAllTests() {
 
   console.log("\n==========================================");
   console.log(`TEST EXECUTION SUMMARY:`);
-  console.log(`🟢 PASSED: ${passed}`);
-  console.log(`🔴 FAILED: ${failed}`);
+  console.log(`PASSED: ${passed}`);
+  console.log(`FAILED: ${failed}`);
   console.log("==========================================");
 
   if (failed > 0) {

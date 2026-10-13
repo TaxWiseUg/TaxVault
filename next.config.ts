@@ -6,6 +6,8 @@ const nextConfig: any = {
   // pdf-parse is a CJS module that Next.js cannot bundle — keep it as an external
   serverExternalPackages: ["pdf-parse", "mammoth"],
   allowedDevOrigins: [
+    "ais-dev-wosdq4al6j7qlt3eiyzwo4-471196200577.europe-west2.run.app",
+    "ais-pre-wosdq4al6j7qlt3eiyzwo4-471196200577.europe-west2.run.app",
     "ais-dev-7uedazwr7guelxnhvmteid-471196200577.europe-west2.run.app",
     "*.run.app",
   ],

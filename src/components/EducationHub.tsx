@@ -1,18 +1,20 @@
+"use client";
+
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, DEFAULT_COURSES } from "../lib/supabaseClient";
+import { IMPORTED_ENROLLMENTS } from "../lib/importedData";
 import { C, levelColors } from "../lib/constants";
 import { Badge, Button, Card, ProgressBar } from "./UI";
-import { Clock, Check, Sparkles, BookOpen, GraduationCap, Scale, Award } from "lucide-react";
+import { Clock, Check, Sparkles, BookOpen, GraduationCap, Scale, Award, RefreshCw } from "lucide-react";
 
-const getCourseIcon = (emoji: string, size = 32, color?: string) => {
-  switch (emoji) {
-    case "⚖️": return <Scale size={size} style={{ color }} />;
-    case "🎓": return <GraduationCap size={size} style={{ color }} />;
-    case "📜": return <BookOpen size={size} style={{ color }} />;
-    case "🏆": return <Award size={size} style={{ color }} />;
-    default: return <BookOpen size={size} style={{ color }} />;
-  }
+const getCourseIcon = (iconName: string, size = 32, color?: string) => {
+  const norm = (iconName || "").toLowerCase();
+  if (norm.includes("scale") || norm.includes("court") || norm.includes("law")) return <Scale size={size} style={{ color }} />;
+  if (norm.includes("grad") || norm.includes("cap") || norm.includes("student")) return <GraduationCap size={size} style={{ color }} />;
+  if (norm.includes("book") || norm.includes("scroll") || norm.includes("read")) return <BookOpen size={size} style={{ color }} />;
+  if (norm.includes("award") || norm.includes("trophy") || norm.includes("cert")) return <Award size={size} style={{ color }} />;
+  return <BookOpen size={size} style={{ color }} />;
 };
 
 interface Lesson {
@@ -68,7 +70,7 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   
-  // AI Tutor state
+  // Lesson Tutor state
   const [aiQ, setAiQ] = useState("");
   const [aiAnswer, setAiAnswer] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -82,25 +84,38 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
         .select("*")
         .order("id", { ascending: true });
 
-      if (coursesError) throw coursesError;
+      if (coursesError || !coursesData || coursesData.length === 0) {
+        setCourses(DEFAULT_COURSES as unknown as Course[]);
+      } else {
+        setCourses(coursesData as Course[]);
+      }
 
       // Fetch user's enrollments
-      const { data: enrollmentsData, error: enrollmentsError } = await supabase
-        .from("enrollments")
-        .select("*")
-        .eq("user_id", user.id);
+      try {
+        const { data: enrollmentsData } = await supabase
+          .from("enrollments")
+          .select("*")
+          .eq("user_id", user.id);
 
-      if (enrollmentsError) throw enrollmentsError;
-
-      if (coursesData) setCourses(coursesData as Course[]);
-      
-      const enrollMap: Record<number, Enrollment> = {};
-      if (enrollmentsData) {
-        enrollmentsData.forEach((e) => {
-          enrollMap[e.course_id] = e as Enrollment;
+        const enrollMap: Record<number, Enrollment> = {};
+        if (enrollmentsData && enrollmentsData.length > 0) {
+          enrollmentsData.forEach((e) => {
+            enrollMap[e.course_id] = e as Enrollment;
+          });
+        } else {
+          IMPORTED_ENROLLMENTS.forEach((e) => {
+            enrollMap[e.course_id] = e as unknown as Enrollment;
+          });
+        }
+        setEnrollments(enrollMap);
+      } catch (enrErr) {
+        console.warn("Could not load enrollments, proceeding with defaults:", enrErr);
+        const enrollMap: Record<number, Enrollment> = {};
+        IMPORTED_ENROLLMENTS.forEach((e) => {
+          enrollMap[e.course_id] = e as unknown as Enrollment;
         });
+        setEnrollments(enrollMap);
       }
-      setEnrollments(enrollMap);
     } catch (err) {
       console.error("Error loading education hub data:", err);
     } finally {
@@ -205,20 +220,20 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
         }),
       });
 
-      if (!res.ok) throw new Error("AI tutor endpoint failed");
+      if (!res.ok) throw new Error("Tutor service request failed");
       let data: any = {};
       try {
         data = await res.json();
       } catch {
-        throw new Error(`AI tutor server returned status ${res.status}`);
+        throw new Error(`Tutor server returned status ${res.status}`);
       }
       
       if (data.error) throw new Error(data.error);
 
       setAiAnswer(data.answer);
     } catch (err: unknown) {
-      console.error("AI Tutor call error:", err);
-      setAiAnswer("Tutor is currently offline. Please check that you have added your Anthropic API Key in `.env.local`.");
+      console.error("Tutor call error:", err);
+      setAiAnswer("Tutor is currently unavailable. Please verify connection and try again.");
     } finally {
       setAiLoading(false);
     }
@@ -227,7 +242,9 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: 60, color: C.muted }}>
-        <div style={{ fontSize: "1.8rem", animation: "spin 1s linear infinite", marginBottom: 10 }}>⟳</div>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+          <RefreshCw size={24} style={{ animation: "spin 1s linear infinite", color: C.teal }} />
+        </div>
         <div>Loading courses...</div>
       </div>
     );
@@ -384,11 +401,11 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
               </div>
             </Card>
 
-            {/* AI Tutor Chat log */}
+            {/* Lesson Tutor Chat log */}
             <Card style={{ padding: 24 }}>
               <div style={{ fontWeight: 800, color: C.navy, marginBottom: 10, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: 6 }}>
-                <Sparkles size={16} style={{ color: C.gold }} />
-                <span>AI Lesson Tutor</span>
+                <BookOpen size={16} style={{ color: C.gold }} />
+                <span>Statutory Reference Tutor</span>
               </div>
               <p style={{ fontSize: "0.78rem", color: C.muted, lineHeight: 1.5, marginBottom: 14 }}>
                 Ask any contextual question regarding this lesson to clarify Uganda tax guidelines.
@@ -401,9 +418,9 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
                   <div style={{ alignSelf: "flex-end", background: C.navy, color: C.white, borderRadius: "12px 12px 0 12px", padding: "10px 14px", fontSize: "0.82rem", maxWidth: "85%", fontWeight: 500 }}>
                     {aiQ}
                   </div>
-                  {/* AI Response bubble */}
+                  {/* Response bubble */}
                   <div style={{ alignSelf: "flex-start", background: C.tealLight, color: C.navy, borderRadius: "12px 12px 12px 0", padding: "10px 14px", fontSize: "0.82rem", maxWidth: "85%", border: `1px solid ${C.teal}18` }}>
-                    <div style={{ fontSize: "0.68rem", fontWeight: 800, color: C.teal, marginBottom: 4 }}>TUTOR RESPONSE</div>
+                    <div style={{ fontSize: "0.68rem", fontWeight: 800, color: C.teal, marginBottom: 4 }}>TUTOR REFERENCE</div>
                     <span style={{ fontWeight: 500, lineHeight: 1.6 }}>{aiAnswer}</span>
                   </div>
                 </div>
@@ -431,7 +448,7 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
                 }}
               />
               <Button onClick={askAI} disabled={aiLoading || !aiQ.trim()} small style={{ marginTop: 10, width: "100%", justifyContent: "center" }}>
-                {aiLoading ? "⟳ Consulting Tutor..." : "Ask AI Tutor →"}
+                {aiLoading ? "Consulting Guidance..." : "Consult Reference Tutor →"}
               </Button>
             </Card>
           </motion.div>

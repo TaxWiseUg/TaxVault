@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -36,6 +36,7 @@ import { Chart as ChartJS, registerables } from "chart.js";
 import { Modal } from "./UI";
 import { AiComplianceReview } from "./AiComplianceReview";
 import { Finding } from "../lib/validation/helpers";
+import { safeStorage } from "../lib/supabaseClient";
 import {
   getComplianceHistoryAction,
   ComplianceHistoryRecord,
@@ -560,7 +561,7 @@ const HistoryModal = ({
 
         {selected.ai_summary && (
           <div style={{ ...card, padding: "14px 16px", marginBottom: 16, background: "var(--cx-navy-soft)", border: "1px solid color-mix(in srgb, var(--cx-navy) 20%, transparent)" }}>
-            <div style={{ ...eyebrow, color: "var(--cx-navy)", marginBottom: 6 }}>AI Summary</div>
+            <div style={{ ...eyebrow, color: "var(--cx-navy)", marginBottom: 6 }}>Executive Summary</div>
             <p style={{ fontSize: 13, color: "var(--cx-ink)", lineHeight: 1.65 }}>{selected.ai_summary}</p>
           </div>
         )}
@@ -789,13 +790,13 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({ user }) =>
   // Tick-flash feedback: set of IDs currently showing a tick animation
   const [tickIds, setTickIds] = useState<Set<string>>(new Set());
 
-  // Sync findings, checklist, and UI prefs with localStorage (scoped by user.id)
+  // Sync findings, checklist, and UI prefs with safeStorage (scoped by user.id)
   useEffect(() => {
     if (typeof window !== "undefined" && user?.id) {
-      const cacheFindings = localStorage.getItem(`taxwise:compliance:findings:${user.id}`);
-      const cacheChecklist = localStorage.getItem(`taxwise:compliance:checklist:${user.id}`);
-      const cacheView = localStorage.getItem(`taxwise:compliance:view:${user.id}`);
-      const cacheFilter = localStorage.getItem(`taxwise:compliance:filter:${user.id}`);
+      const cacheFindings = safeStorage.getItem(`taxwise:compliance:findings:${user.id}`);
+      const cacheChecklist = safeStorage.getItem(`taxwise:compliance:checklist:${user.id}`);
+      const cacheView = safeStorage.getItem(`taxwise:compliance:view:${user.id}`);
+      const cacheFilter = safeStorage.getItem(`taxwise:compliance:filter:${user.id}`);
 
       if (cacheFindings) {
         try { setFindings(JSON.parse(cacheFindings)); } catch { setFindings(DEMO_FINDINGS); }
@@ -816,25 +817,25 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({ user }) =>
 
   useEffect(() => {
     if (typeof window !== "undefined" && user?.id && findings.length > 0) {
-      localStorage.setItem(`taxwise:compliance:findings:${user.id}`, JSON.stringify(findings));
+      safeStorage.setItem(`taxwise:compliance:findings:${user.id}`, JSON.stringify(findings));
     }
   }, [findings, user?.id]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user?.id && checklist.length > 0) {
-      localStorage.setItem(`taxwise:compliance:checklist:${user.id}`, JSON.stringify(checklist));
+      safeStorage.setItem(`taxwise:compliance:checklist:${user.id}`, JSON.stringify(checklist));
     }
   }, [checklist, user?.id]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user?.id) {
-      localStorage.setItem(`taxwise:compliance:view:${user.id}`, activeView);
+      safeStorage.setItem(`taxwise:compliance:view:${user.id}`, activeView);
     }
   }, [activeView, user?.id]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && user?.id) {
-      localStorage.setItem(`taxwise:compliance:filter:${user.id}`, severityFilter);
+      safeStorage.setItem(`taxwise:compliance:filter:${user.id}`, severityFilter);
     }
   }, [severityFilter, user?.id]);
 
@@ -943,7 +944,7 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({ user }) =>
     setFindings((prev) => prev.map((f) => (f.id === id || f.code === id) ? { ...f, status } : f));
     setExpanded(null);
     showToast(
-      status === "resolved" ? "Finding marked as Resolved ✓" : "Finding marked as Ignored",
+      status === "resolved" ? "Finding marked as Resolved" : "Finding marked as Ignored",
       "success"
     );
   };
@@ -1177,7 +1178,7 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({ user }) =>
             fontFamily: "'Fraunces', serif", fontSize: "1.45rem", fontWeight: 600,
             color: "var(--cx-ink)", margin: 0, lineHeight: 1.2,
           }}>
-            TaxWise AI Compliance Review
+            TaxWise Compliance Review Engine
           </h1>
           <p style={{ fontSize: 13, color: "var(--cx-ink-soft)", margin: "3px 0 0", fontWeight: 400 }}>
             Identify compliance risks before filing.
@@ -1397,10 +1398,10 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({ user }) =>
             {/* ── Body Grid: Findings (left) + Checklist (right) ─────────── */}
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 24, alignItems: "start" }}>
 
-              {/* ── AI Findings ─────────────────────────────────────────── */}
+              {/* ── Findings ─────────────────────────────────────────── */}
               <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-                  <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 600, color: "var(--cx-ink)", margin: 0 }}>AI Findings</h3>
+                  <h3 style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 600, color: "var(--cx-ink)", margin: 0 }}>Audit Findings</h3>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 6, border: "1px solid var(--cx-line)", background: "var(--cx-surface)" }}>
                       <Search size={13} style={{ color: "var(--cx-ink-faint)" }} />

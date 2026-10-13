@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "motion/react";
 import { User } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, 
@@ -19,7 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
-  X
+  X,
+  Calendar
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
@@ -35,7 +35,6 @@ import { AdminPortal } from "../components/AdminPortal";
 import { ProfileSettings } from "../components/ProfileSettings";
 import { CalculatorsPortal } from "../components/CalculatorsPortal";
 import { IntelligencePortal } from "../components/IntelligencePortal";
-import { AiFAB } from "../components/AiFAB";
 
 interface DbProfile {
   id: string;
@@ -45,12 +44,97 @@ interface DbProfile {
   plan: string;
 }
 
+export const SANDBOX_USER: DbProfile = {
+  id: "f8174d44-d81a-4e70-9f4b-64744f969d09",
+  email: "taxwiseplatform@gmail.com",
+  full_name: "TaxWise Practitioner",
+  role: "Admin",
+  plan: "professional",
+};
+
+const getNavItemIcon = (id: string, size = 18) => {
+  switch (id) {
+    case "dashboard": return <LayoutDashboard size={size} />;
+    case "analyzer": return <Scale size={size} />;
+    case "library": return <BookOpen size={size} />;
+    case "calculators": return <Calculator size={size} />;
+    case "intelligence": return <Brain size={size} />;
+    case "education": return <GraduationCap size={size} />;
+    case "compliance": return <CheckCircle size={size} />;
+    case "pricing": return <CreditCard size={size} />;
+    case "admin": return <Shield size={size} />;
+    default: return <LayoutDashboard size={size} />;
+  }
+};
+
+const SidebarNavItem = ({ 
+  item, 
+  isActive, 
+  onClick,
+  isCollapsed,
+  isMobile
+}: { 
+  item: { id: string; label: string }; 
+  isActive: boolean; 
+  onClick: () => void;
+  isCollapsed: boolean;
+  isMobile: boolean;
+}) => {
+  const showCollapsed = isCollapsed && !isMobile;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: showCollapsed ? "center" : "flex-start",
+        gap: showCollapsed ? 0 : 12,
+        width: "100%",
+        padding: showCollapsed ? "11px 0" : "11px 16px",
+        borderRadius: 12,
+        border: "none",
+        background: isActive 
+          ? `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)` 
+          : "transparent",
+        color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.75)",
+        fontWeight: isActive ? 700 : 500,
+        fontSize: "0.875rem",
+        cursor: "pointer",
+        marginBottom: 4,
+        textAlign: "left",
+        fontFamily: "inherit",
+        boxShadow: isActive ? "0 4px 12px rgba(26,123,107,0.3)" : "none",
+        transition: "all 0.15s ease",
+      }}
+      title={showCollapsed ? item.label : undefined}
+      onMouseOver={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+          e.currentTarget.style.color = "#FFFFFF";
+        }
+      }}
+      onMouseOut={(e) => {
+        if (!isActive) {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.color = "rgba(255,255,255,0.75)";
+        }
+      }}
+    >
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+        {getNavItemIcon(item.id, 16)}
+      </span>
+      {!showCollapsed && <span>{item.label}</span>}
+    </button>
+  );
+};
+
 export default function TaxWiseSaaS() {
   const [user, setUser] = useState<User | null>(null);
   const [dbUser, setDbUser] = useState<DbProfile | null>(null);
   const [page, setPage] = useState("dashboard");
   const [loading, setLoading] = useState(false);
-  const [view, setView] = useState<"landing" | "auth">("landing");
+  const [view, setView] = useState<"landing" | "app" | "auth">("landing");
   const [isRecovering, setIsRecovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -121,7 +205,7 @@ export default function TaxWiseSaaS() {
               id: session.user.id,
               email: session.user.email || "",
               full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
-              role: session.user.user_metadata?.role || "Student",
+              role: session.user.user_metadata?.role || (session.user.email === "taxwiseplatform@gmail.com" ? "Admin" : "Student"),
               plan: "free",
             });
           }
@@ -131,7 +215,7 @@ export default function TaxWiseSaaS() {
             id: session.user.id,
             email: session.user.email || "",
             full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
-            role: session.user.user_metadata?.role || "Student",
+            role: session.user.user_metadata?.role || (session.user.email === "taxwiseplatform@gmail.com" ? "Admin" : "Student"),
             plan: "free",
           });
         }
@@ -204,16 +288,11 @@ export default function TaxWiseSaaS() {
     }
   };
 
+  const activeUser = dbUser || SANDBOX_USER;
+
   const handleNavigation = (pageId: string) => {
-    if (user && dbUser) {
-      // User is logged in, navigate directly
-      setPage(pageId);
-      setView("auth");
-    } else {
-      // User is not logged in, save intended page and show auth
-      intendedPageRef.current = pageId;
-      setView("auth");
-    }
+    setPage(pageId);
+    setView("app");
   };
 
   const handleGoHome = () => {
@@ -232,18 +311,16 @@ export default function TaxWiseSaaS() {
   ];
 
   // Include Admin navigation if the user is an Admin
-  if (dbUser?.role?.toLowerCase() === "admin") {
+  if (activeUser.role?.toLowerCase() === "admin") {
     navItems.push({ id: "admin", label: "Admin Portal" });
   }
 
   const renderActivePage = () => {
-    if (!dbUser) return null;
-    
     switch (page) {
       case "dashboard":
-        return <Dashboard user={dbUser} onNavigate={setPage} />;
+        return <Dashboard user={activeUser} onNavigate={setPage} />;
       case "analyzer":
-        return <CaseAnalyzer user={dbUser} />;
+        return <CaseAnalyzer user={activeUser} />;
       case "library":
         return <CaseLibrary />;
       case "calculators":
@@ -251,17 +328,17 @@ export default function TaxWiseSaaS() {
       case "intelligence":
         return <IntelligencePortal />;
       case "education":
-        return <EducationHub user={dbUser} />;
+        return <EducationHub user={activeUser} />;
       case "compliance":
-        return <ComplianceChecker user={dbUser} />;
+        return <ComplianceChecker user={activeUser} />;
       case "pricing":
-        return <PricingPage user={dbUser} onRefreshUser={refreshUser} />;
+        return <PricingPage user={activeUser} onRefreshUser={refreshUser} />;
       case "settings":
-        return <ProfileSettings user={dbUser} onRefreshUser={refreshUser} onNavigateToPricing={() => setPage("pricing")} onAccountDeleted={handleSignOut} />;
+        return <ProfileSettings user={activeUser} onRefreshUser={refreshUser} onNavigateToPricing={() => setPage("pricing")} onAccountDeleted={handleSignOut} />;
       case "admin":
-        return <AdminPortal onNavigate={setPage} currentAdminId={dbUser.id} />;
+        return <AdminPortal onNavigate={setPage} currentAdminId={activeUser.id} />;
       default:
-        return <Dashboard user={dbUser} onNavigate={setPage} />;
+        return <Dashboard user={activeUser} onNavigate={setPage} />;
     }
   };
 
@@ -302,24 +379,6 @@ export default function TaxWiseSaaS() {
           <div style={{ fontSize: "0.78rem", color: "rgba(15, 32, 68, 0.45)", marginTop: 6, fontWeight: 500 }}>
             Securing your connection...
           </div>
-          <button
-            type="button"
-            onClick={() => setLoading(false)}
-            style={{
-              marginTop: 18,
-              padding: "7px 16px",
-              background: "#FFFFFF",
-              border: "1px solid #D1D5DB",
-              borderRadius: 8,
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              color: "#1A7B6B",
-              cursor: "pointer",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
-            }}
-          >
-            Enter Platform &rarr;
-          </button>
         </div>
       </div>
     );
@@ -343,11 +402,14 @@ export default function TaxWiseSaaS() {
     );
   }
 
-  // Show landing page if requested, even when the user is logged in.
+  // Show landing page if requested
   if (view === "landing") {
     return (
       <LandingPage
-        onGetStarted={() => setView("auth")}
+        onGetStarted={() => {
+          setPage("dashboard");
+          setView("app");
+        }}
         onSignIn={() => setView("auth")}
         onNavigate={handleNavigation}
         dbUser={dbUser}
@@ -356,77 +418,18 @@ export default function TaxWiseSaaS() {
     );
   }
 
-  // Show landing page or auth if not logged in
-  if (!user || !dbUser) {
-    return <AuthPage onLoginSuccess={refreshUser} onBack={() => setView("landing")} />;
-  }
-
-  const getNavItemIcon = (id: string, size = 18) => {
-    switch (id) {
-      case "dashboard": return <LayoutDashboard size={size} />;
-      case "analyzer": return <Scale size={size} />;
-      case "library": return <BookOpen size={size} />;
-      case "calculators": return <Calculator size={size} />;
-      case "intelligence": return <Brain size={size} />;
-      case "education": return <GraduationCap size={size} />;
-      case "compliance": return <CheckCircle size={size} />;
-      case "pricing": return <CreditCard size={size} />;
-      case "admin": return <Shield size={size} />;
-      default: return <LayoutDashboard size={size} />;
-    }
-  };
-
-  // Sidebar Nav Item Helper Component for hover states
-  const SidebarNavItem = ({ item, isActive, onClick }: { item: { id: string; label: string }; isActive: boolean; onClick: () => void }) => {
-    const showCollapsed = isCollapsed && !isMobile;
+  // Show auth page if requested
+  if (view === "auth") {
     return (
-      <motion.button
-        onClick={onClick}
-        whileHover={{ x: isActive ? 0 : (showCollapsed ? 0 : 6) }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: "spring", stiffness: 400, damping: 15 }}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: showCollapsed ? "center" : "flex-start",
-          gap: showCollapsed ? 0 : 12,
-          width: "100%",
-          padding: showCollapsed ? "11px 0" : "11px 16px",
-          borderRadius: 12,
-          border: "none",
-          background: isActive 
-            ? `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)` 
-            : "transparent",
-          color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.55)",
-          fontWeight: isActive ? 700 : 500,
-          fontSize: "0.875rem",
-          cursor: "pointer",
-          marginBottom: 4,
-          textAlign: "left",
-          fontFamily: "inherit",
-          boxShadow: isActive ? "0 4px 12px rgba(26,123,107,0.3)" : "none",
-        }}
-        title={showCollapsed ? item.label : undefined}
-        onMouseOver={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-            e.currentTarget.style.color = "rgba(255,255,255,0.85)";
-          }
-        }}
-        onMouseOut={(e) => {
-          if (!isActive) {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = "rgba(255,255,255,0.55)";
-          }
-        }}
-      >
-        <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-          {getNavItemIcon(item.id, 16)}
-        </span>
-        {!showCollapsed && <span>{item.label}</span>}
-      </motion.button>
+      <AuthPage 
+        onLoginSuccess={() => {
+          refreshUser();
+          setView("app");
+        }} 
+        onBack={() => setView("landing")}
+      />
     );
-  };
+  }
 
   // Get dynamic page title for header
   const getPageTitle = () => {
@@ -568,6 +571,8 @@ export default function TaxWiseSaaS() {
               key={n.id}
               item={n}
               isActive={page === n.id}
+              isCollapsed={isCollapsed}
+              isMobile={isMobile}
               onClick={() => {
                 setPage(n.id);
                 if (isMobile) setIsMobileMenuOpen(false);
@@ -605,7 +610,7 @@ export default function TaxWiseSaaS() {
             }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            title={isCollapsed && !isMobile ? dbUser.full_name : undefined}
+            title={isCollapsed && !isMobile ? activeUser.full_name : undefined}
           >
             <div 
               style={{ 
@@ -623,17 +628,17 @@ export default function TaxWiseSaaS() {
                 flexShrink: 0,
               }}
             >
-              {getInitials(dbUser.full_name)}
+              {getInitials(activeUser.full_name)}
             </div>
             {!(isCollapsed && !isMobile) && (
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {dbUser.full_name}
+                  {activeUser.full_name}
                 </div>
                 <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,.4)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <span>{dbUser.role}</span>
+                  <span>{activeUser.role}</span>
                   <span>•</span>
-                  <span style={{ color: "#4DD9C0", fontWeight: 700 }}>{dbUser.plan?.toUpperCase()}</span>
+                  <span style={{ color: "#4DD9C0", fontWeight: 700 }}>{activeUser.plan?.toUpperCase()}</span>
                 </div>
               </div>
             )}
@@ -736,7 +741,29 @@ export default function TaxWiseSaaS() {
             <span style={{ color: C.navy, fontWeight: 700 }}>{getPageTitle()}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            {!isMobile && <span style={{ fontSize: "0.82rem", color: C.muted, fontWeight: 500 }}>📅 {formattedDate}</span>}
+            {!dbUser && (
+              <button
+                onClick={() => setView("auth")}
+                style={{
+                  background: C.white,
+                  border: `1px solid ${C.border}`,
+                  padding: "5px 14px",
+                  borderRadius: 6,
+                  fontSize: "0.78rem",
+                  color: C.navy,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+                }}
+              >
+                Sign In
+              </button>
+            )}
+            {!isMobile && (
+              <span style={{ fontSize: "0.82rem", color: C.muted, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <Calendar size={13} style={{ color: C.teal }} /> {formattedDate}
+              </span>
+            )}
             {!isMobile && <div style={{ width: 1, height: 20, background: C.border }} />}
             <div style={{ position: "relative", display: "flex", alignItems: "center" }} title="Notifications">
               <Bell size={16} style={{ cursor: "pointer", color: C.navy }} />
@@ -752,7 +779,6 @@ export default function TaxWiseSaaS() {
           </main>
         </div>
       </div>
-      <AiFAB currentPage={page} dbUser={dbUser} />
     </div>
   );
 }

@@ -1,10 +1,9 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { supabase } from "../lib/supabaseClient";
-import { LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, Car, Calculator, GraduationCap, ShieldCheck, Mail, Check, Star, FileText, Cpu, TrendingUp, Clock, Building2, Globe, Sparkles, AlertTriangle } from "lucide-react";
-import { AiFAB } from "./AiFAB";
+import { LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, Car, Calculator, GraduationCap, ShieldCheck, Mail, Check, Star, FileText, Cpu, TrendingUp, Clock, Building2, Globe, Sparkles, AlertTriangle, BookOpen } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 
 // Animated Counting Number Component
@@ -20,16 +19,27 @@ const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value,
   const hasCommas = value.includes(",");
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+    const timer = setTimeout(() => setIsVisible(true), 150);
+    if (typeof IntersectionObserver !== "undefined" && ref.current) {
+      try {
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (entries[0]?.isIntersecting) {
+              setIsVisible(true);
+            }
+          },
+          { threshold: 0.1 }
+        );
+        observer.observe(ref.current);
+        return () => {
+          clearTimeout(timer);
+          observer.disconnect();
+        };
+      } catch {
+        setIsVisible(true);
+      }
+    }
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -92,7 +102,7 @@ const DEFAULTS: SiteSettings = {
   hero_title_line1: "The tax intelligence",
   hero_title_line2: "platform your practice",
   hero_title_line3: "actually needs",
-  hero_subtitle: "AI case analysis, TAT precedent research, live tax & import calculators, and compliance checking tools — purpose-built for Uganda's tax ecosystem.",
+  hero_subtitle: "Statutory case analysis, TAT precedent research, live tax & import calculators, and compliance checking tools — purpose-built for Uganda's tax ecosystem.",
   topbar_text: "Engineered for Uganda's Tax & Customs Ecosystem",
   topbar_email: "hello@taxwise.cloud",
 };
@@ -112,15 +122,34 @@ interface LandingPageProps {
 }
 
 const itemToPageMap: Record<string, string> = {
+  // Products
   "Case Analyzer": "analyzer",
   "Compliance Checklists": "compliance",
   "TAT Library Search": "library",
   "Client Report Builder": "analyzer",
+
+  // Precedents
+  "TAT Case Precedents": "library",
+  "Precedent Search & Rulings": "library",
+  "High Court Precedents": "library",
+  "Binding Holding Summaries": "library",
+
+  // Case Analysis
+  "Legal Case Analyzer": "analyzer",
+  "URA Objection Review": "analyzer",
+  "Procedural Timeline Scanner": "analyzer",
+  "Statutory Risk Audit": "analyzer",
+
+  // Calculators
   "PAYE Estimator": "calculators",
   "VAT Calculator": "calculators",
   "Withholding Tax Rates": "calculators",
   "Customs Import Tax": "calculators",
   "Vehicle Depreciation Duty": "calculators",
+  "Corporate Income Tax": "calculators",
+  "Rental Income Tax": "calculators",
+
+  // Intelligence
   "Transfer Pricing Guide": "intelligence",
   "TAT Dispute Strategy": "intelligence",
   "WHT Treaties Map": "intelligence",
@@ -129,8 +158,10 @@ const itemToPageMap: Record<string, string> = {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onNavigate, dbUser, onSignOut }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [taxToolsOpen, setTaxToolsOpen] = useState(false);
   const [heroText, setHeroText] = useState("");
-  const [showResult, setShowResult] = useState(false);
+  const [showResult, setShowResult] = useState(true);
+  const [previewTab, setPreviewTab] = useState<"analysis" | "calculator" | "precedents">("analysis");
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULTS);
@@ -143,6 +174,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
   const [legalOpen, setLegalOpen] = useState(false);
   const [legalTab, setLegalTab] = useState<"privacy" | "terms" | "blog">("privacy");
+
+  const scrollToId = (id: string) => {
+    if (typeof document !== "undefined") {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+    }
+    if (id === "pricing" && onNavigate) {
+      onNavigate("pricing");
+    }
+  };
 
   const handleFooterLinkClick = (link: string) => {
     if (link === "hello@taxwise.cloud") {
@@ -244,7 +288,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
     };
     fetchSettingsAndStats();
   }, []);
-  const heroFull = "COMELSA Ltd – URA assessed UGX 48M under Section 28ITA for failure to withhold tax on payments to non-resident consultants. Taxpayer filed TAT appeal 45 days after objection decision.";
+  const heroFull = "Uganda Clays Ltd – URA revised assessment of UGX 2,822,278,034 on VAT input disallowances & staff welfare under Section 28 & 31 VATA and Section 22 ITA. Taxpayer produced reconciled ledgers and EFRIS invoices.";
   const typingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Bento Interactive states
@@ -265,32 +309,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   }, []);
 
   useEffect(() => {
-    let i = 0;
-    setHeroText("");
-    setShowResult(false);
-    const type = () => {
-      if (i < heroFull.length) {
-        setHeroText(heroFull.slice(0, i + 1));
-        i++;
-        typingRef.current = setTimeout(type, 18);
-      } else {
-        typingRef.current = setTimeout(() => setShowResult(true), 400);
-      }
-    };
-    typingRef.current = setTimeout(type, 600);
-    return () => { if (typingRef.current) clearTimeout(typingRef.current); };
-  }, []);
+    setHeroText(heroFull);
+    setShowResult(true);
+  }, [heroFull]);
 
   const navStyle: React.CSSProperties = {
-    background: scrolled ? "rgba(9, 13, 22, 0.95)" : "transparent",
-    borderBottom: scrolled ? "1px solid rgba(22, 44, 86, 0.5)" : "1px solid rgba(255, 255, 255, 0.05)",
+    background: scrolled ? "rgba(9, 13, 22, 0.96)" : "rgba(9, 13, 22, 0.88)",
+    borderBottom: "1px solid rgba(22, 44, 86, 0.6)",
     position: "sticky",
     top: 0,
     zIndex: 300,
-    backdropFilter: scrolled ? "blur(16px)" : "none",
-    WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
-    transition: "all .4s cubic-bezier(0.16, 1, 0.3, 1)",
-    marginBottom: "-72px",
+    backdropFilter: "blur(16px)",
+    WebkitBackdropFilter: "blur(16px)",
+    transition: "all .3s ease",
   };
 
 
@@ -303,7 +334,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
   const plans = [
     { name: "Starter", price: "Free", period: "Forever", features: ["5 case analyses / month", "Basic TAT library search", "PAYE & VAT calculator tool", "Vehicle import calculator", "Standard email support"], cta: "Get Started Free", popular: false },
-    { name: "Professional", price: "UGX 120,000", period: "/ month", features: ["Unlimited case analyses", "Full TAT case library + AI commentary", "All tax & import calculators", "eFRIS, VAT & PAYE Compliance Checker", "Exportable PDF reports for clients", "Priority chat support"], cta: "Start 14-Day Trial", popular: true, comingSoon: true },
+    { name: "Professional", price: "UGX 120,000", period: "/ month", features: ["Unlimited case analyses", "Full TAT case library + expert commentary", "All tax & import calculators", "eFRIS, VAT & PAYE Compliance Checker", "Exportable PDF reports for clients", "Priority chat support"], cta: "Start 14-Day Trial", popular: true, comingSoon: true },
     { name: "Firm", price: "UGX 350,000", period: "/ month", features: ["Everything in Professional", "Up to 8 team seats", "Admin portal & firm usage metrics", "API access (beta program)", "Dedicated account setup", "ICPAU CPD certificates"], cta: "Contact Sales", popular: false, comingSoon: true },
   ];
 
@@ -520,7 +551,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       `}</style>
 
       {/* DYNAMIC SCROLL PROGRESS BAR */}
-      <div style={{ position: "fixed", top: 0, left: 0, height: "4px", background: "#C8922A", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out" }} />
+      <div style={{ position: "fixed", top: 0, left: 0, height: "4px", background: "#C8922A", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out", pointerEvents: "none" }} />
 
       {/* TOP BAR */}
       <div style={{ background: "#162C56", padding: "10px 5%", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: ".72rem", color: "rgba(250,249,246,0.9)", fontWeight: 500, letterSpacing: "0.04em", borderBottom: "1px solid rgba(250,249,246,0.08)" }}>
@@ -533,81 +564,138 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             <Mail size={13} style={{ color: "#C8922A" }} />
             {settings.topbar_email}
           </span>
-          <button onClick={onGetStarted} style={{ color: "#FAF9F6", background: "none", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: ".72rem", textDecoration: "underline" }}>Start Free Trial →</button>
+          <button type="button" onClick={onGetStarted} style={{ color: "#FAF9F6", background: "none", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: ".72rem", textDecoration: "underline" }}>Start Free Trial →</button>
         </div>
       </div>
 
       {/* NAVIGATION */}
       <div style={navStyle}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%", display: "flex", alignItems: "center", height: 72 }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%", display: "flex", alignItems: "center", justifyContent: "space-between", height: 72 }}>
           {/* Logo */}
-          <a href="#" style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.5rem", color: "#FFFFFF", display: "flex", alignItems: "center", gap: 8, textDecoration: "none", marginRight: 48, flexShrink: 0, fontWeight: 800, transition: "color 0.3s" }}>
+          <button 
+            type="button"
+            onClick={onGetStarted} 
+            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.5rem", color: "#FFFFFF", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", marginRight: 32, flexShrink: 0, fontWeight: 800, padding: 0 }}
+          >
             <div style={{ width: 10, height: 10, background: "#C8922A", borderRadius: "50%", flexShrink: 0 }} />
             Tax<span style={{ color: "#C8922A" }}>Wise</span>
-          </a>
+          </button>
 
           {/* Desktop Nav Links */}
-          <div className="tw-nav-desktop" style={{ display: "flex", alignItems: "center", flex: 1, gap: 4 }}>
-            {[
-              { label: "Products", items: ["Case Analyzer", "Compliance Checklists", "TAT Library Search", "Client Report Builder"] },
-              { label: "Calculators", items: ["PAYE Estimator", "VAT Calculator", "Withholding Tax Rates", "Customs Import Tax", "Vehicle Depreciation Duty"] },
-              { label: "Intelligence", items: ["Transfer Pricing Guide", "TAT Dispute Strategy", "WHT Treaties Map", "Monthly Tax Updates"] },
-              { label: "Pricing" },
-            ].map((nav) => (
-              <div key={nav.label} className="tw-dd" style={{ position: "relative" }}>
-                <button
-                  className="tw-nav-link"
-                  onClick={nav.label === "Pricing" ? () => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" }) : undefined}
-                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 16px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".85rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
-                >
-                  {nav.label} {nav.items && <span style={{ fontSize: ".55rem", opacity: .6, transform: "translateY(0.5px)" }}>▼</span>}
-                </button>
-                {nav.items && (
-                  <div className="tw-dropdown" style={{ position: "absolute", top: "100%", left: 0, background: "#0E1424", borderRadius: "0 0 8px 8px", boxShadow: "0 16px 36px rgba(0,0,0,0.5)", minWidth: 260, zIndex: 400, border: "1px solid rgba(22, 44, 86, 0.8)", borderTop: "3px solid #3B82F6", padding: "8px" }}>
-                    {nav.items.map((item) => (
-                      <button key={item} onClick={() => {
-                        const pageId = itemToPageMap[item];
-                        if (pageId && onNavigate) {
-                          onNavigate(pageId);
-                        } else {
-                          onGetStarted();
-                        }
-                      }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 4, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", fontSize: ".85rem", fontWeight: 600, color: "#F4F4F5", transition: "all .15s" }}
-                        onMouseOver={e => { e.currentTarget.style.background = "rgba(59,130,246,0.1)"; e.currentTarget.style.color = "#3B82F6"; }}
-                        onMouseOut={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#F4F4F5"; }}>
-                        {item}
-                      </button>
-                    ))}
-                  </div>
-                )}
+          <div className="tw-nav-desktop" style={{ display: "flex", alignItems: "center", flex: 1, gap: 4, marginLeft: 8 }}>
+            {/* Grouped Tax Tools Menu */}
+            <div className="tw-dd" style={{ position: "relative" }} onMouseLeave={() => setTaxToolsOpen(false)}>
+              <button
+                type="button"
+                className="tw-nav-link"
+                onClick={() => setTaxToolsOpen(prev => !prev)}
+                style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+              >
+                <span>Tax Tools</span>
+                <span style={{ fontSize: ".55rem", opacity: .6, transform: taxToolsOpen ? "rotate(180deg)" : "translateY(0.5px)", transition: "transform 0.2s ease" }}>▼</span>
+              </button>
+              <div 
+                className={`tw-dropdown ${taxToolsOpen ? "force-open" : ""}`} 
+                style={{ 
+                  position: "absolute", 
+                  top: "100%", 
+                  left: 0, 
+                  background: "#0E1424", 
+                  borderRadius: "0 0 8px 8px", 
+                  boxShadow: "0 16px 36px rgba(0,0,0,0.5)", 
+                  minWidth: 280, 
+                  zIndex: 400, 
+                  border: "1px solid rgba(22, 44, 86, 0.8)", 
+                  borderTop: "3px solid #3B82F6", 
+                  padding: "8px",
+                  ...(taxToolsOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0)", pointerEvents: "auto" } : {})
+                }}
+              >
+                {[
+                  { name: "Case Analyzer", desc: "Evaluate URA audit assessments & objection briefs", page: "analyzer", icon: <Scale size={18} style={{ color: "#3B82F6" }} /> },
+                  { name: "Tax & Duty Calculators", desc: "PAYE, VAT, Corporate, Rental & Import duties", page: "calculators", icon: <Calculator size={18} style={{ color: "#2DD4BF" }} /> },
+                  { name: "Compliance Review", desc: "Statutory filing deadlines & penalty mitigation", page: "compliance", icon: <ShieldCheck size={18} style={{ color: "#C8922A" }} /> },
+                  { name: "Uganda Tax Intelligence", desc: "Legal updates, treaty tax rates & dispute guides", page: "intelligence", icon: <TrendingUp size={18} style={{ color: "#60A5FA" }} /> },
+                ].map((t) => (
+                  <button 
+                    key={t.name} 
+                    type="button"
+                    onClick={() => {
+                      setTaxToolsOpen(false);
+                      if (onNavigate) onNavigate(t.page);
+                      else onGetStarted();
+                    }} 
+                    style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 6, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
+                    onMouseOver={e => { e.currentTarget.style.background = "rgba(59,130,246,0.1)"; }}
+                    onMouseOut={e => { e.currentTarget.style.background = "none"; }}
+                  >
+                    <span style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 }}>{t.icon}</span>
+                    <div>
+                      <div style={{ fontSize: ".835rem", fontWeight: 700, color: "#F4F4F5" }}>{t.name}</div>
+                      <div style={{ fontSize: ".71rem", color: "rgba(255,255,255,0.5)", marginTop: 2, lineHeight: 1.3 }}>{t.desc}</div>
+                    </div>
+                  </button>
+                ))}
               </div>
-            ))}
-                    {/* Nav Actions */}
-          <div className="tw-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 18, marginLeft: "auto" }}>
+            </div>
+
+            {/* Direct Precedents Link */}
+            <button
+              className="tw-nav-link"
+              onClick={() => {
+                if (onNavigate) onNavigate("library");
+                else onGetStarted();
+              }}
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+            >
+              TAT Precedents
+            </button>
+
+            {/* Direct Learning Hub Link */}
+            <button
+              className="tw-nav-link"
+              onClick={() => {
+                if (onNavigate) onNavigate("education");
+                else onGetStarted();
+              }}
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+            >
+              Learning Hub
+            </button>
+
+            {/* Pricing Link */}
+            <button
+              className="tw-nav-link"
+              onClick={() => scrollToId("pricing")}
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+            >
+              Pricing
+            </button>
+          </div>
+
+          {/* Desktop Nav Actions */}
+          <div className="tw-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 14, marginLeft: "auto" }}>
             {dbUser ? (
               <div className="tw-dd" style={{ position: "relative" }}>
                 <button
                   onClick={() => {
-                    if (onNavigate) {
-                      onNavigate("dashboard");
-                    } else {
-                      onGetStarted();
-                    }
+                    if (onNavigate) onNavigate("dashboard");
+                    else onGetStarted();
                   }}
                   className="tw-btn-hover"
                   style={{
-                    background: scrolled ? "#162C56" : "#C8922A",
+                    background: "#162C56",
                     color: "white",
-                    padding: "10px 22px",
-                    borderRadius: 4,
-                    fontSize: ".85rem",
+                    padding: "9px 20px",
+                    borderRadius: 6,
+                    fontSize: ".835rem",
                     fontWeight: 700,
                     border: "none",
                     cursor: "pointer",
                     transition: "all .3s cubic-bezier(0.16, 1, 0.3, 1)",
                     whiteSpace: "nowrap",
                     fontFamily: "inherit",
-                    boxShadow: scrolled ? "0 4px 12px rgba(22,44,86,0.12)" : "0 4px 12px rgba(200,146,42,0.2)",
+                    boxShadow: "0 4px 12px rgba(22,44,86,0.12)",
                     display: "flex",
                     alignItems: "center",
                     gap: 6
@@ -670,17 +758,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               </div>
             ) : (
               <>
-                <button onClick={onSignIn} className="tw-nav-link" style={{ color: "rgba(255,255,255,0.85)", fontSize: ".85rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}>Sign In</button>
-                <button onClick={onGetStarted} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "10px 22px", borderRadius: 4, fontSize: ".85rem", fontWeight: 700, border: "none", cursor: "pointer", transition: "all .3s cubic-bezier(0.16, 1, 0.3, 1)", whiteSpace: "nowrap", fontFamily: "inherit", boxShadow: "0 4px 12px rgba(59,130,246,0.25)" }}>Start Free Trial</button>
+                <button 
+                  onClick={onSignIn} 
+                  className="tw-nav-link" 
+                  style={{ color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={onGetStarted} 
+                  className="tw-btn-hover" 
+                  style={{ 
+                    background: "#3B82F6", 
+                    color: "white", 
+                    padding: "9px 20px", 
+                    borderRadius: 6, 
+                    fontSize: ".835rem", 
+                    fontWeight: 700, 
+                    border: "none", 
+                    cursor: "pointer", 
+                    transition: "all .3s cubic-bezier(0.16, 1, 0.3, 1)", 
+                    whiteSpace: "nowrap", 
+                    fontFamily: "inherit", 
+                    boxShadow: "0 4px 12px rgba(59,130,246,0.25)" 
+                  }}
+                >
+                  Start Free Trial →
+                </button>
               </>
             )}
           </div>
 
           {/* Mobile Menu Icon */}
-          <button className="tw-hamburger" onClick={() => setMobileOpen(v => !v)} style={{ display: "none", flexDirection: "column", gap: 5, cursor: "pointer", padding: 8, background: "none", border: "none", marginLeft: "auto" }}>
+          <button 
+            className="tw-hamburger" 
+            onClick={() => setMobileOpen(v => !v)} 
+            style={{ display: "none", flexDirection: "column", gap: 5, cursor: "pointer", padding: 8, background: "none", border: "none" }}
+            aria-label="Toggle navigation menu"
+          >
             {[0, 1, 2].map(i => <span key={i} style={{ display: "block", width: 22, height: 2, background: "#FFFFFF", borderRadius: 2, transition: "background 0.3s" }} />)}
           </button>
-        </div>  </div>
+        </div>
 
         {/* Mobile Navigation Dropdown */}
         {mobileOpen && (
@@ -691,251 +809,481 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "white" }}>{dbUser.full_name}</div>
               </div>
             )}
-            {["Case Analyzer", "Tax Calculators", "Customs & Import", "Intelligence Hub", "Compliance Checklists", "Pricing Plan"].map(link => {
-              const pageId = link === "Tax Calculators" ? "calculators" : 
-                             link === "Case Analyzer" ? "analyzer" :
-                             link === "Compliance Checklists" ? "compliance" :
-                             link === "Customs & Import" ? "calculators" :
-                             link === "Intelligence Hub" ? "intelligence" :
-                             link === "Pricing Plan" ? "pricing" : "dashboard";
-              return (
-                <button key={link} onClick={() => {
+            {[
+              { label: "Case Analyzer", page: "analyzer" },
+              { label: "TAT Case Precedents Library", page: "library" },
+              { label: "Tax & Customs Calculators", page: "calculators" },
+              { label: "Uganda Tax Intelligence", page: "intelligence" },
+              { label: "Compliance Checklists", page: "compliance" },
+              { label: "Learning & Education Hub", page: "education" },
+              { label: "Pricing Plans", page: "pricing" },
+            ].map(item => (
+              <button 
+                key={item.label} 
+                onClick={() => {
                   setMobileOpen(false);
                   if (onNavigate) {
-                    onNavigate(pageId);
+                    onNavigate(item.page);
                   } else {
                     onGetStarted();
                   }
-                }} className="tw-mobile-link" style={{ display: "block", padding: "12px 0", color: "rgba(255,255,255,.7)", background: "none", border: "none", fontSize: ".9rem", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,.06)", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}>{link}</button>
-              );
-            })}
-            {dbUser ? (
-              <>
-                <button onClick={() => { setMobileOpen(false); if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#4DD9C0", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}>
-                  <LayoutDashboard size={16} />
-                  <span>Go to Dashboard</span>
+                }} 
+                className="tw-mobile-link" 
+                style={{ display: "block", padding: "12px 0", color: "rgba(255,255,255,.8)", background: "none", border: "none", fontSize: ".9rem", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,.06)", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
+              >
+                {item.label}
+              </button>
+            ))}
+            {!dbUser ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
+                <button 
+                  onClick={() => { setMobileOpen(false); onSignIn(); }} 
+                  style={{ display: "block", padding: "11px 16px", color: "white", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  Sign In
                 </button>
-                <button onClick={() => { setMobileOpen(false); if (onSignOut) onSignOut(); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#FCA5A5", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 4 }}>
-                  <LogOut size={16} />
-                  <span>Sign Out</span>
+                <button 
+                  onClick={() => { setMobileOpen(false); onGetStarted(); }} 
+                  style={{ display: "block", padding: "11px 16px", color: "white", background: "#3B82F6", border: "none", borderRadius: 6, fontSize: ".875rem", fontWeight: 700, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  Start Free Trial →
                 </button>
-              </>
+              </div>
             ) : (
-              <button onClick={() => { setMobileOpen(false); onGetStarted(); }} style={{ display: "block", padding: "12px 0", color: "#4DD9C0", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}>→ Start Free Trial</button>
+              <button 
+                onClick={() => { setMobileOpen(false); if (onSignOut) onSignOut(); }} 
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#FCA5A5", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}
+              >
+                <LogOut size={16} />
+                <span>Sign Out</span>
+              </button>
             )}
           </div>
         )}
       </div>
 
       {/* HERO SECTION CONTAINER */}
-      <div style={{ background: "#090D16", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", padding: "140px 5% 80px" }}>
+      <div style={{ background: "#090D16", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", padding: "48px 5% 64px" }}>
         {/* Ambient Blurred Backdrop Glows */}
         <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: "600px", height: "300px", background: "radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(45, 212, 191, 0.08) 50%, transparent 100%)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none", zIndex: 1 }} />
         <div style={{ position: "absolute", top: "40%", left: "30%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(200, 146, 42, 0.05) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(80px)", pointerEvents: "none", zIndex: 1 }} />
         
         {/* Background Grid */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 0)", backgroundSize: "32px 32px", opacity: 0.9, zIndex: 0 }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 0)", backgroundSize: "32px 32px", opacity: 0.9, zIndex: 0, pointerEvents: "none" }} />
 
         {/* Centered Hero Content */}
-        <div style={{ maxWidth: 1000, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
+        <div style={{ maxWidth: 1040, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
           {/* Top Badge */}
-          <motion.div 
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", color: "#2DD4BF", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", padding: "6px 14px", borderRadius: 20, marginBottom: 28 }}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+          <div 
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", color: "#2DD4BF", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", padding: "6px 14px", borderRadius: 20, marginBottom: 20 }}
           >
             <span style={{ width: 6, height: 6, background: "#2DD4BF", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 8px #2DD4BF" }} />
             {settings.hero_badge_text}
-          </motion.div>
+          </div>
           
           {/* Main Centered Title */}
-          <motion.h1 
-            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(2.5rem, 5.5vw, 4.2rem)", color: "#FFFFFF", lineHeight: 1.12, marginBottom: 20, letterSpacing: "-0.03em", fontWeight: 800 }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          <h1 
+            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(2.4rem, 5vw, 3.8rem)", color: "#FFFFFF", lineHeight: 1.15, marginBottom: 18, letterSpacing: "-0.03em", fontWeight: 800 }}
           >
-            AI-Powered Legal &<br />
+            Professional Legal &amp;<br />
             <span style={{ background: "linear-gradient(135deg, #3B82F6 0%, #2DD4BF 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               Tax Intelligence
             </span> for Uganda
-          </motion.h1>
+          </h1>
           
           {/* Hero Subtitle */}
-          <motion.p 
-            style={{ color: "rgba(255,255,255,0.78)", fontSize: "1.1rem", lineHeight: 1.7, marginBottom: 36, maxWidth: 680, margin: "0 auto 36px", fontWeight: 500 }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <p 
+            style={{ color: "rgba(255,255,255,0.78)", fontSize: "1.05rem", lineHeight: 1.65, maxWidth: 680, margin: "0 auto 24px", fontWeight: 500 }}
           >
             {settings.hero_subtitle}
-          </motion.p>
+          </p>
           
           {/* Centered CTA Buttons */}
-          <motion.div 
-            style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 56 }}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+          <div 
+            style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 20 }}
           >
             {dbUser ? (
-              <button onClick={() => { if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "14px 32px", borderRadius: 6, fontWeight: 700, fontSize: ".925rem", border: "none", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(59,130,246,0.35)" }}>
+              <button onClick={() => { if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "13px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(59,130,246,0.35)" }}>
                 Go to Dashboard →
               </button>
             ) : (
-              <button onClick={onGetStarted} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "14px 32px", borderRadius: 6, fontWeight: 700, fontSize: ".925rem", border: "none", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(59,130,246,0.35)" }}>
+              <button onClick={onGetStarted} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "13px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(59,130,246,0.35)" }}>
                 Start 14-Day Free Trial →
               </button>
             )}
-            <button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "rgba(255,255,255,0.03)", color: "#FFFFFF", padding: "14px 32px", borderRadius: 6, fontWeight: 700, fontSize: ".925rem", border: "1px solid rgba(59, 130, 246, 0.35)", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit" }}
+            <button onClick={() => scrollToId("features")} style={{ background: "rgba(255,255,255,0.03)", color: "#FFFFFF", padding: "13px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".92rem", border: "1px solid rgba(59, 130, 246, 0.35)", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit" }}
               onMouseOver={e => { e.currentTarget.style.background = "rgba(59,130,246,0.15)"; e.currentTarget.style.borderColor = "#2DD4BF"; }}
               onMouseOut={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.35)"; }}>
-              Explore Bento Features
+              Explore Platform Tools
             </button>
-          </motion.div>
+          </div>
 
-          {/* LIVE ANALYSIS ENGINE DEMO */}
-          <motion.div
-            style={{ maxWidth: 880, margin: "0 auto", background: "rgba(10, 15, 28, 0.8)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, overflow: "hidden", boxShadow: "0 30px 70px rgba(0,0,0,0.5)", backdropFilter: "blur(20px)", textAlign: "left" }}
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            {/* Header / Title bar */}
-            <div style={{ background: "rgba(22, 44, 86, 0.4)", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <FileText size={16} style={{ color: "#3B82F6" }} />
-                <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: ".825rem", color: "#FFFFFF" }}>Live Demo: AI Tax Analysis Engine</span>
-              </div>
-              <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: ".65rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.1)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(45, 212, 191, 0.2)" }}>
-                COMELSA_Tax_Appeal_Draft.pdf
-              </span>
+          {/* COMPACT TRUST LINE & CREDIBILITY SIGNALS */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 32 }}>
+            <div style={{ 
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: 12, 
+              background: "rgba(255, 255, 255, 0.04)", 
+              border: "1px solid rgba(255, 255, 255, 0.1)", 
+              borderRadius: 30, 
+              padding: "7px 20px", 
+              fontSize: "0.82rem", 
+              color: "rgba(255, 255, 255, 0.85)", 
+              fontWeight: 600,
+              boxShadow: "0 4px 14px rgba(0,0,0,0.25)"
+            }}>
+              <span style={{ color: "#2DD4BF", fontWeight: 700 }}>Uganda-focused research</span>
+              <span style={{ opacity: 0.35 }}>·</span>
+              <span style={{ color: "#C8922A", fontWeight: 700 }}>Tax calculation tools</span>
+              <span style={{ opacity: 0.35 }}>·</span>
+              <span style={{ color: "#60A5FA", fontWeight: 700 }}>Case-law references</span>
             </div>
 
-            {/* Split Screen Layout */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
-              {/* Left Panel: Document Extraction (Typewriter) */}
-              <div style={{ padding: "24px", background: "rgba(10, 15, 28, 0.4)", borderRight: "1px solid rgba(22, 44, 86, 0.4)", display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: ".72rem", color: "rgba(255,255,255,0.4)", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                  <Cpu size={12} style={{ color: "#3B82F6" }} />
-                  <span>Document Text Input Stream</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", fontSize: "0.74rem", color: "rgba(255, 255, 255, 0.55)", fontWeight: 500 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <ShieldCheck size={14} style={{ color: "#2DD4BF" }} />
+                <span>Verified TAT Tribunal Coverage (2015–2026)</span>
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Scale size={14} style={{ color: "#C8922A" }} />
+                <span>ITA Cap 340 · VATA Cap 349 · TPC Act</span>
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Building2 size={14} style={{ color: "#60A5FA" }} />
+                <span>Trusted by Ugandan Tax Practitioners &amp; Firms</span>
+              </span>
+            </div>
+          </div>
+
+          {/* MULTI-TAB PRODUCT PREVIEW & LIVE DEMO PANEL */}
+          <div
+            style={{ 
+              maxWidth: 960, 
+              margin: "0 auto", 
+              background: "rgba(10, 15, 28, 0.9)", 
+              border: "1px solid rgba(22, 44, 86, 0.9)", 
+              borderRadius: 14, 
+              overflow: "hidden", 
+              boxShadow: "0 25px 70px rgba(0,0,0,0.6), 0 0 0 1px rgba(59,130,246,0.15)", 
+              backdropFilter: "blur(20px)", 
+              textAlign: "left" 
+            }}
+          >
+            {/* Header: Window controls & interactive preview tabs */}
+            <div style={{ background: "rgba(22, 44, 86, 0.5)", borderBottom: "1px solid rgba(22, 44, 86, 0.7)", padding: "10px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444" }} />
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B" }} />
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981" }} />
                 </div>
-                <div style={{ flex: 1, minHeight: "180px", background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 8, padding: "16px", fontFamily: "'JetBrains Mono', monospace", fontSize: ".8rem", color: "#94A3B8", lineHeight: 1.6, position: "relative" }}>
-                  <span style={{ color: "#F4F4F5" }}>{heroText}</span>
-                  {!showResult && <span className="tw-cursor" style={{ marginLeft: 3 }} />}
-                  {showResult && (
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      style={{ marginTop: 14, fontSize: ".72rem", color: "#2DD4BF", display: "flex", alignItems: "center", gap: 6, fontWeight: 700 }}
+                
+                {/* Preview Navigation Tabs */}
+                <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(5, 8, 16, 0.6)", padding: "3px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                  {[
+                    { id: "analysis", label: "Case Analysis", icon: <Scale size={13} style={{ color: "#3B82F6" }} />, badge: "Live Output" },
+                    { id: "calculator", label: "Tax Calculation Suite", icon: <Calculator size={13} style={{ color: "#2DD4BF" }} />, badge: "Interactive" },
+                    { id: "precedents", label: "TAT Precedent Engine", icon: <BookOpen size={13} style={{ color: "#C8922A" }} />, badge: "68+ Cases" },
+                  ].map(tab => (
+                    <button
+                      type="button"
+                      key={tab.id}
+                      onClick={() => setPreviewTab(tab.id as any)}
+                      style={{
+                        padding: "5px 12px",
+                        borderRadius: 6,
+                        border: "none",
+                        background: previewTab === tab.id ? "rgba(59, 130, 246, 0.25)" : "transparent",
+                        color: previewTab === tab.id ? "#FFFFFF" : "rgba(255, 255, 255, 0.6)",
+                        fontSize: ".75rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                        transition: "all 0.15s ease",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6
+                      }}
                     >
-                      <Check size={14} /> Character stream parsed completely.
-                    </motion.div>
-                  )}
+                      <span style={{ display: "flex", alignItems: "center" }}>{tab.icon}</span>
+                      <span>{tab.label}</span>
+                      <span style={{ 
+                        fontSize: ".62rem", 
+                        padding: "1px 5px", 
+                        borderRadius: 4, 
+                        background: previewTab === tab.id ? "rgba(45, 212, 191, 0.2)" : "rgba(255,255,255,0.05)",
+                        color: previewTab === tab.id ? "#2DD4BF" : "rgba(255,255,255,0.4)" 
+                      }}>
+                        {tab.badge}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Right Panel: AI TaxWise Structured Analysis Output */}
-              <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 14, justifyContent: "center" }}>
-                {!showResult ? (
-                  // Loading / Processing State
-                  <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: "10px 0" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <div className="shimmer-loading" style={{ width: 24, height: 24, borderRadius: "50%" }} />
-                      <div className="shimmer-loading" style={{ width: 140, height: 14, borderRadius: 4 }} />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingLeft: 32 }}>
-                      <div className="shimmer-loading" style={{ width: "90%", height: 10, borderRadius: 3 }} />
-                      <div className="shimmer-loading" style={{ width: "85%", height: 10, borderRadius: 3 }} />
-                      <div className="shimmer-loading" style={{ width: "70%", height: 10, borderRadius: 3 }} />
-                    </div>
-                    <div style={{ display: "flex", gap: 6, alignItems: "center", fontSize: ".78rem", color: "rgba(255,255,255,0.45)", fontStyle: "italic", paddingLeft: 32, marginTop: 8 }}>
-                      <span>Analyzing timelines and precedents...</span>
-                    </div>
-                  </div>
-                ) : (
-                  // Active Result State
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4 }}
-                    style={{ display: "flex", flexDirection: "column", gap: 14 }}
-                  >
-                    {/* Header */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#2DD4BF", boxShadow: "0 0 6px #2DD4BF" }} />
+                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: ".68rem", color: "#2DD4BF", fontWeight: 600 }}>
+                  URA Tax Act 2026 v4.2
+                </span>
+              </div>
+            </div>
+
+            {/* TAB CONTENT 1: CASE ANALYSIS OUTPUT */}
+            {previewTab === "analysis" && (
+              <div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
+                  {/* Left Column: Case Overview & Live Parsing Stream */}
+                  <div style={{ padding: "20px 24px", background: "rgba(10, 15, 28, 0.5)", borderRight: "1px solid rgba(22, 44, 86, 0.4)", display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Sparkles size={14} style={{ color: "#2DD4BF" }} />
-                        <span style={{ fontSize: ".75rem", fontWeight: 700, color: "#2DD4BF", letterSpacing: "0.03em" }}>AI STRUCTURAL AUDIT</span>
-                      </div>
-                      <span style={{ background: "rgba(220, 38, 38, 0.12)", border: "1px solid rgba(220, 38, 38, 0.3)", color: "#F87171", padding: "3px 8px", borderRadius: 4, fontSize: ".65rem", fontWeight: 700, letterSpacing: "0.03em", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <AlertTriangle size={10} /> HIGH RISK EXPOSURE
+                      <span style={{ fontSize: ".7rem", color: "#3B82F6", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 5 }}>
+                        <Cpu size={13} /> Document Input &amp; Facts
+                      </span>
+                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: ".65rem", color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>
+                        TAT_App_012_2023.pdf
                       </span>
                     </div>
 
-                    {/* Verdict / Key violation */}
-                    <div style={{ background: "rgba(220, 38, 38, 0.05)", border: "1px solid rgba(220, 38, 38, 0.15)", borderRadius: 8, padding: "12px" }}>
-                      <div style={{ fontSize: ".825rem", fontWeight: 700, color: "#FCA5A5", marginBottom: 4 }}>Procedural Timeline Violation</div>
-                      <p style={{ fontSize: ".75rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
-                        Appeal filed **45 days** after objection decision, exceeding the mandatory **30-day filing window** under Section 14 of the TAT Act.
-                      </p>
-                    </div>
-
-                    {/* Applicable Law & Precedents */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase" }}>Binding Precedent Match:</div>
-                      <div style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(59,130,246,0.04)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 8, padding: "10px" }}>
-                        <Scale size={14} style={{ color: "#3B82F6", marginTop: 2, flexShrink: 0 }} />
-                        <div>
-                          <div style={{ fontSize: ".75rem", fontWeight: 700, color: "#FFFFFF" }}>Edward Mwanje v. URA (TAT No. 145/2025)</div>
-                          <p style={{ fontSize: ".7rem", color: "rgba(255,255,255,0.6)", marginTop: 2, lineHeight: 1.4 }}>
-                            Tribunal ruled it holds **zero jurisdiction** to extend filing periods if appeal is filed late without a separate extension application.
-                          </p>
-                        </div>
+                    <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ fontSize: ".82rem", fontWeight: 700, color: "#FFFFFF" }}>
+                        Uganda Clays Limited v. Uganda Revenue Authority
+                      </div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: ".7rem" }}>
+                        <span style={{ color: "#C8922A", background: "rgba(200, 146, 42, 0.12)", padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
+                          Assessment: UGX 2,822,278,034
+                        </span>
+                        <span style={{ color: "#60A5FA", background: "rgba(59, 130, 246, 0.12)", padding: "2px 6px", borderRadius: 4, fontWeight: 600 }}>
+                          Taxes: VAT &amp; Corp Income Tax
+                        </span>
+                      </div>
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 8, fontSize: ".75rem", color: "#94A3B8", lineHeight: 1.5, fontFamily: "'JetBrains Mono', monospace" }}>
+                        {heroText || heroFull}
                       </div>
                     </div>
 
-                    {/* Strategic steps */}
-                    <div style={{ borderTop: "1px solid rgba(22, 44, 86, 0.4)", paddingTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: ".75rem", color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>System output completed</span>
-                      <button onClick={onGetStarted} style={{ background: "rgba(45, 212, 191, 0.08)", border: "1px solid rgba(45, 212, 191, 0.3)", borderRadius: 6, padding: "5px 12px", color: "#2DD4BF", fontSize: ".7rem", fontWeight: 700, cursor: "pointer", transition: "all 0.2s" }}
-                        onMouseOver={e => { e.currentTarget.style.background = "rgba(45, 212, 191, 0.16)"; e.currentTarget.style.borderColor = "#2DD4BF"; }}
-                        onMouseOut={e => { e.currentTarget.style.background = "rgba(45, 212, 191, 0.08)"; e.currentTarget.style.borderColor = "rgba(45, 212, 191, 0.3)"; }}
+                    {/* Timeline Check Indicator */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "rgba(45, 212, 191, 0.06)", border: "1px solid rgba(45, 212, 191, 0.2)", borderRadius: 6, fontSize: ".72rem" }}>
+                      <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>Procedural Window:</span>
+                      <span style={{ color: "#2DD4BF", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                        <Check size={13} /> Timely filed within 30 days under Sec 14 TAT Act
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Tax Analysis Results (Immediately visible!) */}
+                  <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <Sparkles size={14} style={{ color: "#2DD4BF" }} />
+                        <span style={{ fontSize: ".75rem", fontWeight: 700, color: "#2DD4BF", letterSpacing: "0.03em" }}>STATUTORY AUDIT &amp; RULING HOLDING</span>
+                      </div>
+                      <span style={{ background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#34D399", padding: "3px 8px", borderRadius: 4, fontSize: ".65rem", fontWeight: 700, letterSpacing: "0.03em", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                        <Check size={11} /> 89% TAXPAYER WIN PROBABILITY
+                      </span>
+                    </div>
+
+                    {/* Legal Issues Card */}
+                    <div style={{ background: "rgba(59, 130, 246, 0.05)", border: "1px solid rgba(59, 130, 246, 0.18)", borderRadius: 8, padding: "10px 12px" }}>
+                      <div style={{ fontSize: ".75rem", fontWeight: 700, color: "#60A5FA", marginBottom: 3 }}>
+                        Core Legal Issues &amp; Statutory Points:
+                      </div>
+                      <ul style={{ margin: 0, paddingLeft: 16, fontSize: ".73rem", color: "rgba(255,255,255,0.78)", lineHeight: 1.45 }}>
+                        <li><strong>Sections 28 &amp; 31, VAT Act</strong>: Disallowance of capital input VAT credits despite validated EFRIS fiscal document numbers.</li>
+                        <li><strong>Section 22, Income Tax Act</strong>: Staff welfare deductibility distinct from PAYE withholding obligations.</li>
+                      </ul>
+                    </div>
+
+                    {/* Concise Summary & Ruling */}
+                    <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "10px 12px" }}>
+                      <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", marginBottom: 3 }}>
+                        Tribunal Holding &amp; Legal Synthesis:
+                      </div>
+                      <p style={{ margin: 0, fontSize: ".74rem", color: "#E2E8F0", lineHeight: 1.5 }}>
+                        The Tribunal set aside URA&apos;s additional assessment of Shs 2.82B. Held that where audited accounts and verified EFRIS invoices are produced, the Revenue Authority cannot base assessments on suspicion without objective transaction analysis.
+                      </p>
+                    </div>
+
+                    {/* Supporting Authorities & Precedents */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <div style={{ fontSize: ".7rem", color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase" }}>
+                        Supporting Binding Authorities:
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: ".7rem", color: "#CBD5E1", background: "rgba(22, 44, 86, 0.6)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <Scale size={11} style={{ color: "#C8922A" }} /> Tullow Uganda Operations v. URA (TAT 4/2011)
+                        </span>
+                        <span style={{ fontSize: ".7rem", color: "#CBD5E1", background: "rgba(22, 44, 86, 0.6)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <Scale size={11} style={{ color: "#3B82F6" }} /> Kasese Cobalt Co. v. URA (HCCA 4/2020)
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Bottom CTA bar inside preview */}
+                    <div style={{ borderTop: "1px solid rgba(22, 44, 86, 0.4)", paddingTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
+                      <button 
+                        onClick={() => {
+                          let i = 0;
+                          setHeroText("");
+                          setShowResult(false);
+                          if (typingRef.current) clearTimeout(typingRef.current);
+                          const type = () => {
+                            if (i < heroFull.length) {
+                              setHeroText(heroFull.slice(0, i + 1));
+                              i++;
+                              typingRef.current = setTimeout(type, 16);
+                            } else {
+                              typingRef.current = setTimeout(() => setShowResult(true), 300);
+                            }
+                          };
+                          type();
+                        }}
+                        style={{ background: "none", border: "none", color: "#3B82F6", fontSize: ".72rem", fontWeight: 700, cursor: "pointer", textDecoration: "underline", padding: 0 }}
+                      >
+                        Replay Parser Stream ↺
+                      </button>
+                      <button 
+                        onClick={() => {
+                          if (onNavigate) onNavigate("analyzer");
+                          else onGetStarted();
+                        }}
+                        style={{ background: "#3B82F6", color: "white", padding: "6px 14px", borderRadius: 6, fontSize: ".73rem", fontWeight: 700, border: "none", cursor: "pointer", transition: "all 0.2s" }}
                       >
                         Try with Your Files →
                       </button>
                     </div>
-                  </motion.div>
-                )}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Quick Demo Replay Trigger */}
-            <div style={{ padding: "10px 20px", background: "rgba(22, 44, 86, 0.15)", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: ".72rem" }}>
-              <span style={{ color: "rgba(255,255,255,0.4)" }}>Drafted according to Uganda Tax Procedures Code Act</span>
-              <button 
-                onClick={() => {
-                  let i = 0;
-                  setHeroText("");
-                  setShowResult(false);
-                  if (typingRef.current) clearTimeout(typingRef.current);
-                  const type = () => {
-                    if (i < heroFull.length) {
-                      setHeroText(heroFull.slice(0, i + 1));
-                      i++;
-                      typingRef.current = setTimeout(type, 18);
-                    } else {
-                      typingRef.current = setTimeout(() => setShowResult(true), 400);
-                    }
-                  };
-                  type();
-                }} 
-                style={{ background: "none", border: "none", color: "#3B82F6", fontWeight: 700, cursor: "pointer", textDecoration: "underline", padding: 0 }}
-              >
-                Replay Simulation
-              </button>
-            </div>
-          </motion.div>
+            {/* TAB CONTENT 2: TAX CALCULATION SUITE */}
+            {previewTab === "calculator" && (
+              <div style={{ padding: "24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
+                {/* PAYE Sample Card */}
+                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 10, padding: "18px", display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <Calculator size={16} style={{ color: "#3B82F6" }} />
+                      <span style={{ fontSize: ".85rem", fontWeight: 700, color: "#FFFFFF" }}>Uganda PAYE Statutory Schedule</span>
+                    </div>
+                    <span style={{ fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.1)", padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
+                      ITA 4th Schedule
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: ".78rem" }}>
+                    <div style={{ background: "rgba(22, 44, 86, 0.3)", padding: "10px", borderRadius: 6 }}>
+                      <span style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: ".7rem" }}>Contractual Gross</span>
+                      <strong style={{ color: "#FFFFFF", fontSize: ".9rem" }}>UGX 6,500,000</strong>
+                    </div>
+                    <div style={{ background: "rgba(22, 44, 86, 0.3)", padding: "10px", borderRadius: 6 }}>
+                      <span style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: ".7rem" }}>NSSF 5% (Retirement)</span>
+                      <strong style={{ color: "#FCA5A5", fontSize: ".9rem" }}>-UGX 325,000</strong>
+                    </div>
+                    <div style={{ background: "rgba(22, 44, 86, 0.3)", padding: "10px", borderRadius: 6 }}>
+                      <span style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: ".7rem" }}>Chargeable Base</span>
+                      <strong style={{ color: "#60A5FA", fontSize: ".9rem" }}>UGX 6,175,000</strong>
+                    </div>
+                    <div style={{ background: "rgba(45, 212, 191, 0.08)", padding: "10px", borderRadius: 6, border: "1px solid rgba(45, 212, 191, 0.2)" }}>
+                      <span style={{ color: "#2DD4BF", display: "block", fontSize: ".7rem", fontWeight: 700 }}>Net Monthly PAYE</span>
+                      <strong style={{ color: "#2DD4BF", fontSize: ".95rem" }}>UGX 1,642,500</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
+                    Net Take-Home Pay: <strong>UGX 4,532,500</strong> (Effective Tax Rate: 25.3%). Computes across all statutory threshold brackets.
+                  </div>
+                </div>
+
+                {/* Additional Calculators Quick Summary */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 2 }}>
+                    Included Statutory Tax Calculators
+                  </div>
+                  {[
+                    { name: "Corporate Income Tax (CIT)", rate: "30% standard / 25% listed", detail: "Form DT-2002 Schedule 1 add-backs & deductions" },
+                    { name: "Value Added Tax (VAT)", rate: "18% standard rate", detail: "Monthly input/output reconciliations with deemed EFRIS rules" },
+                    { name: "Rental Income Tax", rate: "12% individual / 30% corporate", detail: "Automatic 50% deemed expense deduction logic" },
+                    { name: "Vehicle Customs Duty", rate: "CIF + 25% Duty + 18% VAT", detail: "URA valuation guide depreciation scale (up to 70%)" },
+                  ].map(c => (
+                    <div key={c.name} style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 6, padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: ".76rem", fontWeight: 700, color: "#F4F4F5" }}>{c.name}</div>
+                        <div style={{ fontSize: ".68rem", color: "rgba(255,255,255,0.5)" }}>{c.detail}</div>
+                      </div>
+                      <span style={{ fontSize: ".68rem", color: "#C8922A", background: "rgba(200, 146, 42, 0.1)", padding: "2px 6px", borderRadius: 4, fontWeight: 700, whiteSpace: "nowrap" }}>
+                        {c.rate}
+                      </span>
+                    </div>
+                  ))}
+                  <button 
+                    onClick={() => {
+                      if (onNavigate) onNavigate("calculators");
+                      else onGetStarted();
+                    }}
+                    style={{ marginTop: 4, background: "#3B82F6", color: "white", padding: "10px", borderRadius: 6, fontSize: ".8rem", fontWeight: 700, border: "none", cursor: "pointer", textAlign: "center" }}
+                  >
+                    Open Full Tax Calculator Suite →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT 3: TAT PRECEDENT ENGINE */}
+            {previewTab === "precedents" && (
+              <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+                  <Search size={15} style={{ color: "#3B82F6" }} />
+                  <span style={{ fontSize: ".82rem", color: "#FFFFFF", fontFamily: "'JetBrains Mono', monospace" }}>
+                    &ldquo;EFRIS input tax credit disallowance reconciliation&rdquo;
+                  </span>
+                  <span style={{ marginLeft: "auto", fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.12)", padding: "2px 8px", borderRadius: 4, fontWeight: 700 }}>
+                    3 Matching Precedents
+                  </span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+                  <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <span style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF" }}>Uganda Clays v. URA (2024)</span>
+                      <span style={{ fontSize: ".65rem", color: "#10B981", background: "rgba(16, 185, 129, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700 }}>Assessment Quashed</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: ".72rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
+                      EFRIS fiscal document numbers provide valid documentary trail; URA cannot disallow input tax based on perceived similarity of expense description.
+                    </p>
+                    <span style={{ fontSize: ".68rem", color: "#3B82F6", marginTop: 4, fontWeight: 600 }}>Citations: Sec 28 VATA · Sec 22 ITA</span>
+                  </div>
+
+                  <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <span style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF" }}>Edward Mwanje v. URA (2025)</span>
+                      <span style={{ fontSize: ".65rem", color: "#F87171", background: "rgba(239, 68, 68, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700 }}>Jurisdiction Denied</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: ".72rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
+                      TAT holds zero jurisdiction to entertain late appeal without an explicit statutory extension application under Section 14(2) TAT Act.
+                    </p>
+                    <span style={{ fontSize: ".68rem", color: "#3B82F6", marginTop: 4, fontWeight: 600 }}>Citations: Sec 14 TAT Act · Rule 12 TAT Rules</span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(22, 44, 86, 0.4)", paddingTop: 12 }}>
+                  <span style={{ fontSize: ".74rem", color: "rgba(255,255,255,0.5)" }}>
+                    Indexed over 68 binding Uganda tax judgments from 2015 to 2026.
+                  </span>
+                  <button 
+                    onClick={() => {
+                      if (onNavigate) onNavigate("library");
+                      else onGetStarted();
+                    }}
+                    style={{ background: "#3B82F6", color: "white", padding: "8px 16px", borderRadius: 6, fontSize: ".78rem", fontWeight: 700, border: "none", cursor: "pointer" }}
+                  >
+                    Search Full Case Library →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1210,13 +1558,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
                 {[
-                  { title: "Case Analyzer", desc: "Scan litigation briefs & objection templates against Cap 340/349 statutory provisions.", icon: "🔍" },
-                  { title: "Compliance Checklists", desc: "Validate transaction workflows to bypass the standard UGX 6M URA penalty fine.", icon: "✓" },
-                  { title: "WHT Treaty Maps", desc: "Track non-resident double taxation avoidance treaties active across East Africa.", icon: "🌍" },
-                  { title: "Client Report Builder", desc: "Compile structured risk briefings and citations for foreign and domestic clients.", icon: "📄" }
+                  { title: "Case Analyzer", desc: "Scan litigation briefs & objection templates against Cap 340/349 statutory provisions.", icon: <Search size={20} style={{ color: "#3B82F6" }} /> },
+                  { title: "Compliance Checklists", desc: "Validate transaction workflows to bypass the standard UGX 6M URA penalty fine.", icon: <Check size={20} style={{ color: "#2DD4BF" }} /> },
+                  { title: "WHT Treaty Maps", desc: "Track non-resident double taxation avoidance treaties active across East Africa.", icon: <Globe size={20} style={{ color: "#C8922A" }} /> },
+                  { title: "Client Report Builder", desc: "Compile structured risk briefings and citations for foreign and domestic clients.", icon: <FileText size={20} style={{ color: "#60A5FA" }} /> }
                 ].map(item => (
                   <div key={item.title} style={{ background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 8, padding: "16px", cursor: "pointer" }} onClick={onGetStarted}>
-                    <div style={{ fontSize: "1.2rem", marginBottom: 8 }}>{item.icon}</div>
+                    <div style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>{item.icon}</div>
                     <h4 style={{ fontSize: ".85rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 6 }}>{item.title}</h4>
                     <p style={{ fontSize: ".74rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.45 }}>{item.desc}</p>
                   </div>
@@ -1245,7 +1593,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 40, overflow: "hidden" }}>
             {[
               { step: "01", icon: <FileText size={24} style={{ color: "#3B82F6" }} />, title: "Upload or paste your case", desc: "Upload a TAT ruling PDF, paste a URA assessment, or describe your scenario. We accept all text structures.", x: -50, y: 0 },
-              { step: "02", icon: <Cpu size={24} style={{ color: "#3B82F6" }} />, title: "AI analyzes in 30 seconds", desc: "The engine references Uganda tax acts, TAT precedents, and URA practice notes to deliver an interactive report.", x: 0, y: 50 },
+              { step: "02", icon: <Cpu size={24} style={{ color: "#3B82F6" }} />, title: "Analyzes in 30 seconds", desc: "The engine references Uganda tax acts, TAT precedents, and URA practice notes to deliver an interactive report.", x: 0, y: 50 },
               { step: "03", icon: <TrendingUp size={24} style={{ color: "#3B82F6" }} />, title: "Act on structured findings", desc: "Download a clean report detailing risk level, precedents, applicable rules, and next steps. Ready for clients.", x: 50, y: 0 },
             ].map(s => (
               <motion.div 
@@ -1533,7 +1881,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           </div>
         </div>
       </footer>
-      <AiFAB currentPage="landing" dbUser={dbUser} />
       <LegalPortal isOpen={legalOpen} onClose={() => setLegalOpen(false)} initialTab={legalTab} />
     </div>
   );

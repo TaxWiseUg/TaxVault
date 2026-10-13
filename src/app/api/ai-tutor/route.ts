@@ -24,9 +24,9 @@ Keep answers concise (under 200 words) and direct, unless specifically asked to 
         temperature: 0.5,
       });
     } catch (apiErr) {
-      console.error("Gemini API call failed for AI tutor:", apiErr);
+      console.error("Gemini API call failed for lesson tutor:", apiErr);
       return NextResponse.json(
-        { error: apiErr instanceof Error ? apiErr.message : "Failed to communicate with Google Gemini API." },
+        { error: apiErr instanceof Error ? apiErr.message : "Failed to communicate with Gemini API." },
         { status: 502 }
       );
     }
@@ -36,7 +36,7 @@ Keep answers concise (under 200 words) and direct, unless specifically asked to 
       answer: responseText,
     });
   } catch (error: unknown) {
-    console.error("AI Tutor API error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to communicate with AI Tutor." }, { status: 500 });
+    console.error("Lesson Tutor API error:", error);
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to communicate with Lesson Tutor." }, { status: 500 });
   }
 }

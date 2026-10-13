@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
@@ -570,14 +572,14 @@ export const AiComplianceReview: React.FC<AiComplianceReviewProps> = ({ user, on
         <div style={styles.headerTitleContainer}>
           <div style={styles.headerTitleRow}>
             <div style={styles.iconWrapper}>
-              <Sparkles size={20} />
+              <ShieldCheck size={20} />
             </div>
             <h1 style={styles.title}>
-              AI Compliance Review Cockpit
+              Compliance Review Cockpit
             </h1>
           </div>
           <p style={styles.subtitle}>
-            Audit and reconcile raw financial filings using deterministic tax rules, coupled with a cautious narrative assessment.
+            Audit and reconcile raw financial filings using deterministic tax rules, coupled with a cautious statutory narrative assessment.
           </p>
         </div>
 
@@ -914,18 +916,18 @@ export const AiComplianceReview: React.FC<AiComplianceReviewProps> = ({ user, on
           {/* Review trigger CTA when no active review exists */}
           {!reviewResult && !reviewing && (
             <div style={{ background: `linear-gradient(135deg, ${C.tealLight} 0%, rgba(26,123,107,0.02) 100%)`, borderRadius: 16, padding: 40, border: `1.5px solid ${C.border}`, textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-              <Sparkles size={44} style={{ color: C.teal, animation: "pulse 2s infinite ease-in-out" }} />
+              <ShieldCheck size={44} style={{ color: C.teal }} />
               <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.4rem", fontWeight: 800, color: C.navy, margin: 0 }}>
-                Ready to Run AI Compliance Review
+                Ready to Run Compliance Review
               </h2>
               <p style={{ fontSize: "0.875rem", color: C.muted, maxWidth: 480, margin: 0, lineHeight: 1.5 }}>
-                Trigger our deterministic financial auditing engine. TaxWise will execute complex rule checks, sum exposure levels, and consult Gemini for a client-safe compliance summary.
+                Trigger our deterministic financial auditing engine. TaxWise will execute complex rule checks, sum exposure levels, and generate a client-safe compliance summary.
               </p>
               <Button 
                 onClick={handleRunReview} 
                 style={{ marginTop: 8 }}
               >
-                Run AI Audit & Review
+                Run Audit & Review
               </Button>
             </div>
           )}
@@ -1018,18 +1020,15 @@ export const AiComplianceReview: React.FC<AiComplianceReviewProps> = ({ user, on
               {/* Gemini Professional Summary Block */}
               {reviewResult.ai_summary && (
                 <div style={styles.aiSynthesisCard}>
-                  <div style={{ position: "absolute", top: -10, right: -10, opacity: 0.05, color: C.teal }}>
-                    <Sparkles size={110} />
-                  </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, color: C.teal, marginBottom: 8 }}>
-                    <Sparkles size={16} />
-                    <span style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>AI Executive Synthesis</span>
+                    <FileText size={16} />
+                    <span style={{ fontSize: "0.72rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>Executive Synthesis</span>
                   </div>
                   <p style={{ fontSize: "0.875rem", color: C.navy, lineHeight: 1.6, fontWeight: 500, fontStyle: "italic", margin: "0 0 12px 0" }}>
                     &ldquo;{reviewResult.ai_summary}&rdquo;
                   </p>
-                  <div style={{ fontSize: "9px", color: C.muted, fontWeight: 700, letterSpacing: "0.04em" }}>
-                    ⚠️ GENERATED WITH CAUTIOUS HEDGED LANGUAGE UNDER REGULATORY COMPLIANCE PROTOCOLS
+                  <div style={{ fontSize: "9px", color: C.muted, fontWeight: 700, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
+                    <AlertTriangle size={11} style={{ color: C.gold }} /> GENERATED UNDER REGULATORY COMPLIANCE PROTOCOLS
                   </div>
                 </div>
               )}

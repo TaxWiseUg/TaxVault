@@ -204,7 +204,7 @@ export function getSubscriptionEmailHtml(
       </div>
 
       <p style="${EMAIL_STYLES.p}">
-        You can now upload massive tax filings, run deep analysis on Ugandan rulings, and query our intelligent AI tutor with complex compliance scenarios.
+        You can now upload massive tax filings, run deep analysis on Ugandan rulings, and query our interactive lesson tutor with complex compliance scenarios.
       </p>
 
       <!-- CTA Button -->
@@ -281,7 +281,7 @@ export function getAccountDeletionEmailHtml(fullName: string): string {
       <div style="${EMAIL_STYLES.divider}"></div>
 
       <p style="${EMAIL_STYLES.p}">
-        Should you ever need professional AI tax analysis in the future, you are always welcome to sign up again. Thank you for using TaxWise!
+        Should you ever need professional tax analysis in the future, you are always welcome to sign up again. Thank you for using TaxWise!
       </p>
     </div>
 
@@ -322,7 +322,7 @@ export function getSignupOtpEmailHtml(fullName: string, code: string): string {
     <div style="${EMAIL_STYLES.content}">
       <h1 style="${EMAIL_STYLES.h1}">Welcome to TaxWise, ${fullName || "User"}!</h1>
       <p style="${EMAIL_STYLES.p}">
-        Thank you for choosing TaxWise — Uganda's premier AI-powered tax intelligence platform. To complete your registration and activate your account, please verify your email address.
+        Thank you for choosing TaxWise — Uganda's premier tax intelligence and compliance platform. To complete your registration and activate your account, please verify your email address.
       </p>
 
       <div style="${EMAIL_STYLES.card}">
@@ -343,7 +343,7 @@ export function getSignupOtpEmailHtml(fullName: string, code: string): string {
       <div style="${EMAIL_STYLES.divider}"></div>
 
       <p style="${EMAIL_STYLES.p}">
-        Our platform puts an advanced tax law research database, automated tribunal ruling parsers, and a powerful AI analysis engine at your fingertips.
+        Our platform puts an advanced tax law research database, automated tribunal ruling parsers, and a powerful statutory analysis engine at your fingertips.
       </p>
     </div>
 

@@ -1,0 +1,695 @@
+id,case_number,title,year,tax_type,outcome,summary,full_text,ai_commentary,created_at
+00411650-31ab-49b2-bcc9-68a12b8d850c,APPLICATION NO. 274 OF 2025,ASAFALI WISSANJI v UGANDA REVENUE AUTHORITY,2026,Income Tax,Allowed,"The Applicant challenged URA's decision to subject the sale of undeveloped land to Capital Gains Tax and Withholding Tax, arguing it was a personal asset, not a business asset. The Tribunal found that the land was undeveloped, unused, and not integrated into any business activity, despite a commercial user clause in the lease. The Tribunal ruled that the gain from disposal was not taxable business income and therefore not subject to withholding tax, allowing the application.","1. This ruling is in respect of an application filed by the Applicant challenging the decision of the Respondent to subject the sale of undeveloped land to Capital Gains Tax and Withholding Tax on the basis that the land constituted a business asset. The application seeks a review and reversal of the Respondent's objection decision issued pursuant to the Income Tax Act.
+...
+13. The main issue for determination is whether the land disposed of by the Applicant constituted a business asset at the time of disposal, so as to render any gain derived therefrom taxable under the Income Tax Act.
+...
+79. Upon a careful evaluation of the law, evidence, and submissions of the parties, the Tribunal is not satisfied that the Respondent established a sufficient nexus between the disputed land and any identifiable business activity of the Applicant. While the Respondent relied on the commercial user clause in the lease agreement, the Applicant's rental-related economic activity, and the withholding treatment at acquisition, those factors, without further evidence of actual or intended business deployment of the land, are insufficient to satisfy the statutory definition of a business asset under section 2 of the Income Tax Act.
+80. In the absence of evidence that the land was used in, held ready for use in, or held for sale in a business within the meaning of S.2 of the Income Tax Act, the Tribunal finds that the land did not constitute a business asset at the time of disposal. Consequently, any gain arising from its disposal did not constitute taxable business income under S.18(1)(a).
+...
+95. Accordingly, the Tribunal finds that the Respondent failed to demonstrate that the land was used in, or held ready for use in, any identifiable business of the Applicant within the meaning of S.2 of the Income Tax Act. The Respondent's reliance on the lease restriction, general economic activity, and prior withholding treatment was insufficient to satisfy that statutory threshold. It follows that the gain arising from the disposal did not fall within business income under S.18(1)(a) of the ITA, and the consequent imposition of capital gains tax and withholding tax was unfounded.
+96. In the circumstances, the Tribunal orders as follows;
+(i) This Application is allowed.
+(ii) The Respondent's objection decision is set aside.
+(iii) The gain arising from the disposal does not constitute taxable business income under section 18(1)(a) of the Income Tax Act.
+(iv) The transaction is not subject to WHT under S.130 (2) of the Income Tax Act.
+(v) Any tax paid pursuant to the impugned assessment or withholding treatment shall be dealt with in accordance with the applicable refund procedures under the law.
+(vi) Costs are awarded to the Applicant.","This ruling reinforces the critical distinction between personal capital assets and business assets for income tax purposes in Uganda. Tax practitioners should note that the mere existence of a commercial user clause in a lease agreement or prior withholding tax treatment on acquisition does not automatically convert undeveloped land into a 'business asset' under Section 2 of the Income Tax Act. The Tribunal emphasized that classification must be based on actual evidence of business activity or readiness for use in a business, not mere inference or contractual labels. This case provides a clear precedent against URA's tendency to broaden the definition of 'business asset' beyond its statutory terms, highlighting the importance of factual nexus between the asset and a business.
+
+Key practical lessons:
+* **Factual Basis is Paramount:** The actual use or readiness for use of an asset in a business is crucial, not just its potential commercial capability or historical ownership.
+* **Strict Construction of Tax Statutes:** Tax statutes, especially definitions like 'business asset' under Section 2 of the Income Tax Act, must be construed strictly.
+* **Precedent Value:** Tribunal decisions, even if appealed, remain binding unless stayed or set aside, and URA's disregard of such precedents is untenable.",2026-07-06 18:10:37.372833+00
+00a30ff3-e670-41d3-9e1e-8f4e73483c01,TAT No. 68 of 2024,Amos Dairies Limited v Uganda Revenue Authority,2026,Income Tax,Dismissed,"The Applicant challenged an additional income tax assessment arising from over-claimed interest deductions, arguing that carried-forward losses incurred before 2018 should not be included in the computation of tax EBITDA under Section 25(3) of the Income Tax Act, and that such inclusion constituted retrospective application of the law. The Tribunal ruled that assessed losses, including those incurred prior to 2018, are allowable deductions for computing tax EBITDA under Sections 25(3) and 25(5) of the Income Tax Act, and that this application was not retrospective. The application was dismissed, and the assessment upheld.","This application was brought under section 25(3) of the Income Tax Act seeking orders that:
+(i) Section 25(3) cannot be applied retrospectively to losses accrued prior to 2018, and the Respondent's inclusion of the losses incurred before 2018 is erroneous and unjustified.
+(ii) Carried-forward losses are not deductions for the purposes of computing tax EBITDA, and their inclusion in EBITDA calculations under Section 25(3) is incorrect.
+(iii) The additional assessment of Shs. 1,080,511,066 be set aside.
+(iv) The Respondent recomputes the Applicant's maximum allowable interest deduction for 2019-2022, excluding the losses that were incurred prior to 2018, in accordance with the law.
+...
+40. The Applicant argued that carried-forward losses are merely offsets against chargeable income and should not be treated as deductions for purposes of computing tax EBITDA. The Respondent contended that section 36(1) of the Income Tax Act expressly categorises assessed losses as allowable deductions and that such losses must therefore be taken into account when determining tax EBITDA under section 25(5).
+41. Section 25(5) defines tax EBITDA as:
+""gross income less allowable deductions, excluding interest.""
+Section 36(1) is explicit that an assessed loss is ""allowed as a deduction"" in determining chargeable income in a subsequent year. The language of the statute is clear and unambiguous.
+...
+57. In light of the above, the Tribunal finds as follows:
+(i) Assessed losses carried forward, including those incurred prior to 2018, are allowable deductions for purposes of computing tax EBITDA under sections 25(3) and 25(5) of the Income Tax Act.
+(ii) The application of section 25(3) in the computation of the Applicant's deductible interest for the years of income 2019 to 2022 did not amount to retrospective application of the law.
+(iii) The additional income tax assessment of Shs. 1,080,511,066 issued by the Respondent was lawful and is hereby upheld.
+58. Accordingly, the application is dismissed, and costs are hereby awarded to the Respondent.","This ruling clarifies a critical aspect of interest deductibility under Uganda's Income Tax Act, particularly concerning the treatment of carried-forward losses in EBITDA calculations. The Tribunal's emphasis on the prospective application of Section 25(3) of the Income Tax Act, Cap 340, while still allowing pre-2018 losses to be factored into current year EBITDA calculations, sets a clear precedent. Tax practitioners should note that the Tribunal distinguished between retrospective imposition of liability and the application of an existing computational rule to a current year of income, citing Section 36(1) of the ITA which treats carried-forward losses as current-year deductions. The main risk for taxpayers is misinterpreting the non-retrospective nature of the law to exclude historical losses from current EBITDA computations, potentially leading to disallowed interest deductions and additional assessments.
+*   Carried-forward losses are considered 'allowable deductions' for tax EBITDA computation.
+*   Section 25(3) of the ITA applies prospectively but considers historical losses when utilized in current years.
+*   Strict interpretation of tax statutes, adhering to plain meaning, is paramount.",2026-07-04 20:00:36.084199+00
+02446b04-2740-4a5e-bb50-a90a5c1f4a66,MISCELLANEOUS CAUSE NO. 84 OF 2025,CHASSER (U) LIMITED v UGANDA REVENUE AUTHORITY,2025,Income Tax,Allowed,"The Applicant sought an extension of time to apply for review of an income tax objection decision, citing the tax consultant's mistake and the director's illness as reasons for delay. The Respondent argued that the application was unduly delayed and lacked sufficient grounds. The Tribunal found that the director's illness, supported by medical receipts, constituted sufficient cause for the delay, and also noted that the rejection of an Alternative Dispute Resolution (ADR) application constituted a new taxation decision, extending the relevant timeline. Consequently, the application for extension of time was allowed.","1. This application was brought under section 98 of the Civil Procedure Act and Order 52 of the Civil Procedure Rules seeking orders that:
+(i) The time within which to apply to review the Respondent's objection decision is extended.
+(ii) Costs of the application be provided for.
+
+2. The grounds of this application are laid out in the affidavit in support of the application deponed by Mr. John Sekimpi, the Director of the Applicant, sworn on 17 October 2025, stating as follows:
+(i) On 13 March 2024, the Respondent issued the Applicant with an income tax assessment of Shs. 114, 577,130 for the period 2020-2021.
+(ii) On 7 June 2024, the Applicant objected to the assessments, and on 14 June 2024 and 3 July 2024, the Applicant requested documents, which included bank statements, sales, and purchase ledgers.
+(iii) On 19 August 2024, the Respondent issued objection decisions partially allowing the objections to the extent of revenue and expenses verified. On 6 September 2024, the Applicant applied to have the matter reviewed using Alternative Dispute Resolution, and on 3 April 2025, the Respondent rejected the Applicant's application.
+(iv) The delay in applying to the Tribunal was a mistake of the tax consultant, and the unavailability of the Director of the Applicant due to illness.
+(v) This application has been made without inordinate delay as the same has been filed within six months from the time the objection decision notices were issued.
+(vi) Therefore, it is just and equitable and in the interest of justice that the application be granted.
+
+33. In Egis Road Operation Ltd v Uganda Revenue Authority, TAT Misc. Cause 85 of 2025, the Tribunal held that an ADR decision is a taxation decision. Therefore, for purposes of this application, the ADR decision date of 3 April 2025 is the taxation decision and not 19 August 2024, the date of the objection decision. Therefore, going by the ADR decision date, the delay on the Applicant's part was 6 months.
+
+34. We have already established that illness is a sufficient cause of delay, and indeed, as at August 2025, the Applicant's director was undergoing medical treatment. This sufficiently explains the Applicant's delay in applying for review of the Respondent's taxation decision.
+
+35. In the circumstances, we are satisfied that the Applicant has demonstrated sufficient cause. Therefore, this application is allowed, and each party will bear its own costs.","This ruling is a crucial reminder for Uganda tax practitioners regarding the discretionary power of the Tax Appeals Tribunal (TAT) to extend time for filing applications. It reinforces that 'sufficient cause' for delay, as outlined in Section 16(2) of the Tax Appeals Tribunal Act and Rule 11 of the TAT (Procedure) Rules, can include illness, especially when substantiated with evidence. The Tribunal's interpretation that an ADR rejection constitutes a new 'taxation decision' for the purpose of calculating appeal timelines is a significant precedent, potentially offering taxpayers more leeway in complex cases. Practitioners should advise clients to document all communications and medical conditions diligently, and to consider ADR as a formal step that can reset appeal timelines if rejected. The case highlights the Tribunal's commitment to substantive justice over strict technicalities, provided there is no dilatory conduct.
+*   Illness, with evidence, can be sufficient cause for delay.
+*   ADR rejection can reset the appeal timeline.
+*   Prompt action is still required once impediments are removed.",2026-07-06 18:14:44.879738+00
+042acd2e-51ba-4e2b-ae0a-57cab34e358e,TAT APPLICATION NO. 004 OF 2025,FARMINPUTS CARE CENTRE (FICA) LIMITED VERSUS UGANDA REVENUE AUTHORITY,2025,VAT,Dismissed,"The Applicant challenged a VAT assessment and an Income Tax assessment. The Respondent raised preliminary objections, arguing that the application was time-barred and that the Applicant had not paid the mandatory 30% of the tax in dispute. The Tribunal found that the application for review of the VAT assessment was filed five months beyond the statutory 30-day period and that the Applicant failed to formally seek an extension of time. The Tribunal also noted the Applicant's concession regarding the non-payment of the 30% deposit. Consequently, the Tribunal sustained the preliminary objections and dismissed the application as time-barred.","This ruling is in respect of preliminary objections raised by the Respondent that the present application is time barred and that the Applicant has not paid 30% percent of the tax in dispute or that part of the assessed tax not in dispute, whichever is greater.
+
+1. Background Facts
+The Applicant deals in agriculture, forestry and fishing. It filed an application before this Honourable Tribunal seeking to review a Value Added Tax (VAT) assessment of She. 118,951,614 for the period of 2022. On 25 April 2024 and 15 May 2024, the Respondent issued the Applicant with VAT Assessment of Shs. 118,951,614 based on unjustified movement in non-current assets and additional Income Tax Assessment disallowing unsupported expenses.
+
+The Applicant lodged two objections one for VAT Assessment vide Ref no. DO022400390870 for the period 2022 on ground that the Applicant's obsolete assets were erroneously removed from the asset register, not in line with International Financial Reporting Standards (IFRS) 5 and the assets are still held at the company premises. The second objection was in respect of the income tax assessment Ref no. DO022400389235 for the period of 2021 on ground that the Applicant's returns were not aligned to include balances brought down from different periods.
+
+The Respondent issued two objection decisions on 21 August 2024 for VAT upholding the Assessment of Shs. 118,951,614/= on ground that the assets reduced and were not accounted for disposal as per the accounting principles and on 28th November 2024 for Income Tax partially allowing the objection on ground that the asset movement related to obsolete assets which was erroneously omitted from the return.
+
+On 14 January 2025 the Applicant lodged this application for review of the objection decision on Value Added Tax (VAT) assessment of She. 118,951,614.
+
+2. Issues for determination
+The issues for determination by the Tribunal are:
+(i) Whether this application is out of time?
+(ii) Whether the Applicant has paid the 30% of the tax in dispute or that part assessed not in dispute, whichever is greater as required by S.15 of the Tax Appeals Tribunal Act?
+(iii) What remedies are available to the parties?
+
+... (further text detailing submissions and determination)
+
+In light of the above, the Tribunal orders as follows;
+(1) The respondent's preliminary objections on the legality of the application and the non-payment of the 30% of the tax in dispute are sustained.
+(2) The main application for review that was filed without seeking leave is struck out for being time barred.
+(3) Costs are awarded to the Respondent.","This ruling serves as a critical reminder for Uganda tax practitioners regarding the strict adherence to statutory timelines and procedural requirements in tax appeals. The Tribunal emphasized that timelines set by statutes are matters of substantive law and not mere technicalities, citing precedents like *Uganda Revenue Authority vs. Uganda Consolidated Properties Ltd*. A key takeaway is that separate objection decisions for different tax types (e.g., VAT and Income Tax) must be pursued distinctly within their respective timelines. Relying on Civil Procedure Rules to extend statutory limitation periods for tax appeals is generally not permissible, as procedural rules cannot override substantive legislation. Furthermore, the mandatory 30% deposit of the tax in dispute (or the undisputed portion) under Section 15 of the Tax Appeals Tribunal Act remains a non-negotiable prerequisite for lodging an appeal.
+
+*   **Strict Timelines:** Always adhere to the 30-day period for lodging an application for review after an objection decision, as per Section 16(1)(c) of the Tax Appeals Tribunal Act.
+*   **Separate Appeals:** Treat distinct objection decisions for different tax types as separate matters, each with its own filing deadline.
+*   **Mandatory Deposit:** Ensure the 30% tax deposit (or undisputed amount) is paid before filing an application for review, as per Section 15 of the Tax Appeals Tribunal Act.",2026-07-04 15:23:13.046123+00
+0484e971-4dd7-4343-86a3-56b574367fac,TAT APPLICATION NO. 16 OF 2024,EAST AFRICAN MARINE TRANSPORT COMPANY LIMITED v UGANDA REVENUE AUTHORITY,2025,VAT,Allowed,"The Applicant, a marine logistics company, sought VAT exemption for the design, building, and delivery of a roll-on, roll-off freight ferry, citing Paragraph 1(ae) of Schedule 3 of the VAT Act. The Uganda Revenue Authority (URA) denied the exemption, arguing the ferry was not 'machinery or equipment' and that the Applicant's business did not fall under 'logistics and warehousing' as required. The Tribunal ruled that the ferry qualifies as machinery or equipment, the Applicant's business is indeed logistics, and the contract should not be artificially split. The Tribunal allowed the application, granting the VAT exemption and ordering a refund of paid VAT.","This ruling is in respect of an application brought under Sections 16 & 18 of the Tax Appeals Tribunal Act and under Rule 10 of the Tax Appeals Tribunal (Procedure) Rules 2012 seeking for the following orders:
+(i) A declaration that the supply of services of design, building, and delivery of a ferry is exempt from VAT under paragraph 1(ae) of Schedule 3 of the VAT Act; and
+(ii) Costs of the application.
+
+1. Background Facts
+The Applicant is engaged in the business of marine transportation between inland water ports on Lake Victoria. The Applicant challenges the Respondent's refusal to confirm a Value Added Tax (VAT) exemption provided for under Paragraph 1(a)(e) of the Third Schedule to the VAT Act for the supply of a roll-on, roll-off freight ferry (""the Ferry""). The Applicant contracted Seco Marine (U) Ltd to design, build, and deliver a roll-on, roll-off freight ferry at a consideration of USD 14,997,762. The ferry was for use between Mwanza (Tanzania) and Port Bell (Uganda). On 6 July 2023, the Applicant wrote to the Respondent seeking confirmation of eligibility for tax exemptions under Section 21(1)(a)(f) of the Income Tax Act and Paragraph 1(a)(e) of the Third Schedule to the VAT Act.
+By letter dated 20 November 2023, the Respondent confirmed the income tax exemption but declined to confirm the VAT exemption for the supply of the ferry, arguing that it was neither machinery nor equipment. On 27 November 2023, the Applicant objected to the Respondent's decision, explaining that the ferry qualifies as machinery or equipment for VAT exemption purposes and that the Respondent unjustifiably fragmented the supply of the ferry into distinct services of design, building, and delivery, contrary to the law.
+In a letter dated 29 December 2023, the Respondent partially allowed the objection by confirming the VAT exemption for design services but declined the exemption for building and delivery services, stating that these were not covered by the VAT Act.","This ruling provides crucial clarity on the interpretation of 'machinery or equipment' and 'logistics and warehousing' for VAT exemption purposes under Paragraph 1(ae) of Schedule 3 of the VAT Act. Tax practitioners should note the Tribunal's emphasis on the ordinary and literal meaning of terms not explicitly defined in the Act, and its rejection of artificial contract splitting. The decision reinforces the principle that tax incentives in strategic sectors, like transport infrastructure, should be interpreted in alignment with government policy. This case sets a precedent for similar investments in Uganda's maritime and logistics sectors, potentially reducing the cost of capital for such projects.
+
+*   **Key Takeaway:** Ferries and similar transport vessels can qualify as 'machinery or equipment' for VAT exemption if integral to a qualifying business.
+*   **Main Risk/Precedent:** URA's tendency to narrowly interpret exemption provisions and artificially split contracts was rejected.
+*   **Relevant Act/Section:** Paragraph 1(ae) of Schedule 3 of the VAT Act, Section 12(1) of the VAT Act (on single vs. multiple supplies).
+*   **Practical Lessons:**
+    *   Ensure clear documentation of the primary purpose of contracts involving multiple services.
+    *   Be prepared to argue for a broad, ordinary meaning of undefined statutory terms.
+    *   Highlight alignment with national development policies when seeking tax incentives.",2026-07-04 15:22:13.918597+00
+07ad5a7e-32c5-4651-8a4f-1fb7509c04fb,APPLICATION NO.91 OF 2023,MOBI-TEX ENGINEERING CO. WORKS LIMITED v UGANDA REVENUE AUTHOURITY,2024,VAT,Dismissed,"The Applicant challenged VAT assessments for various periods. The Respondent raised a preliminary objection, arguing that the Tribunal lacked jurisdiction because the Applicant had not filed an objection decision with the Respondent for two of the three assessments, which is a statutory prerequisite for appealing to the Tribunal. The Tribunal upheld the preliminary objection, ruling that without an objection decision from the Respondent, it had no jurisdiction to review the matter, and dismissed the application with costs.","This ruling is in respect of a preliminary objection that the tribunal has no jurisdiction to entertain an application in respect of which no objection decision was issued by the Respondent.
+
+1. Background Facts.
+Between the years 2016 and 2019, the Respondent issued the Applicant with Administrative Additional VAT Assessments of Shs. 31,599,805 for the period November 2013, Shs. 6,985,470 for the period June 2017 and Shs. 10,201,092 for the period June 2018. The assessments in question were raised as a result of variances between Income tax and VAT sales for the periods July 2016 to June 2017 and July 2017 to June 2018. The assessment for November 2013 was issued for non-filing of returns.
+The Applicant filed the instant application on 7th June 2023. On 27th June 2024, when the matter came up for scheduling, the Respondent raised a preliminary objection to the effect that the tribunal has no jurisdiction over the matter as the instant Application was not filed consequent to an objection decision. The tribunal directed the parties to file written submissions in respect of the preliminary objection raised by the Respondent.
+
+4. Respondent's Submissions
+The Respondent submitted that while the Applicant seeks for a decision of the tribunal in respect of the assessments of Shs. 6,985,470 for June 2017 and Shs. 10,201,092 for June 2018, no objection decision was filed by the Applicant in respect of these assessments. The Respondent cited Ss. 14(1) and 16 of the Tax Appeals Tribunal Act and S. 27(1) of the Tax Procedures Code Act (TPCA). The Respondent submitted that the above provisions make the issuance of an objection decision by the Respondent a condition precedent to the filing of an Application for review before the tribunal.
+
+The Respondent submitted that in the absence of objection decisions in respect of the above assessments the tribunal has no jurisdiction to hear the matter. The Respondent submitted that the first step to be taken by a person dissatisfied by a taxation decision is to lodge a valid objection against the decision as required by S.27 of the TPCA. The Respondent submitted that in the instant case there was no objection decision being referred to the tribunal. The Respondent submitted that the instant application is therefore improperly before the tribunal. The Respondent prayed that the application be dismissed with costs.
+
+6. Determination of the Application by the Tribunal
+The jurisdiction of the tribunal to review decisions of the Respondent is provided for under S. 14 of the Tax Appeals Tribunal Act. S.14 provides as follows;
+(1) Any person who is aggrieved by a decision made under a taxing Act by the Uganda Revenue Authority may apply to the tribunal for a review of the decision.
+
+S. 27(1) of the TPCA provides for the review of Objection decisions made by the Respondent. S. 27(1) states as follows:
+(1) A person dissatisfied with an objection decision may, within 30 days after being served with a notice of the objection decision, lodge an application with the Tax Appeals Tribunal for review of the objection decision.
+
+The above provisions show that the jurisdiction granted to the tribunal to review decisions of the Respondent only arise where a tax payer is aggrieved by a decision made by the Respondent under a taxing Act or by an objection decision issued by the Respondent. In the absence of a decision by the Respondent the tribunal has nothing to review.
+
+In the instant case the Respondent issued assessments against the Applicant. It is not in dispute that out of the three assessments issued against the Applicant by the Respondent the Applicant only chose to object to one of them. The Applicant did not object to the other two assessments. These two assessments in respect of which the Applicant did not object form the basis of the instant application.
+
+For the reason that the Applicant did not file any objections against the said assessments the Respondent did not file any objection decisions. In the absence of an objection decision the Applicant has no locus to appear before the tribunal nor does the tribunal have jurisdiction to entertain any such matter.
+
+The reason given by the Applicant for not filing the objections in question is that it was not well versed with the law. It is trite that ignorance of the law is no defence. This doctrine is set out in the following Latin maxim;
+Ignorantia juris non excusat (ignorance of the law excuses not).
+
+The rationale of this doctrine is that if ignorance were an excuse, every person omitting to comply with a law would escape liability by simply pleading ignorance. In the instant case the Applicant ought to have known that no applications can be filed by it before the tribunal in the absence of an objection decision.
+
+The preliminary objection is accordingly sustained. The instant application is dismissed with costs.","This ruling serves as a critical reminder for Uganda tax practitioners regarding the strict procedural requirements for appealing tax assessments. The clear takeaway is that an objection decision from the Uganda Revenue Authority (URA) is a non-negotiable condition precedent for the Tax Appeals Tribunal (TAT) to assume jurisdiction. The main risk highlighted is the dismissal of an appeal, regardless of its merits, if the taxpayer fails to follow the statutory objection process outlined in the Tax Procedures Code Act (TPCA). Practitioners must ensure their clients exhaust the administrative objection process under Section 27(1) of the TPCA before lodging an application with the TAT under Section 14(1) of the Tax Appeals Tribunal Act.
+
+*   Always file a valid objection with URA against an assessment.
+*   Obtain an objection decision from URA before appealing to TAT.
+*   Ignorance of the law (Ignorantia juris non excusat) is not a valid excuse for procedural non-compliance.",2026-07-04 15:49:18.652896+00
+0a42f041-0de2-49ca-9769-eb15b523d8e8,TAT APPLICATION NO. 276 OF 2025,KANSAI PLASCON UGANDA LIMITED v UGANDA REVENUE AUTHORITY,2026,Customs,Partial,"The Applicant challenged a tax assessment of Shs. 4,888,082,915 related to the reclassification of imported styrene acrylic emulsions and polymers, penalties for misclassification, and failure to file quarterly returns. The Tribunal found that some products were correctly classified under HS Code 3903.90.00 (0% import duty) due to styrene predominance, while others lacked sufficient evidence and were classified under HS Code 3906.90.00 (10% import duty). The Tribunal also ruled that the Applicant was entitled to COMESA preferential treatment for certain imports and that penalties for misclassification and failure to file returns were unlawfully imposed without prior conviction. The Respondent was ordered to recompute the assessment and refund the 30% deposit.","The Applicant challenges a tax assessment of Shs. 4,888,082,915 arising from the Respondent's reclassification of the Applicant's imported styrene acrylic emulsions and polymers used in paint manufacturing. The Respondent contends that the products were wrongly declared under HS Code 3903.90.00, which attracts a 0% import duty, rather than HS Code 3906.90.00, which attracts a 10% import duty, resulting in additional tax liabilities and penalties.
+
+The Applicant submitted that according to Chapter Note 4, and subheading note 1(4) of Chapter 39, polymers are to be classified in the subheading, covering polymers of that monomer unit which predominates by weight over every other single comonomer unit. The determination of which HS Code the imports fall under is dependent on which monomer unit, styrene or acrylic monomer, predominates by weight.
+
+From the evidence on record, the Tribunal finds that the following products were properly classifiable under heading 3903.90.00, as the documentation demonstrates that styrene predominates by weight:
+a) Revacryl AE 4620 JA
+b) C-Eagle (SA72/50)
+c) Bondex 5295D
+d) Bondex AMCA S46-2
+
+The Tribunal further finds that there was no conclusive and reliable evidence to prove the dominant monomer in the following products.
+a) Prokil S330 AF Styrene Acrylic Emulsion
+b) Orgawhite 2000
+c) Bondex variants without full composition data (e.g; Bondex 5299, Bondex AA261P, Bondex P711G and Bondex Opex92).
+
+Accordingly, the Respondent shall reassess the Applicant's tax liability in line with this decision and delete all duties, penalties, and interest attributable to products found to be correctly classifiable under HS Code 3903.90.00.
+
+Whether the penalties for misclassification were lawfully imposed
+The Respondent imposed penalties totaling USD 12,000 pursuant to Section 203 of the EACCMA on the grounds that the Applicant misclassified 120 consignments. The Applicant argued that Section 203 creates a criminal offence punishable ""upon conviction"" and therefore the Respondent lacked authority to administratively impose the penalty without prosecution before a competent court or tribunal.
+
+Section 203 of the EACCMA expressly provides that a person who makes a false or incorrect declaration commits an offence and shall be liable ""on conviction"" to imprisonment or a fine not exceeding ten thousand dollars. In this case, the Respondent cannot impose a criminal fine without following due process. The Tribunal therefore finds that the penalty for misclassification was unlawfully imposed since there is no evidence of any conviction. The penalty assessment of USD 12,000 for alleged misclassification is unlawful and is hereby set aside.
+
+Whether the penalties for failure to file quarterly returns were lawful
+The Respondent imposed penalties totalling USD 38,000 for failure to file quarterly returns.
+Regulation 7 of the East African Community Customs (Duty Remission) Regulations provides:
+""(1) A manufacturer of goods for export shall –
+(a) pay duty on any imported goods that are not used in the manufacture of goods for export or where the goods so manufactured are not exported;
+(b) Submit returns quarterly to the Commissioner, giving relevant information as the Commissioner may require.
+Furthermore, regulation (4) of the same provides:
+""A person who fails to submit returns as required under this regulation commits an offence and shall be liable on conviction to a fine of two thousand dollars.""
+
+The Regulation does not expressly provide for cumulative penalties for every quarter of default. Furthermore, the Respondent lacks the authority to impose criminal penalties without a conviction. The penalty assessment of USD 38,000 for failure to file quarterly returns was unlawfully imposed and is hereby set aside.","This ruling provides crucial clarity on customs classification for mixed polymer products and the procedural requirements for imposing penalties under Ugandan tax law. The key takeaway is the emphasis on robust technical documentation to support HS code declarations, particularly for products with multiple monomer units. Tax practitioners should advise clients to maintain detailed product formulae and manufacturer declarations to substantiate their classifications, especially when seeking preferential tariff treatment or duty remission. The Tribunal's strict interpretation of penalty imposition, requiring conviction for criminal offenses, sets a significant precedent against administrative penalties without due process.
+
+Key practical lessons:
+* **Documentation is paramount:** Ensure comprehensive technical data sheets and manufacturer declarations for imported goods.
+* **Sequential application of GIRs:** Follow the General Interpretative Rules (GIRs) strictly, especially Chapter 39 Note 4 for polymer classification.
+* **Penalties require conviction:** Administrative penalties for offenses under EACCMA Section 203 and Duty Remission Regulation 7(4) are unlawful without a prior conviction.",2026-07-06 11:20:44.699189+00
+0aa7b83a-2fca-4d26-ba21-a95379f7eaed,TAT No. 170 of 2023,Tinasah Investments Limited v Uganda Revenue Authority,2025,VAT,Dismissed,"The Applicant claimed input VAT credit on purchases from three suppliers, but the Respondent disallowed it, alleging invoice trading and fictitious transactions. The Tribunal found that the Applicant failed to provide sufficient evidence to prove the legitimacy of the purchases, such as supplier addresses, cash payment receipts, delivery notes, or corroborating testimony. The Tribunal dismissed the application, holding that the Applicant did not discharge its burden of proof to show that the underlying transactions for the e-invoices actually occurred.","THE REPUBLIC OF UGANDA
+IN THE TAX APPEALS TRIBUNAL OF UGANDA AT KAMPALA
+APPLICATION NO. 170 OF 2023.
+TINASAH INVESTMENTS LIMITED................................................APPLICANT
+VERSUS
+UGANDA REVENUE AUTHORITY..................................................RESPONDENT
+
+BEFORE: MS. CRYSTAL KABAJWARA, MS. KABAKUMBA MASIKO, MS. GRACE SAFI.
+
+RULING
+This ruling is in respect of VAT assessment of Shs. 86,607,469 issued by the
+Respondent after the Respondent denied the Applicant's claim for input tax credit on
+the grounds that the Applicant was engaged in invoice trading.
+
+1. Background Facts
+The Applicant company deals in the business of supplying stationery, printed materials
+and other general supplies. The Respondent queried the Applicant's claim for input
+VAT on purchases made from three companies, namely- Arnau Trading Company-
+SMC Ltd, TIN 1016755961, Chasteen Stationeries SMC Ltd, TIN 1016755954, and
+Huthart Enterprises -SMC Ltd, TIN 1016758829, on the grounds of invoice trading.
+
+The Respondent disallowed the input VAT and issued assessments of Shs.
+86,607,469 which the Applicant objected to, arguing that the disallowed input credit
+related to legitimate transactions. The Respondent disallowed the objection on
+grounds that the Applicant failed to prove the purchases from the suppliers.
+
+2. Issues for determination
+The issues for determination by the Tribunal are as follows:
+(i) Whether the Applicant is liable to pay the tax assessed?
+(ii) What remedies are available to the parties?
+
+Section 28 (1) of the VAT Act allows a taxable person a credit for the tax payable in
+respect of all taxable supplies made to that person during the tax period.
+
+Further, Section 28 (4) of the VAT Act stipulates:
+""A taxable person who is allowed a tax credit on purchases of goods and services from a
+supplier who is designated to use the e-invoicing system, shall only claim a tax credit on
+expenses supported by e-invoices or e-receipts.""
+
+A reading of the above provisions indicates that for one to claim a credit for input VAT:
+(i) Taxable supplies should have been made to that person during the tax period;
+(ii) There should have been a purchase of goods or services to support the claim for
+input VAT; and
+(iii) The person should be issued with an e-invoice or receipt where goods have been
+purchased from a person using the e-invoicing system.
+
+Point (iii) is not in contention as both the Applicant and Respondent are in agreement
+that e-invoices were issued by the suppliers.
+
+The Respondent, however, disputes whether there were really ever any underlying
+purchases made, or taxable supplies received in respect of the e-invoices which the
+Applicant adduced as evidence of purchase.
+
+Section 28 (4) clearly states that a ""taxable person who is allowed a tax credit on purchases
+of goods and services.""
+
+Therefore, a purchase must precede a claim for input VAT. This means that it is
+incumbent on the Applicant to prove that a purchase did in fact happen in respect of
+the e-invoice presented to the Respondent.
+
+To claim credit for input VAT, one must prove that the transactions/purchases
+genuinely took place. A substance over form approach must be adopted for
+transactions such as this and it would be very dangerous for this Tribunal to choose
+form over substance.
+
+In the present case, the Applicant:
+
+(i) Could not name a single individual from any of the suppliers they interacted with
+– not any director, employee, shopkeeper, cashier etc. None.
+(ii) Did not know the suppliers' addresses;
+(iii) Did not have any receipt showing proof of cash purchases;
+(iv) Did not have any delivery notes to prove the delivery of goods by the suppliers;
+(v) Could not even bring one person to corroborate the sole witness' testimony that
+purchases were made. For example, the Applicant's witness claimed that
+deliveries were made using ""boda boda"" cyclists – not even a single cyclist was
+presented as a witness.
+(vi) Claimed that all purchases were made by a one, the Late Stanislous Muwonge.
+The Applicant claimed that this person, was their Accountant. The Applicant did
+not adduce any evidence of having employed or contracted the Late Muwonge
+in any capacity.
+
+It is also worth mentioning that the amounts involved in said ""purchases” were
+significant. It beggars belief that one can purchase goods approximating worth Shs.
+481,152,606 without any of the above corroborative evidence. According to the
+Respondent's witness testimony, some of the single transactions were for items worth
+of Shs. 25,488,000. There was no single piece of corroborative evidence adduced by
+the Applicant to demonstrate that the purchases shown on the e-invoices were in fact
+made by the three suppliers.
+
+It is incredulous!
+
+The Applicant's witness testified that her former Accountant, who is now deceased
+made all the purchases. How convenient!
+
+Consequently, the testimony of the Applicant's witness and the absence of any
+corroborative evidence cast doubt on the veracity of the Applicant' claim.
+
+The mandate of the Uganda Revenue Authority is to administer and collect the nation's
+taxes. However, taxpayers are not just bystanders – they are active participants in this
+effort.
+
+Therefore, taxpayers should put themselves in the shoes of the tax authority.
+
+This Tribunal finds that the Applicant failed in their duty to furnish the Respondent with
+the requisite information to prove that the purchases did in fact occur.
+
+Further, the Applicant failed to satisfy this Tribunal that the purchases underlying the
+e-invoices were made from the three suppliers.
+
+In the circumstances, we make the following orders:
+(i) This Application is dismissed, and the Applicant is liable to pay the assessed tax
+of Shs. 86,607,469.
+(ii) The Applicant is not entitled to the input tax credit.
+(iii) Costs are hereby awarded to the Respondent.
+
+Dated at Kampala this. 17th day of January 2025.
+
+CRYSTAL KABAJWARA
+CHAIRPERSON
+
+KABAKUMBA MASIKO
+MEMBER
+
+GRACE SAFI
+MEMBER","This ruling underscores the critical importance for Ugandan tax practitioners to advise clients on maintaining robust documentation for all transactions, especially when claiming input VAT. The Tribunal's emphasis on 'substance over form' means that merely possessing EFRIS invoices is insufficient if the underlying transactions cannot be substantiated. The risk highlighted is that URA will disallow input VAT claims where the supply chain is incomplete or suppliers are untraceable, even if EFRIS invoices exist. Taxpayers must actively participate in tax compliance by providing accurate and verifiable information, as per Section 28 of the VAT Act and Section 26 of the Tax Procedures Code Act.
+*   **Document Everything:** Beyond EFRIS invoices, retain delivery notes, proof of payment (bank statements, detailed cash payment records), and supplier contact information.
+*   **Verify Suppliers:** Conduct due diligence on suppliers, especially new ones, to ensure their legitimacy and physical existence.
+*   **Burden of Proof:** The onus is on the taxpayer to prove the legitimacy of transactions, particularly in cases flagged for invoice trading.",2026-07-04 16:09:05.802258+00
+128aa112-1309-430b-ba78-8a8a8bd82bb0,TAT APPLICATION NO. 08 OF 2024,BETA HEALTHCARE UGANDA LIMITED v UGANDA REVENUE AUTHORITY,2025,Customs,Dismissed,"The Applicant challenged the customs classification of Cofta tablets and Cofta Syrup, arguing they are medicaments (HS Code 3004.90.00) and not sugar confectionery (HS Code 1704.90.00). The Uganda Revenue Authority (URA) maintained that despite having medicinal properties, the products are essentially composed of sugar and flavouring agents, thus falling under sugar confectionery. The Tribunal, relying on Explanatory Notes to the EAC CET and WCO rulings, dismissed the application, agreeing with URA's classification.","This is a ruling in respect of an application challenging the customs classification of Cofta tablets and Cofta Syrup by the Respondent as sugar confectionary falling under the Harmonized Commodity Description and Coding system (HSC) 1704.90.00.
+
+1. Background Facts
+The Applicant deals in the importation and distribution of pharmaceutical and medical products. The Respondent carried out a customs post-clearance audit on the Applicant covering the period January 2018 to December 2022 and issued VAT assessments of Shs. 808,805,239 due to alleged misclassification of Cofta tablets and Cofta syrup sales under HS Code 3004.90.00 as a medicament instead of HS Code 1704.90.00 as a sugar confectionary. The Applicant objected and the Respondent issued its objection decision maintaining its position and informed the Applicant that Shs. 743,757,269 assessed on the Cofta tablets was due and payable.
+
+2. Issues for determination
+The issue for determination is whether the Applicant's products are medicaments falling under heading 30.04 or sugar confectionary, falling under heading 17.04.
+
+3. Representation
+The Applicant was represented by Mr. Fahad Kizito and Ms. Rhoda Nakanwagi while the Respondent was represented by Ms. Charlotte Katuutu and Mr. Kenan Aruho.
+
+...
+
+Therefore, we are in agreement with the Respondent's classification of the cofta tablets as sugar confectionary falling under heading 17.04 and not medicaments falling under heading 30.04.
+
+In view of the above, the application is dismissed with costs to the Respondent.","This ruling underscores the critical importance of Harmonized System (HS) classification for customs purposes in Uganda. Even if a product has medicinal properties and is regulated by the National Drug Authority (NDA) as a drug, its classification for customs duty and VAT purposes will primarily depend on its essential character as defined by the East African Community Common External Tariff (EAC CET) and its Explanatory Notes. The Tribunal emphasized that the NDA's classification does not dictate customs classification. Tax practitioners should note that products with dual purposes (medicinal and flavouring/sweetening) are likely to be classified based on their predominant character, especially if they consist essentially of sugars and flavouring agents, as per HS Code 1704.00. This case highlights the persuasive, though not binding, authority of WCO rulings in interpreting the HS. 
+
+Key practical lessons:
+* Customs classification is distinct from NDA drug classification.
+* The 'essential character' of a product, particularly its primary composition (e.g., sugar and flavouring agents), is paramount.
+* Explanatory Notes to the EAC CET and WCO rulings are crucial interpretive tools.",2026-07-04 15:17:48.229254+00
+12914e80-44d3-4a05-94cf-cde134fd8b47,TAT APPLICATION NO. 293 OF 2024,SAPIENT FEATHERS(U) LIMITED v UGANDA REVENUE AUTHORITY,2026,Income Tax,Dismissed,"The Applicant challenged an income tax assessment after engaging in Alternative Dispute Resolution (ADR) with the Uganda Revenue Authority (URA). The URA raised preliminary objections, arguing that the application was filed out of time, improperly appealed an ADR settlement, and that the mandatory 30% deposit was not paid. The Tribunal upheld the preliminary objections, finding that the application was indeed filed out of time and that it lacked jurisdiction to hear an appeal against a binding ADR settlement agreement, which Regulation 12(2) of the Tax Procedure Code Act (ADR Procedure) Act, 2023 expressly prohibits.","RULING
+
+I. Introduction
+1. This ruling is in respect of preliminary objections raised by the Respondent relating to the propriety of the instant application before the Tribunal.
+
+II. Background Facts
+2. The Applicant was issued with an income tax assessment of Shs. 113,229,046 (BW012200291093) for the period 01/07/2019 to 30/06/2020 which the Respondent upheld on 15/06/2022 in response to the Applicant's objection filed against the same on 17/03/2022. The Applicant then sought for Alternative Dispute Resolution (ADR) on 14/12/2022.
+
+3. The Application for ADR was reviewed by the Respondent's ADR Unit and on 1st March 2023, the Respondent communicated its decision maintaining the tax assessment at Shs. 113,229,046. On 6th June, 2024 the Respondent' s ADR unit revised tax assessment from Shs. 113,229,046 to Shs.38,209,952. On 6 August 2024, the Respondent's ADR unit declined to review its above stated decision which revised the tax assessment from Shs. 113,229,046 to Shs.38,209,952. At hearing of the Application, the Respondent raised three Preliminary Objections;
+
+4. The Applicant filed this Application out of time.
+The Application is improperly before the tribunal because it constitutes an appeal from the decision of the Respondent's ADR unit contrary to Regulation 12(2) of the Tax Procedure Code Act (ADR Procedure) Act, 2023. The Applicant has not paid the 30%.
+
+IV. Issues for Determination
+6. The issues for determination by the Tribunal are;
+i. Whether the Applicant filed this Application out of time?
+ii. Whether the Application is properly before the tribunal?
+iii. Whether the Applicant paid the 30%.?
+
+VII. Determination by the Tribunal
+Having carefully considered the submissions of both parties, this is the ruling of the Tribunal.
+
+33. The issues for determination are the following;
+i. Whether the Applicant filed this Application out of time?
+ii. Whether the Application is properly before the tribunal?
+iii. Whether the Applicant paid the 30%.?
+
+We will proceed to resolve each of them in turn
+
+Section 14 of the Tax Appeals Tribunal Act clearly provides that:
+(1) A person aggrieved by a decision made under a taxing Act by the Uganda Revenue Authority may apply to the Tribunal for a review of the decision.
+(2) The Tribunal has the power to review any taxation decision in respect of which an application is properly made.
+
+Section 16 of the Tax Appeals Tribunal Act provides that:
+(1) An application to a tribunal for review of a taxation decision shall-
+(c) be lodged with the tribunal within thirty days after the person making the application has been served with a notice of the decision.
+(7) An application for review of a taxation decision shall be made within six months after the date of the taxation decision.
+
+34. From the evidence on record, the Applicant was issued with an Income Tax assessment of Shs. 113,229,046 (BW01220091093) for the period 01/07/2019 to 30/06/2020. The Applicant objected to that assessment and the Respondent issued an objection decision on 15/06/2022, disallowing the objection. The Applicant only filed an application for review of the said objection decision before the Tribunal on 16th October 2024. This was clearly outside the limitation period provided for under Section 16(1)(c) and (7) of the Tax Appeals Tribunal Act.
+
+35. The Applicant has not filed for an application for extension of time within which to file an application for review of the objection decision. In the premises we find this application was filed out of time. The Second issue for determination by the Tribunal is;
+
+Whether the Application is properly before the tribunal?
+
+36. The following Regulations of the Tax Procedures Code (Alternative Dispute Resolution Procedure) Regulations, 2023 provide
+
+Regulation 11: Where the Commissioner General and the taxpayer agree to settle the tax dispute using ADR procedure, the issues agreed upon shall be set out in a settlement agreement which shall be signed by the Commissioner General and the taxpayer or by persons authorised to sign on their behalf.
+
+Regulation 12(2) provides that the altered or amended tax assessment shall not be subject to objection or appeal.
+
+Regulation 13: A settlement agreement shall be recognised as binding and enforceable against the Commissioner General or taxpayer.
+
+Regulation 14 Where the Commissioner General or Taxpayer fails to comply with or violates a settlement, the taxpayer or Commissioner General may apply to Court to enforce the settlement agreement.
+
+37. On the 6th day of June 2024 following proceedings before the Respondnet's ADR Unit the Applicant and Respondent entered into an Alternative Dispute Resolution Settlement Agreement. This agreement amended the amount in dispute from Shs 113,229,047 to shs.38,209,952. From the facts at hand, it is clear that the assessment in dispute was amended as a result of the Alternative Dispute Resolution Settlement Agreement. The instant Application amounts to an appeal against the settlement agreement executed by the parties. Regulation 12(2) expressly prohibits such an appeal. Such an appeal amounts to an illegality which the tribunal cannot condone.
+
+38. Further the Tribunal has no jurisdiction to entertain an appeal from decisions of the Respondent's ADR Unit.
+It is trite law that appellate jurisdiction must be expressly conferred by statute. In Attorney General v Shah (No. 4) [1971] 1 EA 50, the Court of Appeal held that:
+
+""Appellate jurisdiction springs from statute. There is no such thing as inherent appellate jurisdiction.""
+
+Similarly, in Baku Raphael Obudra & Another v Attorney General, SCCA No. 1 of 2005, Odoki CJ reiterated that, “appellate jurisdiction must be specifically created by law and cannot be inferred or implied.""
+
+39. The Tribunal reaffirmed this position in Africa Global Logistics Uganda Ltd v Uganda Revenue Authority, holding that, ""a statutory provision conferring appellate jurisdiction must expressly state the right to appeal from a particular body. Anything less amounts to an impermissible inference of jurisdiction.”
+
+40. There is no provision under the Tax Appeals Tribunal Act, Cap 341 that grants the Tribunal jurisdiction to hear appeals arising from decisions or alleged decisions of the ADR Committee of the Respondent.
+
+We accordingly find that this Application is not properly before the tribunal.
+Having determined as above there is no need to resolve the remaining issue.
+
+The preliminary objections are accordingly upheld. This Application is hereby dismissed with costs.","This ruling serves as a critical reminder for Uganda tax practitioners regarding the finality of Alternative Dispute Resolution (ADR) agreements and strict adherence to statutory timelines for appealing tax decisions. The key takeaway is that once a binding ADR settlement is reached, it generally cannot be appealed to the Tax Appeals Tribunal (TAT), as explicitly stated in Regulation 12(2) of the Tax Procedure Code (ADR Procedure) Regulations, 2023. The main risk highlighted is the potential loss of the right to appeal if a taxpayer attempts to challenge an ADR outcome at the TAT, as the Tribunal lacks the jurisdiction to entertain such appeals. Furthermore, the case underscores the importance of filing applications for review within the prescribed 30-day period from the 'taxation decision' as per Section 16(1)(c) of the Tax Appeals Tribunal Act, Cap 341, and seeking an extension of time with sufficient cause if necessary.
+
+*   **ADR Finality:** ADR settlement agreements are binding and generally not subject to appeal at the TAT.
+*   **Strict Timelines:** Adhere to the 30-day statutory period for filing applications for review of taxation decisions.
+*   **Jurisdiction:** The TAT's jurisdiction is statutory; it cannot hear appeals from binding ADR decisions unless expressly provided by law.",2026-07-04 21:40:31.975791+00
+1503e376-8be9-4641-b5d4-27c36b1c937f,TAT No. 59 of 2023,INTERNATIONAL FOOD POLICY RESEARCH INSTITUTE v UGANDA REVENUE AUTHORITY,2024,Income Tax,Allowed,"The Applicant, a research organization, hired individuals as data collectors and enumerators, treating them as independent contractors and withholding tax at 6%. The Respondent assessed PAYE and WHT, arguing these individuals were employees. The Tribunal, applying common law tests (control, integration, multiple tests), found that the data collectors were not employees due to the short duration of engagement and lack of sufficient control by the Applicant. The Tribunal ruled that the Applicant was not liable for PAYE on these individuals.","THE REPUBLIC OF UGANDA
+IN THE TAX APPEALS TRIBUNAL AT KAMPALA
+TAX APPLICATION NO.59 OF 2023
+INTERNATIONAL FOOD POLICY RESEARCH INSTITUTE.................. APPLICANT
+VERSUS
+UGANDA REVENUE AUTHORITY................................................... RESPONDENT
+BEFORE: MR. SIRAJ ALI, MS. KABAKUMBA MASIKO, MS. SAFI GRACE.
+RULING
+This ruling is in respect of an Application challenging an assessment by the Respondent
+on the ground that persons hired by the Applicant for the provision of certain services
+were not employees but independent contractors.
+1. Background facts
+The Applicant is a research-based organization. The Applicant provides research-
+based policy solutions for the alleviation of hunger and poverty in developing countries
+including Uganda. The Applicant entered into short-term field office service
+agreements with various individuals to collect data on various aspects of the
+Applicant's business. These individuals included contractors (Data collectors and
+enumerators). The Applicant treated these individuals as independent contractors and
+withheld tax at 6% on all payments made to them and remitted the same to the
+Respondent.
+The Respondent conducted a tax audit upon the Applicant and established a tax
+liability of PAYE amounting to Shs. 171,983,080 and Withholding Tax of Shs.
+19,349,080. The Applicant objected to the assessments as a whole on grounds that
+these individuals were independent contractors whose pay had been subjected to 6%
+withholding tax and WHT on suppliers had been wrongly computed. The Respondent
+partially allowed the objection by reducing the tax assessed (Withholding tax on
+payments to suppliers) from Shs. 19,349,082 to Shs. 12,282,628. The Respondent
+rejected the PAYE objection and maintained the assessment of Shs. 171,983,902.
+1
+Dissatisfied with the Respondent's objection decision, the Applicant filed this
+Application.
+2. Representation
+At the hearing of this application, Mr. Joseph Luswata and Mr. Winston Churchill
+Ruhayana appeared for the Applicant while Mr. Sam Kwerit and Ms. Charlotte Katuutu
+appeared for the Respondent.
+3. The issues for determination
+At scheduling the following issues were set down for hearing;
+i) Whether the Applicant is liable to pay the PAYE as assessed?
+ii) Whether the Applicant is liable to pay the Withholding tax as assessed?
+iii) Remedies available?
+Before the hearing of the matter, the Applicant conceded that the assessment in
+respect of WHT on suppliers in the sum of Shs. 12,282,628 was due and payable.
+Accordingly the matter left for the tribunal's determination is whether the Applicant
+is liable to pay the PAYE as assessed.
+4. Submissions of the Applicant
+The Applicant led evidence through Mr. Edward Kato, its Senior Research Analyst. Mr.
+Kato testified about the work and the terms of service of the contractors. He stated that
+the Applicant and each enumerator signed a standard agreement stating the terms under
+which the service is to be granted, each research project is given a name to ensure that
+enumerators understand what to collect. Data collectors are given questionnaires, I- pads
+or tablets that are returned to the Applicant at the end of the project.
+The Applicant submitted that Workers' compensation cover is only provided if the project
+fund is sufficient to cover the same but this is not provided all the time.
+The Applicant's Counsel cited Section 1 of the Employment Act Cap 226 which defines
+an employee as any person who has entered into a contract of service or an
+apprenticeship contract. The Applicant went ahead to cite Section 2(x) of the Income Tax
+Act which defines an employee as an individual engaged in employment.
+2
+In order to determine whether a contract for service or a contract of service exists, the
+Applicant submitted that common law tests have to be applied and these include the
+control test, integration test, multiple tests, and the parties' own characterization.
+In its submissions, the Applicant defined the control test, as a test used to measure the
+level of control an employer has over an employee. The Applicant made reference to the
+case of Ready Mixed Concrete V Minister of Pensions and National Insurance {1968}
+2 QB 497, where the court noted that control includes the power of deciding the things to
+be done, how it shall be done, the means to be employed in doing it, the time and place
+for it to be done.
+Accordingly, the Applicant submitted that the individuals were engaged for a very short
+period which shows that the employers had no control over them as stated in the case of
+Infectious Diseases Institute (IDI) V Uganda Revenue Authority TAT APP No.
+15/2019.
+The Applicant also made reference to the integration test as one that is used to determine
+if the person is integrated in the Applicant's business so as to be regarded as an
+employee. The Applicant relied on the book Managing Taxation in Uganda, 2nd Edition
+by Christine Mugume on Page 8/6 wherein the learned author stated that, in
+determining that one is an employee or independent contractor, the question will be
+whether the person hired is engaged on a continuous basis, the services are performed
+particularly at the hirer's business, the hirer provided the working tools, plant and other
+relevant facilities for the person hired to do his or her work and the hirer controls the timing
+and scheduling of work.
+The Applicant submitted that the courts have used the Multiple test because they have
+recognized that not a single infallible test can be used to determine whether one is an
+employee or not. In the case of Workmen of Nilgiri Cooperative Marketing Society Ltd
+V Tamil Nadu, (2004) 3 SCC 514 court stated that, ""No single test- be it control, be it
+organization or any other test has to be the determinative factor for determining the jural
+relationship of employer and employee"".
+The Applicant submitted on the third test, namely, the parties' own characterization which
+means that the label the parties have given their relationship will be respected unless the
+terms of the contract are inconsistent with that label.
+3
+The Applicant submitted that in order for the Tribunal to determine the nature of service,
+the facts of the case should be applied to the statutory definition of employee and
+employment along with the common law tests.
+5. Submissions of the Respondent
+The Respondent submitted that the burden of proof lies upon the Applicant to prove that
+the assessment is incorrect or erroneous as provided for under Section 26 of the Tax
+Procedures Code Act 2014 and was reechoed in the Tanzanian case of Williamson
+Diamonds LTD V Commissioner General (2008) 4 TTLR 67 where the Tax Revenue
+Appeals Tribunal of Tanzania held that;
+""..... burden of proving that the assessment issued by the Respondent is excessive or
+erroneous lies on the tax payer and in no way it be shifted to the Respondent...""
+The Counsel for the Respondent submitted that the Applicant is liable to pay the PAYE
+assessment issued against it and that in determining liability, the Tribunal ought to
+examine the character of the data collectors/enumerators to determine whether they are
+employees or independent contractors.
+In relation to the above, Counsel for the Respondent made reference to the testimony by
+its witness Ms. Priscilla Nambuba, an officer in the Objections Unit of Domestic Taxes
+Department. The witness testified that the data collectors/enumerators were classified as
+employees because the roles performed by them formed an integral part of the business
+of the Applicant. In this regard, the Respondent added that the Applicant provided them
+with tools of trade in the form of tablets used for data collection. The Respondent noted
+that this particular statement was uncontroverted during the hearing of this case.
+The Respondent also cited the Ready Mixed Concrete case (supra), where the court
+while elaborating on the above test stated that: ""There must be a wage or other
+remuneration. Otherwise there will be no consideration, and without consideration no
+contract of any kind. The servant must be obliged to provide his own work and skill.
+Freedom to do a job either by one's own hands or by another's is inconsistent with a
+contract of service"".
+4
+6. The Applicant's submissions in rejoinder
+In response to the Respondent's submissions, that evidence of its witness Ms. Priscilla
+Nambuba on characterization of Data Collectors/Enumerators, as employees was
+uncontroverted, the Applicant submitted that the same had been submitted by the
+Respondent in error. The Applicant stated that the testimony of Mr. Edward Kato
+extensively demonstrated that the Data Collectors were not employees but independent
+contractors.
+7. Resolution of the application by the Tribunal
+Having studied the evidence and submissions made by the parties, the following is the
+ruling of the Tribunal.
+PAYE is a form of withholding tax which employers are required to deduct and remit to
+the Respondent from payments due to employees. This requirement is provided for under
+S. 126 of the Income Tax Act.
+The Applicant submitted that the enumerators or data collectors constituted more than
+80% of the contractors and that the rest were exhibitors, a consultant, field extension
+workers and vine inspectors. The Applicant submitted that in the case of the exhibitors,
+consultant, field extension workers and the vine inspectors, there was no reason to
+interfere with the characterization which the parties had themselves given to their
+relationship. The Respondent on the other hand submitted that the exhibitors, consultant,
+field extension workers and vine inspectors, formed neither part of the objection nor the
+objection review process. The Respondent submitted further that the Application is based
+primarily on the issue of PAYE on the data collectors/enumerators and WHT on payments
+made to suppliers. This the Respondent submitted amounted to the introduction by the
+Applicant of a new cause of action.
+A perusal of the Application filed on 18th April 2023, makes no mention of exhibitors,
+consultant, field extension workers or vine inspectors. It is trite that parties ought not to
+depart from their pleadings. The tribunal will accordingly disregard the distinction made
+by the Applicant between data collectors/enumerators on the one hand and exhibitors,
+consultant, field extension workers and vine inspectors, on the other.
+5
+In resolving the issue as to whether the Applicant is liable to pay PAYE as assessed, we
+must determine whether the individuals in question were employees or independent
+contractors.
+S.2 of the Employment Act, defines an employee as: -
+""Any person who has entered a contract of service or an apprenticeship contract
+including, without limitation, any person who is employed by the Government of Uganda,
+including the Uganda Public Service, a local authority or a parastatal organization but
+excludes a member of the Uganda Peoples Defence Forces.""
+An employee is defined in Black's Law Dictionary 8th Edition p.564 as a ""person who
+works in the service of another person (the employer) under an express or implied
+contract of hire, under which the employer has the right to control the details of work
+performance.""
+An independent contractor on the other hand is defined in The Black's Law Dictionary
+8th Edition page 888 as: ""One who is entrusted to undertake a specific project but who
+is left free to do the assigned work and to choose the method for accomplishing it.""
+The above authorities disclose a distinction between a contact of service and a contract
+for service. Employees are deemed to enter a contract of service while independent
+contractors are deemed to have entered a contract for service. In Ready Mixed Concrete
+(South East Ltd) v Minister of Pensions and National Insurance [1968] 2 QB 496 it
+was stated that:
+""A contract of service exists if these three conditions are fulfilled.
+(i)
+The servant agrees that, in consideration of a wage or other remuneration, he will
+provide his own work and skill in the performance of some service for his own
+master.
+(ii)
+He agrees, expressly or impliedly, that in the performance of that service he will
+be subject to the other's control in a sufficient degree to make that other master.
+(iii) The other provisions of the contract are consistent with its being a contract of
+service.""
+From the above, it is not difficult to discern that the element of control is important in
+determining whether a person is an employee or an independent contractor.
+6
+The term ""control"" has been defined in Black's Law Dictionary 8th Edition p. 403 as:
+""The direct or indirect power to govern the management and policies of a person or entity,
+whether through ownership of voting securities, by contract or otherwise, the power or
+authority to manage, direct, or oversee.""
+In Ready Mixed Concrete v Minister of Pensions & National Insurance (supra) the
+court noted that: ""Control includes the power of deciding the thing to be done, the way in
+which it shall be done, the means to be employed in doing it, the time when and the place
+where it shall be done"". All these aspects of control must be considered in deciding
+whether the right exists in a sufficient degree to make one party the master and the other
+his servant.
+""In Meera Investments Ltd v Andreas Wipfler t/a Wipfler Designers and Co. Ltd. MA
+163 of 2009 the Court cited the following definition of an `independent contractor' in
+Black's Law Dictionary 9th Edition.
+""One who is entrusted to undertake a specific project but who is left free to do the
+assigned work and to choose the method for accomplishing it.""
+The Court cited with approval the following test laid down in Market Investigations vs.
+Minister of Social Security [1969] 2 GB 173.
+""... the fundamental test to be applied is this: ""is the person who has engaged himself to
+perform these services performing them as a person in business on his own account?"" If
+the answer to that question is ""yes"", then the contract is a contract for services."" ""No
+exhaustive list has been compiled and perhaps no exhaustive list can be compiled of
+considerations that are relevant in determining that question, nor can strict rules be laid
+down as to the relevant weight which the various considerations should carry in particular
+cases. The most that can be said is that control will no doubt always have to be
+considered, although it can no longer be regarded as the sole determining factor; and that
+factors, which may be of importance, are such matters as whether the man performing
+the services provides his own equipment, whether he hires his own helpers, what degree
+of financial risk (he) takes, what degree of responsibility for investment and management
+he has, and whether and how far he has an opportunity of profiting from sound
+management in the performance of his task.""
+7
+The tests and definitions enumerated under the Common law above, have been codified
+in the Income Tax Act, under the definitions of the terms ""employee"" and ""employment"".
+S.2 of the Income Tax Act, defines an employee as an individual engaged in employment
+while employment is defined under the same section as follows;
+""(i) the position of an individual in the employment of another person.
+(ii) A directorship of a company.
+(iii) A position entitling the holder to a fixed or ascertainable remuneration; or
+(iv) The holding or acting in any public office;""
+We will look at each of the above definitions of ""employment"" to determine whether the
+enumerators were employees of the Applicant or independent contractors. The first
+definition, namely, the position of an individual in the employment of another person
+envisages a situation where it is acknowledged that a person is an employee of another,
+whether under a formal contract of service or otherwise. However in the instant case there
+is no such acknowledgement from the evidence before us.
+The second and fourth definitions do not apply to the instant case, as they are specific to
+persons holding the office of a director in a company or persons holding or acting in any
+public office. The evidence before us shows that none of the enumerators were either
+directors in the Applicant, or were holders of public office in any capacity.
+The third definition is in respect of a position entitling the holder to a fixed or ascertainable
+remuneration. This definition formed the basis of the decision of the tribunal in Infectious
+Diseases Institute (IDI) V Uganda Revenue Authority TAT APP No. 15/2019.
+Excerpts from the above decision are reproduced below:
+""Any person who receives a fixed or ascertainable remuneration is considered as an
+employee under the Income Tax Act, but this may not be the case under the Employment
+Act. ...The word `ascertainable' would refer to income that is certain. Therefore, if an
+individual receives income that is constant and certain, he or she is deemed an employee
+for purposes of taxation. The tribunal uses the word ""or"" to imply that either ""constant"" or
+""certain"" may do"".
+""It is debatable whether a person who receives remuneration for a short period may be
+considered as one who obtains fixed or ascertainable income. For the avoidance of doubt
+8
+the Tribunal will hold that a person who receives remuneration for less than two months
+cannot be considered as receiving fixed or ascertainable income. A taxpayer is entitled
+to the benefit of doubt"".
+The Applicant's witness Edward Kato testified that the working period for each contract
+for the enumerators or data collectors ranged between five (5) and thirty-four (34) days
+at the very maximum.
+This evidence was uncontroverted. The period ranging between five to thirty five days is
+too short to form the basis of a determination that a person obtained a fixed or
+ascertainable income. Applying the decision of the tribunal in the Infectious Diseases
+Institute case, we find that owing to the very short period of their engagement, the data
+collectors cannot be considered as having received a fixed or ascertainable income.
+Accordingly they cannot be considered as employees of the Applicant. This being the
+case, the Applicant is not liable to pay the PAYE as assessed in respect of the
+enumerators.
+As part of the remedies sought the Applicant prayed that the Respondent be ordered to
+refund to the Applicant the sum of Shs. 51,595,164 paid by the Applicant as 30% of the
+tax in dispute with interest at 2% from the date of payment until the date of refund.
+S.22(6) of the Tax Appeals Tribunals Act provides that the tribunal may make an order
+as to damages, interest or any other remedy against any party, and the order shall be
+enforceable in the same manner as an order of the High Court.
+The use of the word `may' above shows that discretion is granted to the tribunal to award
+damages, interest or other remedies. It is settled law that discretion must be exercised
+judiciously. In Kirilisa vs. Attorney General & Another (1990-1994) 1 EA 258 (SCU),
+Manyindo DCJ, stated as follows:
+""In my opinion discretion simply means the faculty of deciding or determining in
+accordance with circumstances and what seems just, fair, right, equitable and reasonable
+in those circumstances"".
+9
+In the instant case the Applicant paid Shs.51, 595,164/- as 30% of the tax in dispute as
+required under S.15 (1) of the Tax Appeals Tribunals Act. Having found that the
+Applicant is not liable to pay the tax as assessed. It is only fair and just that the money
+paid by the Applicant in order to access the tribunal be refunded to it. It is also fair and
+just that this money be paid with interest of 2% per month from the date of payment until
+the date of refund, as the Applicant has been deprived of the use of this money from the
+time it was paid.
+We accordingly order as follows;
+1. The Application is allowed with costs to the Applicant.
+2. The Respondent is ordered to refund to the Applicant the sum of Shs. 51,595,164/-
+paid by the Applicant as 30% of the tax in dispute with interest at 2% per month from
+the date of payment until the date of refund.
+Dated at Kampala this 6th day of September 2024.
+MR. SIRAJ ALI
+CHAIRPERSON
+MS. KABAKUMBA MASIKO
+MEMBER
+MS. SAFI GRACE
+MEMBER
+10","This ruling provides crucial clarity for Ugandan tax practitioners on distinguishing between employees and independent contractors, particularly for project-based engagements. The Tribunal's reliance on common law tests, such as the 'control test' and 'integration test,' as well as the duration of engagement, is a key takeaway. The precedent set here emphasizes that the label given by the parties (e.g., 'contractor') is not determinative if the actual working relationship indicates otherwise, but short-term engagements with limited control lean towards independent contractor status. This case highlights the importance of carefully structuring contracts and operational relationships to align with the intended tax treatment, especially concerning PAYE obligations under Section 126 of the Income Tax Act.
+
+*   **Key Practical Lessons:**
+*   The 'control test' remains paramount in determining employment status.
+*   Short-term, project-specific engagements with limited employer control are less likely to be deemed employment.
+*   Documenting the terms of engagement clearly is vital for tax compliance.",2026-07-04 16:44:37.87693+00

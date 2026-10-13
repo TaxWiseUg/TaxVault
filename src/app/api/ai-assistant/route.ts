@@ -75,7 +75,7 @@ I am currently operating in **Local Mock Mode** because a valid \`GEMINI_API_KEY
 
 However, I can still answer questions about the **${currentPage || "Dashboard"}** section or general Ugandan tax policies.
 
-To enable full AI capabilities, please add a valid Gemini API Key from Google AI Studio to your local \`.env\` file.`;
+To enable live automated responses, please add a valid Gemini API Key from Google AI Studio to your local \`.env\` file.`;
         mockSuggestions = [
           "Tell me about eFRIS compliance penalties.",
           "What are the standard VAT rules in Uganda?",
@@ -91,7 +91,7 @@ To enable full AI capabilities, please add a valid Gemini API Key from Google AI
     }
 
     // Construct a rich system instruction summarizing full platform context and Uganda tax regulations
-    const systemInstruction = `You are the friendly, professional, and authoritative AI Assistant for the TaxWise Uganda platform.
+    const systemInstruction = `You are the friendly, professional, and authoritative Tax Advisory Assistant for the TaxWise Uganda platform.
 Your purpose is to assist users (tax consultants, accountants, lawyers, business owners, and students in Uganda) by providing high-quality tax insights, explaining platform features, and helping them navigate.
 
 Current User Details:
@@ -102,10 +102,10 @@ Current User Details:
 TaxWise Uganda Platform Features Overview:
 1. Dashboard: Key metrics (cases analyzed, reports generated, courses completed), quick action shortcuts, and activity logs.
 2. Case Analyzer: Pastes or uploads rulings (PDFs), extracting legal issues, outcomes, and tax risk metrics with custom report exports.
-3. Case Library: A search engine for Uganda Tax Appeals Tribunal (TAT) rulings, offering filters for year, tax type (VAT, CIT, PAYE, etc.), outcome, and AI expert commentary.
+3. Case Library: A search engine for Uganda Tax Appeals Tribunal (TAT) rulings, offering filters for year, tax type (VAT, CIT, PAYE, etc.), outcome, and expert commentary.
 4. Calculators: Tools for Pay-As-You-Earn (PAYE), VAT (18%), withholding tax (WHT), and corporate income tax.
 5. Intelligence: In-depth research papers, dispute analytics, and trend reports on Uganda Revenue Authority (URA) cases.
-6. Learning Hub: Certified interactive courses including "Uganda Tax Basics" (Beginner), "TAT Appeals Process" (Intermediate), and "URA eFRIS Mastery" (Professional), equipped with personal AI lessons tutors.
+6. Learning Hub: Certified interactive courses including "Uganda Tax Basics" (Beginner), "TAT Appeals Process" (Intermediate), and "URA eFRIS Mastery" (Professional), equipped with personal lesson tutors.
 7. Compliance Checker: Direct self-audit checklists for eFRIS compliance, VAT filing prep, and PAYE bookkeeping to map penalty exposures.
 8. Pricing: Flexible UGX plans (Free, Pro, Enterprise) integrated securely via Flutterwave for MTN Mobile Money, Airtel Money, and card payments.
 
@@ -153,7 +153,7 @@ Rules for your response:
       while (attempts < maxAttempts && !success) {
         attempts++;
         try {
-          console.log(`AI Assistant calling ${modelName} (attempt ${attempts})...`);
+          console.log(`Assistant calling ${modelName} (attempt ${attempts})...`);
           const response = await ai.models.generateContent({
             model: modelName,
             contents: chatParts,
@@ -188,7 +188,7 @@ Rules for your response:
           }
         } catch (err: unknown) {
           finalError = err;
-          console.warn(`AI Assistant error with model ${modelName} on attempt ${attempts}:`, err);
+          console.warn(`Assistant error with model ${modelName} on attempt ${attempts}:`, err);
           
           const errObj = err && typeof err === "object" ? (err as Record<string, unknown>) : null;
           const errMsg = err instanceof Error ? err.message : String(err);
@@ -230,14 +230,14 @@ Rules for your response:
         : [],
     });
   } catch (error: unknown) {
-    console.error("AI Assistant API Error:", error);
+    console.error("Assistant API Error:", error);
     const errMsg = error instanceof Error ? error.message : String(error);
     const isApiKeyError = errMsg.includes("API key not valid") || errMsg.includes("API_KEY_INVALID") || errMsg.includes("key is invalid") || errMsg.includes("API key");
 
     if (isApiKeyError) {
       return NextResponse.json({
         success: true,
-        answer: `### ⚠️ Invalid API Key Configured
+        answer: `### Invalid API Key Configured
 The Gemini API key configured in your local \`.env\` file is invalid or has expired.
 
 **How to Fix This:**
@@ -258,7 +258,7 @@ The Gemini API key configured in your local \`.env\` file is invalid or has expi
 
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Failed to communicate with AI Assistant service.",
+        error: error instanceof Error ? error.message : "Failed to communicate with assistant service.",
         answer: "Apologies, I encountered an issue accessing my tax knowledge base. Please try asking your question again shortly.",
         suggestedQuestions: [
           "How does standard VAT work in Uganda?",

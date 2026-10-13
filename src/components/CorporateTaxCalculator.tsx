@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Calculator, 
@@ -90,6 +90,95 @@ interface MoneyFieldProps {
   tooltip?: string;
 }
 
+const CorporateInfoTooltip: React.FC<{ text: string }> = ({ text }) => {
+  const [show, setShow] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setShow(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setShow(false);
+    }, 220);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  return (
+    <div 
+      style={{ position: "relative", display: "inline-flex", alignItems: "center" }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleMouseEnter}
+      onBlur={handleMouseLeave}
+      tabIndex={0}
+      role="tooltip"
+      aria-label={text}
+    >
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShow(prev => !prev);
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          cursor: "pointer",
+          padding: 2,
+          color: show ? C.gold : C.muted,
+          display: "inline-flex",
+          alignItems: "center",
+          outline: "none",
+          transition: "color 0.15s ease",
+        }}
+        aria-label="Info"
+      >
+        <Info size={13} />
+      </button>
+      <AnimatePresence>
+        {show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15 }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              position: "absolute",
+              top: "22px",
+              right: 0,
+              width: "240px",
+              background: C.navy,
+              color: C.white,
+              padding: "10px 14px",
+              borderRadius: "8px",
+              fontSize: "11.5px",
+              lineHeight: "1.45",
+              boxShadow: "0 8px 24px rgba(10, 20, 45, 0.25), 0 2px 6px rgba(0,0,0,0.1)",
+              zIndex: 999,
+              pointerEvents: "auto",
+              border: `1px solid rgba(255, 255, 255, 0.12)`,
+              textAlign: "left",
+            }}
+          >
+            {text}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
 const MoneyField: React.FC<MoneyFieldProps> = ({
   label,
   value,
@@ -102,7 +191,6 @@ const MoneyField: React.FC<MoneyFieldProps> = ({
     value === 0 ? "0" : value.toLocaleString("en-US")
   );
   const [isFocused, setIsFocused] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
   if (value !== prevValue) {
     setPrevValue(value);
@@ -154,54 +242,7 @@ const MoneyField: React.FC<MoneyFieldProps> = ({
           {label}
         </label>
         
-        {tooltip && (
-          <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <button
-              type="button"
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
-              onClick={() => setShowTooltip(!showTooltip)}
-              style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: 2,
-                color: showTooltip ? C.gold : C.muted,
-                display: "flex",
-                alignItems: "center"
-              }}
-            >
-              <Info size={13} />
-            </button>
-            <AnimatePresence>
-              {showTooltip && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: -4 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: -4 }}
-                  style={{
-                    position: "absolute",
-                    top: "22px",
-                    right: 0,
-                    width: "220px",
-                    background: C.navy,
-                    color: C.white,
-                    padding: "8px 12px",
-                    borderRadius: "6px",
-                    fontSize: "11px",
-                    lineHeight: "1.4",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                    zIndex: 99,
-                    pointerEvents: "none",
-                    border: `1px solid ${C.border}22`
-                  }}
-                >
-                  {tooltip}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+        {tooltip && <CorporateInfoTooltip text={tooltip} />}
       </div>
 
       <div style={{ position: "relative" }}>

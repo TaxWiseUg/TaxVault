@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   Calculator, 
@@ -22,52 +22,95 @@ interface TooltipProps {
 
 const Tooltip: React.FC<TooltipProps> = ({ text }) => {
   const [show, setShow] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setShow(true);
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setShow(false);
+    }, 220);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   return (
     <div 
       style={{ position: "relative", display: "inline-flex", alignItems: "center" }}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleMouseEnter}
+      onBlur={handleMouseLeave}
+      tabIndex={0}
+      role="tooltip"
+      aria-label={text}
     >
-      <HelpCircle size={14} style={{ color: C.muted, cursor: "help", marginLeft: 4 }} />
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShow(prev => !prev);
+        }}
+        style={{
+          background: "transparent",
+          border: "none",
+          padding: 0,
+          margin: 0,
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          outline: "none"
+        }}
+        aria-label="Info note"
+      >
+        <HelpCircle 
+          size={14} 
+          style={{ 
+            color: show ? C.gold : C.muted, 
+            marginLeft: 4, 
+            transition: "color 0.15s ease",
+            cursor: "pointer" 
+          }} 
+        />
+      </button>
       <AnimatePresence>
         {show && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 4, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            exit={{ opacity: 0, y: 4, scale: 0.96 }}
             transition={{ duration: 0.15 }}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
             style={{
               position: "absolute",
-              top: "100%",
+              top: "calc(100% + 6px)",
               left: "50%",
               transform: "translateX(-50%)",
-              marginTop: 8,
               background: C.navy,
               color: C.white,
-              padding: "8px 12px",
+              padding: "10px 14px",
               borderRadius: 8,
-              fontSize: "11px",
+              fontSize: "11.5px",
               fontWeight: 500,
-              width: 220,
-              textAlign: "center",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-              zIndex: 99,
-              pointerEvents: "none",
-              lineHeight: 1.4,
+              width: 240,
+              textAlign: "left",
+              boxShadow: "0 8px 24px rgba(10, 20, 45, 0.25), 0 2px 6px rgba(0,0,0,0.1)",
+              zIndex: 999,
+              pointerEvents: "auto",
+              lineHeight: 1.45,
+              border: `1px solid rgba(255, 255, 255, 0.12)`,
             }}
           >
             {text}
-            <div 
-              style={{
-                position: "absolute",
-                bottom: "100%",
-                left: "50%",
-                transform: "translateX(-50%)",
-                borderWidth: "6px",
-                borderStyle: "solid",
-                borderColor: `transparent transparent ${C.navy} transparent`,
-              }}
-            />
           </motion.div>
         )}
       </AnimatePresence>

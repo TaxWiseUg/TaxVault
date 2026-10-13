@@ -1,9 +1,11 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, DEFAULT_TAT_CASES } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { Badge, Card, Modal } from "./UI";
-import { Search, FolderOpen, Calendar, Sparkles } from "lucide-react";
+import { Search, FolderOpen, Calendar, Sparkles, BookOpen } from "lucide-react";
 
 interface TatCase {
   id: string;
@@ -36,10 +38,17 @@ export const CaseLibrary: React.FC = () => {
           .select("*")
           .order("year", { ascending: false });
 
-        if (error) throw error;
-        if (data) setCases(data as TatCase[]);
+        if (error) {
+          console.warn("Could not query tat_cases table, using imported data:", error.message);
+          setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
+        } else if (data && data.length > 0) {
+          setCases(data as TatCase[]);
+        } else {
+          setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
+        }
       } catch (err) {
         console.error("Error fetching TAT cases:", err);
+        setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
       } finally {
         setLoading(false);
       }
@@ -100,7 +109,7 @@ export const CaseLibrary: React.FC = () => {
           TAT Case Precedents
         </h1>
         <p style={{ color: C.muted, fontSize: "0.92rem", fontWeight: 500 }}>
-          Search and explore historic Tax Appeals Tribunal (TAT) rulings. Click on any ruling to access AI expert commentary.
+          Search and explore historic Tax Appeals Tribunal (TAT) rulings. Click on any ruling to access statutory analysis &amp; legal commentary.
         </p>
       </motion.div>
 
@@ -265,8 +274,8 @@ export const CaseLibrary: React.FC = () => {
                     gap: 6,
                   }}
                 >
-                  <Sparkles size={13} style={{ color: C.gold }} />
-                  <span>AI Summary & Legal Commentary</span>
+                  <BookOpen size={13} style={{ color: C.teal }} />
+                  <span>Statutory Summary &amp; Legal Commentary</span>
                 </div>
                 <div style={{ fontSize: "0.9rem", color: C.text, lineHeight: 1.85, fontWeight: 500, textAlign: "justify" }}>
                   {selected.ai_commentary.split("\n").map((line, index) => {

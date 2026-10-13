@@ -3,9 +3,9 @@ import { rentalTaxInputSchema } from "../schemas";
 
 function assert(testName: string, condition: boolean, details?: string) {
   if (condition) {
-    console.log(`✅ PASS: ${testName}`);
+    console.log(`[PASS] ${testName}`);
   } else {
-    console.error(`❌ FAIL: ${testName}`);
+    console.error(`[FAIL] ${testName}`);
     if (details) console.error(`   Reason: ${details}`);
     throw new Error(`Test failed: ${testName}`);
   }

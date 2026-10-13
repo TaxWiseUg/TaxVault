@@ -1,14 +1,16 @@
+"use client";
+
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, DEFAULT_CASES, DEFAULT_TAT_CASES } from "../lib/supabaseClient";
 import { C, riskColors } from "../lib/constants";
 import {
   MAX_DOCUMENT_SIZE_BYTES,
   SUPPORTED_DOCUMENT_ACCEPT,
 } from "../lib/documentTypes";
 import { Badge, Button, Card } from "./UI";
-import { BookOpen, X, Search, FolderOpen, Calendar, Scale, FileText, Paperclip, Sparkles, AlertTriangle, BarChart2 } from "lucide-react";
+import { BookOpen, X, Search, FolderOpen, Calendar, Scale, FileText, Paperclip, Sparkles, AlertTriangle, BarChart2, Download, RefreshCw } from "lucide-react";
 
 interface CaseAnalyzerProps {
   user: {
@@ -169,14 +171,25 @@ const LibraryPicker: React.FC<LibraryPickerProps> = ({ open, onClose, onSelect }
     if (!open || fetched.current) return;
     fetched.current = true;
     setLoading(true);
-    supabase
-      .from("tat_cases")
-      .select("id, case_number, title, year, tax_type, outcome, summary, full_text, ai_commentary")
-      .order("year", { ascending: false })
-      .then(({ data, error }) => {
-        if (!error && data) setCases(data as TatCase[]);
+    const loadLibraryCases = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("tat_cases")
+          .select("id, case_number, title, year, tax_type, outcome, summary, full_text, ai_commentary")
+          .order("year", { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          setCases(data as TatCase[]);
+        } else {
+          setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
+        }
+      } catch {
+        setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    loadLibraryCases();
   }, [open]);
 
   useEffect(() => {
@@ -598,7 +611,7 @@ async function downloadResultAsPDF(result: AnalysisResult, caseType: string) {
   <div class="cover">
     <div class="cover-logo">TaxWise Uganda · taxwise.cloud</div>
     <div class="cover-title">Case Analysis Report</div>
-    <div class="cover-sub">AI-powered Tax Dispute Analysis</div>
+    <div class="cover-sub">Tax Dispute Analysis &amp; Advisory Brief</div>
     <div class="cover-meta">
       <div class="cover-meta-item"><strong>Case Type</strong>${caseType}</div>
       <div class="cover-meta-item"><strong>Generated</strong>${now}</div>
@@ -709,9 +722,14 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      if (data) setReports(data as unknown as CaseRecord[]);
+      if (data && data.length > 0) {
+        setReports(data as unknown as CaseRecord[]);
+      } else {
+        setReports(DEFAULT_CASES as unknown as CaseRecord[]);
+      }
     } catch (err) {
       console.error("Error fetching past reports:", err);
+      setReports(DEFAULT_CASES as unknown as CaseRecord[]);
     }
   }, []);
 
@@ -898,7 +916,7 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
           Case Analyzer
         </h1>
         <p style={{ color: C.muted, fontSize: "0.92rem", fontWeight: 500 }}>
-          Upload a scanned PDF, Word document, image, or text file and paste dispute details. AI extracts structured legal analysis instantly.
+          Upload a scanned PDF, Word document, image, or text file and paste dispute details. The engine extracts structured legal analysis instantly.
         </p>
       </motion.div>
 
@@ -1039,7 +1057,7 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
               ))}
             </select>
             <Button onClick={analyze} disabled={loading || (!text.trim() && !file)}>
-              {loading ? "⟳ Analyzing..." : "Run AI Analysis →"}
+              {loading ? "Analyzing..." : "Run Case Analysis →"}
             </Button>
           </div>
         </Card>
@@ -1054,8 +1072,9 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
               <span>Analysis Findings</span>
             </div>
             {result && !result.error && (
-              <Button onClick={downloadReport} small variant="outline">
-                ⬇ Download PDF
+              <Button onClick={downloadReport} small variant="outline" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Download size={14} />
+                <span>Download PDF</span>
               </Button>
             )}
           </div>
@@ -1093,8 +1112,8 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
                 padding: "40px 0"
               }}
             >
-              <div style={{ fontSize: "2.5rem", animation: "spin 1s linear infinite", color: C.teal }}>⟳</div>
-              <div style={{ fontSize: "0.9rem", color: C.navy, fontWeight: 700 }}>AI Tax Engine Active...</div>
+              <RefreshCw size={32} style={{ color: C.teal, animation: "spin 1s linear infinite" }} />
+              <div style={{ fontSize: "0.9rem", color: C.navy, fontWeight: 700 }}>Statutory Tax Engine Active...</div>
               <p style={{ fontSize: "0.78rem", color: C.muted, textAlign: "center", maxWidth: 220 }}>
                 Reading pages, matching precedents, and drafting summaries.
               </p>

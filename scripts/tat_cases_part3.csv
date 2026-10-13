@@ -1,0 +1,431 @@
+id,case_number,title,year,tax_type,outcome,summary,full_text,ai_commentary,created_at
+1f76a9fd-a569-470a-8134-93bc005f9d5d,TAT No. 113 of 2025,Lion of Judah Limited v Uganda Revenue Authority,2026,Income Tax,Dismissed,"The Applicant challenged an income tax assessment on an unsupported loan, which it claimed was a related-party loan converted into share capital. The Tribunal found that the Applicant failed to provide sufficient evidence to prove the existence of a genuine loan or its disbursement. The Tribunal concluded that the URA was justified in recharacterizing the amounts as unexplained income under Section 117 of the Income Tax Act and dismissed the application, maintaining the income tax assessments.","This application challenges an additional income assessment amounting to Shs. 116,779,982 issued by the Respondent on the grounds of an unsupported loan. The Applicant seeks the following orders:
+(i) A declaration that the Applicant is not liable to pay the tax assessed.
+(ii) Costs of this Application be provided for.
+
+Background facts
+2. The Applicant is a duly incorporated company dealing in the business of radio broadcasting in Mbarara District. On 18 November 2019 and 29 November 2023, the Applicant was issued with an additional Income tax assessment of Shs. 116,779,982 on grounds of an unsupported loan. On 23 January 2020 and 31 May 2024, the Applicant objected to the said assessment on the grounds that it had obtained a related-party loan, which was converted into share capital.
+
+Issues for determination
+5. The key issue to be determined is whether the Applicant is liable to pay the tax assessed
+
+50. In the premises, the issue now falling for determination is whether the Applicant is liable to pay the total assessed tax of Shs. 116,779,982. At the centre of this dispute is whether the related-party loan subsequently converted to share capital constitutes taxable income under the Income Tax Act.
+
+51. Section 4 of the Income Tax Act (ITA) imposes income tax on every person who has a chargeable income for the year of income. This means that income tax is charged on income earned, not on capital or money invested to earn income. We must therefore determine whether the Applicant received funds that constituted a loan.
+
+Whether the Applicant has proved the existence of the disputed loan
+52. A loan does not constitute income in the hands of a borrower. Accordingly, where a taxpayer contends that amounts treated by the Commissioner General as taxable income are in fact loan proceeds, the taxpayer bears the burden of proving, through credible and concurrent evidence, that a genuine debtor-creditor relationship existed and that the funds were actually advanced.
+
+53. In the present matter, the Applicant has argued that it obtained an interest-free shareholder loan of Shs. 407,305,333 pursuant to a loan agreement dated 1 May 2017. In support of this contention, the Applicant relied on three principal documents: the loan agreement, a church collection ledger, and a board resolution dated 12 January 2024 increasing the company's issued share capital from Shs. 1,000,000 to Shs. 407,000,000 following the alleged conversion of the loan into equity.
+
+54. However, the existence of a written loan agreement, without more, is insufficient to establish that funds were in fact advanced. As was emphasised in Explorer (U) Ltd v Uganda Revenue Authority, TAT Application No. 87 of 2023, documentary assertions of indebtedness must be supported by objective financial records demonstrating that the amounts were received, recorded, and consistently treated as liabilities in the taxpayer's accounts. For example, we would have expected the Applicant, beyond the loan agreement itself, to produce credible coexistent financial evidence demonstrating the actual disbursement of the alleged loan, such as bank statements or a cash book. The Applicant could have provided a loan movement schedule, but this was not provided either.
+
+59. In the present case, no such comparable evidence has been provided; therefore, we find that the Applicant has failed to discharge the burden of proving that the alleged shareholder loan was ever disbursed or that a genuine debtor-creditor relationship came into existence.
+
+65. Section 117 of the Income Tax Act is a general anti-avoidance provision designed to counter arrangements that lack economic substance or are artificially structured to defeat the purpose of the Act. The provision empowers the Respondent to disregard the legal form of a transaction and to recharacterise it according to its true substance where the surrounding circumstances demonstrate that the arrangement does not reflect genuine commercial reality.
+
+69. The Tribunal therefore finds that the Respondent properly invoked section 117 of the Income Tax Act to recharacterise the disputed amounts of Shs. 116,779,882 as unexplained income and to assess tax accordingly.
+
+70. Consequently, we find that the Applicant has not discharged the burden of proving the existence of the alleged shareholder loan and has not established that the subsequent conversion into equity evidences a valid underlying debt. Therefore, the Respondent was justified, pursuant to Section 117 of the Income Tax Act, in treating the loan as unexplained income.
+
+71. In the circumstances, the Tribunal dismisses this application and makes the following orders:
+(i) The income tax assessments are hereby maintained
+(ii) Costs of this application are awarded to the Respondent.","This ruling underscores the critical importance of robust and contemporaneous documentation for all financial transactions, especially related-party loans and subsequent conversions to equity. Tax practitioners in Uganda must advise clients that mere contractual agreements or belated board resolutions are insufficient without verifiable financial records (e.g., bank statements, ledger entries, audited financial statements) demonstrating the actual movement of funds and consistent accounting treatment. The Tribunal's reliance on Section 117 of the Income Tax Act highlights URA's power to disregard the form of a transaction if its substance does not reflect genuine commercial reality, particularly in anti-avoidance scenarios. This case sets a precedent that taxpayers bear a heavy burden of proof to substantiate the nature of funds, and failure to do so will likely result in recharacterization as taxable income.
+
+*   **Key Takeaway:** Substance over form is paramount; documentation must reflect actual financial flows.
+*   **Main Risk/Precedent:** Unsubstantiated related-party loans or capital conversions will be treated as taxable income.
+*   **Relevant Act/Section:** Section 117 of the Income Tax Act (Cap 340) empowers URA to recharacterize transactions lacking economic substance.
+*   **Practical Lessons:**
+    *   Maintain comprehensive and contemporaneous financial records for all transactions.
+    *   Ensure related-party agreements are supported by actual fund disbursements and accounting entries.
+    *   Be prepared to demonstrate the commercial reality and economic substance of transactions.",2026-07-04 21:31:01.317162+00
+218ab3a2-486a-4697-a7cd-3e3c3d35f0c5,APPLICATION NO.193 OF 2024,INTERNATIONAL HOSPITAL KAMPALA LIMITED v UGANDA REVENUE AUTHORITY,2024,VAT | Income Tax,Partial,"The Tribunal ruled on two main issues: VAT on meals for inpatients and deductibility of bad debts. It found that meals provided to inpatients are incidental to medical services and thus exempt from VAT, setting aside the VAT assessment. For bad debts, the Tribunal allowed the deduction for individual patient debts where reasonable recovery steps were taken but disallowed the deduction for debts from insurance companies due to the Applicant's failure to meet contractual conditions, which extinguished the legal right to payment.","I. Introduction
+1. This is an application challenging the Respondent's assessment of income tax and Value Added Tax (VAT) arising from the Respondent's treatment of meals supplied to in-patient clients as taxable supplies and the disallowance of a deduction for bad debts.
+
+II. Background Facts
+2. The Applicant is a multi-specialty hospital that provides advanced medical care. On 8 September 2023, the Respondent conducted an audit of the Applicant for the period July 2018 to June 2022 and raised an assessment of Shs. 1,963,022,706, comprising:
+(i) Income tax of Shs. 1,289,287,222 on the basis that the Applicant did not take all reasonable steps to recover the bad debts.
+(ii) VAT of Shs. 356,508,843 on the grounds that the provision of meals to inpatients is taxable.
+(iii) WHT of Shs. 317,226, 641, which was subsequently settled.
+
+III. Issues
+5. The following are the issues for determination.
+i. Whether the Applicant is liable to pay the assessed income tax and VAT?
+ii. What remedies are available to the parties?
+
+VIII. The determination
+73. Having considered the pleadings, affidavits, and submissions of both parties, this is the ruling of the Tribunal.
+
+(i) Whether Meals Provided to Inpatients are incidental to Supply of Medical Services or not?
+78. VAT is imposed on every taxable supply made in Uganda by a taxable person under sections 4 and 18 of the VAT Act, Cap. 344, unless the supply is expressly exempt. Section 19(1) of the VAT Act states:
+""A supply of goods or service is an exempt supply if it is specified in Schedule 3 to this Act.""
+79. Paragraph 1(h) of Schedule 3 to the VAT Act expressly lists the supply of veterinary, medical, dental and nursing services as exempt. Further, Section 12 of the VAT specifies for mixed supplies as:
+""(1) A supply of services, incidental to the supply of goods is part of the supply of goods.
+(2)A supply of goods is incidental to the supply of services is part of the supply of services.
+(3) A supply of services incidental to the import of goods is part of the import of goods.
+(4) Regulations made under Section 51 may provide that a supply is a supply of goods or services.""
+
+91. Accordingly, the Tribunal finds that the Applicant has discharged its burden of proving that meals supplied to inpatients constitute an exempt composite supply within the meaning of section 19 and Schedule 3 to the VAT Act. The VAT assessment of Shs. 356,508,843 is therefore set aside.
+
+B. Whether the Applicant Is Entitled to Deduct Bad Debts
+92. Deductions for bad debts are governed by section 24 of the Income Tax Act, which is a specific provision overriding the general deduction rule under section 22(1)(a). Under section 24(3), a deductible bad debt must:
+a) constitute a debt claim (a legally enforceable right to payment); and
+b) be one in respect of which the taxpayer has taken all reasonable steps to pursue recovery and reasonably believes it will not be satisfied.
+
+96. The Tribunal therefore finds that the Applicant took all reasonable steps to recover individual patient debts. The income tax assessment relating to Shs. 246,023,217 is set aside.
+
+Debts in respect of insured patients - Shs. 667,367,056
+97. The evidence is materially different. The Applicant admitted that claims were rejected due to:
+(i) Late submission beyond contractual timelines;
+(ii) The lack of pre-authorization;
+(iii) Submission of excluded services;
+(iv) Incomplete documentation.
+
+98. Based on the above, claims were rejected not due to an inability on the part of the insurance companies to pay, but due to a failure by the Applicant to meet certain pre-conditions for payment as required by the contractual arrangements between the Applicant and the insurance companies. Therefore, where contractual conditions are not satisfied, no legally enforceable right to payment arises. As held in Standard Chartered Bank (U) Ltd v URA, a debt that is not legally enforceable cannot qualify as a ""debt claim"" under section 24
+
+99. Administrative inefficiencies and manual systems, while unfortunate, cannot convert a non-existent legal right into a deductible bad debt. The disallowance of Shs. 667,367,056 relating to insurance companies is therefore upheld.
+
+100. In the circumstances, this Tribunal orders as follows:
+(i) The VAT assessment of Shs. 356,508,843 is set aside.
+(ii) The income tax assessment relating to individual patient bad debts of Shs. 246,023,217 is set aside.
+(iii) The income tax assessment relating to insurance company debts of Shs. 667,367,056 is upheld.
+(iv) The uncontested income tax assessment of Shs. 248,155,648 remains payable.
+(v) Each party shall bear its own costs.
+
+Dated at Kampala this 10th day of April 2026.","This ruling provides crucial clarity for healthcare providers in Uganda regarding the VAT treatment of inpatient meals and the deductibility of bad debts. The Tribunal's emphasis on the 'incidental' nature of meals to the principal medical supply, irrespective of patient category, is a significant precedent. However, the strict interpretation of 'legally enforceable claim' for bad debts, particularly concerning insurance companies, highlights the importance of meticulous adherence to contractual terms and robust documentation of recovery efforts. Tax practitioners should advise clients to review their billing practices and debt recovery procedures to align with these principles, especially concerning insurance claims.
+
+*   Meals for inpatients are VAT exempt as incidental to medical services.
+*   Reasonable steps for bad debt recovery are essential for deductibility.
+*   Contractual breaches can invalidate a 'debt claim' for tax purposes.",2026-07-04 15:24:01.09914+00
+23e33333-3865-4108-9f32-f40b105edf35,TAT No. 220 of 2025,CHESTNUT UGANDA LIMITED v UGANDA REVENUE AUTHORITY,2026,VAT | Income Tax,Allowed,"Chestnut Uganda Limited sought a temporary injunction to restrain the Uganda Revenue Authority (URA) from enforcing tax collection measures for assessed VAT and rental income tax, totaling Shs. 1,726,795,702, pending the determination of its substantive appeal. The Tribunal found that Chestnut had substantially complied with the 30% deposit requirement by applying to offset it against a VAT credit held by URA. The Tribunal further determined that Chestnut had established a prima facie case with triable issues, would suffer irreparable injury from enforcement, and that the balance of convenience favored granting the injunction. Therefore, the temporary injunction was granted.","THE REPUBLIC OF UGANDA
+IN THE TAX APPEALS TRIBUNAL AT KAMPALA
+MISCELLANEOUS APPLICATION NO. 220 OF 2025
+(ARISING FROM TAT APPLICATION NO. 283 OF 2025)
+CHESTNUT UGANDA LIMITED................................................................APPLICANT
+VERSUS
+UGANDA REVENUE AUTHORITY...........................................................RESPONDENT
+BEFORE: HON. PROSCOVIA REBECCA NAMBI, HON. KABAKUMBA MASIKO,
+MS. CHRISTINE KATWE
+RULING
+I. Introduction
+1. This application was brought under Section 98 of the Civil Procedure Act, Order
+41 rule 1 & 9 Section 31(1) of the Tax Appeals Tribunal Act, and Rule 30 of the
+Tax Appeals Tribunal Rules, seeking a temporary injunction restraining the
+Respondent from enforcing tax collection measures in respect of tax assessed
+totalling Shs. 1,726,795,702 pending determination of the substantive appeal
+before the Tribunal.
+II. Background Facts
+2. The Applicant is a Ugandan company engaged in real estate and property
+development. The Respondent commenced an audit of the Applicant covering
+January 2019 to December 2022. Thereafter, on 28 March 2025, the
+Respondent issued additional assessments for VAT of Shs. 370,800,600 and
+rental income tax of Shs. 410,540,917, and also issued a management letter
+dated 31 March 2025 indicating an overall tax exposure of Shs. 781,341,517.48.
+The Applicant objected to the assessments on 17 June 2025 electronically and
+on 19 June 2025 manually. The Applicant's case is that notwithstanding the
+objection, the Respondent continued to issue demand notices, prompting the
+filing of the substantive TAT Application No. 283 of 2025.
+3. On 19 September 2025 an interim order was granted restraining enforcement,
+subject to payment of 30% of the tax in dispute. The Respondent's position is
+that the Applicant has not complied with that condition. The Applicant's position
+is that it sought to satisfy that requirement through offset against an admitted
+VAT refund credit of Shs. 6,861,016,520 and filed a refund application on 17
+October 2025, but the Respondent did not act on it. The Applicant further states
+that, notwithstanding the interim order, agency notices were later issued to its
+bankers.
+III. Issues
+The central issue for determination is whether the Applicant has satisfied the legal
+requirements for the grant of a temporary injunction pending determination of the main
+application.
+VIII. The Determination of the Tribunal
+43. Having carefully considered the pleadings, affidavits on record, the submissions
+of both parties, and the authorities cited, the Tribunal now determines whether
+the Applicant has satisfied the conditions for the grant of a temporary injunction
+restraining the Respondent from enforcing the disputed tax assessments
+pending determination of the main application.
+Compliance with the 30% Deposit Requirement
+44. Section 15(1) of the Tax Appeals Tribunal Act provides that:
+""A taxpayer who has lodged a notice of objection to an assessment shall, pending final
+resolution of the objection, pay 30 percent of the tax assessed or part of the tax
+assessed not in dispute, whichever is greater.""
+45. The provision establishes a mandatory statutory requirement intended to secure
+part of the revenue while a tax dispute is being resolved. In the present matter,
+the interim order of 19 September 2025 expressly conditioned the continuation
+of interim protection on the Applicant's compliance with this requirement. The
+Respondent contends that the Applicant has failed to comply with this statutory
+obligation. The Applicant, however, maintains that it has substantially satisfied
+the requirement by applying its VAT credit of Shs. 6,861,016,520 to offset the
+30% deposit required under the law.
+46. The Applicant has demonstrated that it formally applied to the Respondent for
+the offset and has relied on authorities including Tata Uganda Ltd v URA Misc.
+Application No. 64 of 2023 and Red Chilli Hideaway Ltd v URA TAT
+Application No. 38 of 2018. In Tata Uganda the Tribunal held that a VAT refund
+constitutes liquidity belonging to the taxpayer and that refusal to allow offset of
+such credit where it is already held by the Respondent may be irrational. The
+Tribunal stated that:
+""A refund is monies held by the Respondent due to the taxpayer. It is liquidity that has
+crystallized. Where a refund is not paid, interest accrues. Where a taxpayer requests
+for an offset, the Respondent is relieved from paying interest. Therefore, the refusal by
+the Respondent to allow the Applicant to use the refund was irrational.""
+47. Similarly, in Red Chilli Hideaway, the Tribunal observed that where excess tax
+exists, the Commissioner ought to apply such excess tax to reduce the
+taxpayer's outstanding tax liability.
+48. Applying those principles to the present case, the Tribunal notes that the
+Respondent currently holds funds belonging to the Applicant in the form of a
+VAT credit substantially exceeding the amount required to satisfy the 30%
+statutory deposit. Requiring the Applicant to make a further cash payment while
+the Respondent simultaneously retains the Applicant's funds would serve no
+practical revenue purpose.
+49. Although the Respondent raised concerns regarding verification of the credit,
+the existence of the credit itself has not been materially disputed. The Applicant
+has applied for the offset and the Respondent has had adequate opportunity to
+process and verify the application.
+50. We are guided by the Tribunal's reasoning in SICPA Uganda Limited v
+Uganda Revenue Authority Misc. Application No. 246 of 2025, where it was
+held that Section 15 should not operate mechanically to defeat a genuine
+dispute where a taxpayer has already remitted substantial sums connected to
+the contested tax base. Accordingly, we find that the Applicant has substantially
+complied with the 30% deposit requirement through its application to offset the
+deposit against its VAT credit, without prejudice to the Respondent's right to
+complete verification of the credit in accordance with the law.
+Whether the Applicant has satisfied the conditions for grant of a temporary
+injunction
+51. The principles governing the grant of temporary injunctions are well established.
+As reiterated by this Tribunal in Kobo 360 Inc v Uganda Revenue Authority
+MC No. 041 of 2025, and derived from authorities such as Kiyimba Kaggwa v
+Hajji Abdu Nasser Katende [1985] HCB 43 and American Cyanamid Co Ltd
+v Ethicon Ltd [1975] AC 396, an Applicant must demonstrate:
+1. A prima facie case with a likelihood of success
+2. That the Applicant would suffer Irreparable injury not adequately
+compensable by damages
+3. That the balance of convenience favours the Applicant.
+The Tribunal will examine each of these conditions in turn.
+(i) Prima Facie Case with a Likelihood of Success
+52. A prima facie case does not require the Applicant to demonstrate that it will
+ultimately succeed in the main application. As stated in Imelda Gertrude
+Basudde v Tereza Mwewulize & Another Misc. Application No. 402 of 2003, the
+requirement is satisfied where the Applicant establishes the existence of a
+genuine triable issue.
+53. Similarly, in SICPA Uganda Ltd v URA Misc. Application No. 246 of 2025,
+the Tribunal clarified that a prima facie case arises where a serious question
+requiring judicial determination is disclosed.
+54. In the present case, from the affidavit evidence before us, the dispute between
+the parties arises from additional tax assessments issued by the Respondent
+following an audit covering the period January 2019 to December 2022. The
+Respondent issued additional assessments for VAT amounting to SHS.
+370,800,600.48 and rental income tax of SHS. 410,540,917, together with
+subsequent demand notices threatening enforcement measures. The Applicant
+has raised several substantial issues in the main appeal, including:
+• whether deferred rent incentives constituted discounts not subject to VAT;
+• whether the Respondent improperly capped the Applicant's carried-forward
+losses following a legislative amendment;
+• whether the Respondent's rental income assessment of Shs. 1,059,799,415
+properly reflects the Applicant's actual lease arrangements and tax position.
+55. At this stage, the Tribunal is not required to determine the correctness of the tax
+assessment. The question is only whether the appeal raises genuine questions
+of law and fact requiring adjudication.
+56. In our view, the questions raised concerning the treatment of deferred rent
+incentives for VAT purposes, the application of amendments relating to carried-
+forward losses, and the accuracy of the rental income assessment are not
+frivolous. They raise matters of statutory interpretation and factual accounting
+which must properly be determined at the hearing of the main appeal.
+57. We are therefore satisfied that the Applicant has established the existence of
+serious triable issues before this Tribunal.
+(ii) Irreparable Injury
+58. The second requirement is that the Applicant must demonstrate that it will suffer
+injury which cannot adequately be compensated by damages if the injunction is
+not granted.
+59. The Applicant states that the Respondent has issued several demand notices
+and agency notices to financial institutions in order to enforce the tax
+assessments. The Applicant contends that such enforcement measures would
+disrupt its operations, impair its creditworthiness, and interfere with its
+contractual relationships. The Respondent, on the other hand, argues that the
+Applicant's alleged harm is purely financial and therefore compensable by
+damages. Relying on Bullion Refinery Ltd & Others v Attorney General &
+URA HCMA No. 0132 of 2023, they argue that the Applicant has not
+demonstrated irreparable injury.
+60. We agree that tax disputes ordinarily involve monetary liabilities and that
+payment of money, by itself, does not necessarily amount to irreparable injury.
+However, the evidence before us indicates that the Respondent has issued
+third-party agency notices to the Applicant's banks for substantial sums of
+money. Such enforcement measures can have significant commercial
+consequences beyond the mere payment of tax, particularly where they
+interfere with banking arrangements and business operations. In Luwalulwa
+Investments Ltd v Uganda Revenue Authority HCMA No. 1336 of 2022, the
+High Court recognised that enforcement actions affecting a business's cash flow
+may cause substantial commercial harm.
+61. We are therefore satisfied that enforcement of the disputed assessments before
+determination of the appeal may expose the Applicant to significant commercial
+disruption which may not be compensable.
+(iii) Balance of Convenience
+62. Where doubt exists regarding irreparable injury, the court must determine where
+the balance of convenience lies. In Water & Environment Media Network (U)
+Ltd v National Environment Management Authority Misc. Application No. 509 of
+2020, the court held that the balance of convenience favours the party likely to
+suffer greater prejudice if the injunction is not granted.
+63. In the present case, the Respondent argues that granting the injunction would
+undermine its statutory mandate to collect revenue and the public interest in
+revenue mobilisation. However, we note that the Respondent already retains
+the Applicant's funds in the form of the VAT credit claimed. Consequently,
+granting an injunction does not deprive the public treasury of secured funds but
+merely preserves the status quo pending resolution of the dispute.
+64. Conversely, if enforcement proceeds immediately, the Applicant may suffer
+disruption to its business operations before the legality of the disputed
+assessments is determined. The Tribunal therefore finds that the balance of
+convenience tilts in favour of the Applicant.
+65. In conclusion, having considered all the circumstances of the case, we find that:
+1. The Applicant has established a prima facie case with serious triable issues
+in the main application.
+2. The enforcement measures undertaken by the Respondent may cause
+substantial commercial disruption to the Applicant before the dispute is
+determined.
+3. The balance of convenience favours maintaining the status quo, particularly
+given that the Respondent already holds funds belonging to the Applicant
+pending a VAT refund claim.
+66. Accordingly, the Tribunal finds that the Applicant has satisfied the threshold for
+the grant of a temporary injunction pending determination of the main
+application. This application therefore succeeds.
+Orders:
+1. A temporary injunction is hereby granted restraining the Respondent, its
+servants, agents and employees from enforcing or collecting the disputed tax
+assessments in TAT Application No. 283 of 2025 pending determination of the
+main application.
+2. Costs shall be in the cause.
+It is so ordered.
+Dated at Kampala this 13th day of March 2026.","This ruling reinforces the principle that taxpayers can obtain temporary injunctions against URA enforcement actions if they meet the established criteria, even when the URA holds a statutory mandate to collect revenue. A key takeaway is the Tribunal's recognition that a VAT refund credit held by URA can be used to satisfy the mandatory 30% deposit under Section 15(1) of the Tax Appeals Tribunal Act, especially when URA's refusal to allow such an offset is deemed irrational. This sets a significant precedent for taxpayers with outstanding refunds. The main risk for URA is that this decision could lead to more taxpayers seeking injunctions based on existing credits, potentially delaying revenue collection. Practitioners should advise clients to formally apply for offsets of VAT credits against disputed tax liabilities to satisfy the 30% deposit requirement.
+
+*   **Key Practical Lessons:**
+*   Taxpayers can use existing VAT refund credits to satisfy the 30% deposit for appeals.
+*   Enforcement actions causing significant commercial disruption can constitute irreparable injury.
+*   The balance of convenience often favors the taxpayer when URA holds their funds.",2026-07-06 18:16:08.103981+00
+27e4da6f-081a-441a-a32a-47e7e23c2322,TAT No. 005 of 2024,Dr. Amos Nzeyi v Uganda Revenue Authority,2025,Income Tax,Allowed,"The Applicant sold land and was assessed income tax by URA, which argued the land was a business asset based on the Applicant's tax profile indicating real estate activities. The Applicant contended it was a personal asset, not a business asset, and therefore exempt from income tax. The Tribunal ruled in favor of the Applicant, finding no evidence of repeated transactions, short holding period, or improvements indicative of trading activity, and that a tax profile alone is not conclusive proof of business activity.","This ruling is in respect of an administrative additional income tax assessment of Shs. 1,820,867,049.20 on income earned by the Applicant from the sale of land.
+
+The Respondent issued the Applicant with an assessment of Shs. 2,186,824,000 arising from the sale of approximately 42 acres of land that the Applicant sold to Crown Beverages Limited in 2019 for a price of Shs. 6,500,000,000.
+
+The Applicant objected to the assessment on the grounds that this supply comprised of sale of undeveloped private land which is not a business asset and is exempt from income tax. The Respondent then issued a revised assessment of Shs. 1,820,867,049.20.
+
+Dissatisfied with the Respondent's objection decision, the Applicant filed this application for review of the decision.
+
+The issue for determination is whether the Applicant is liable to pay the tax assessed?
+
+The Applicant submitted that the land held by the Applicant was not a business asset held in any business. The land was held in the Applicant's personal capacity which he then sold to Crown Beverages.
+
+The Applicant submitted that a ""business asset"" has been defined in Makerere University Retirement Benefits Scheme v. Uganda Revenue Authority (TAT Application No. 17 of 2021), wherein the Tribunal noted that:
+"".... the addition of the word 'business' on the word 'asset' for purposes of defining a 'business asset' meant that not all assets attract WHT....... there are 'business assets' and 'assets of the business', Assets of the business, usually put in the balance sheet of the financial statement as assets of the company is what is referred to as 'business assets' while items or goods used for trading purposes, merchandise or ordinary course of business known as stock in trade though used in a business but are not owned by the business in strict sense of ownership do not comprise assets in a business assets in a business......... that business assets and stock in trade comprise assets in a business however only business assets belonging to the business and not stock in trade attract WHT"".
+
+The Applicant submitted that the land that was disposed of was not a business asset to the Applicant since it was not an asset of a business, or one held ready for use in a business. It was a personal asset that the Applicant had owned for nine years, and it had grown to become a bush before its disposal.
+
+The Applicant further argued that the land sold was not trading stock disposed of that could have attracted any tax. The Applicant prayed that the Tribunal finds that the land sold to Crown Beverages is not a business asset and therefore exempt from withholding tax in accordance with Section 21(j) of the ITA which exempts any capital gain that is not included in business income from taxation.
+
+The Applicant prayed that the objection decision is quashed, and the Tribunal declares that Shs. 1,820, 867,049.20 is not payable by the Applicant.","This ruling provides crucial clarity for Uganda tax practitioners regarding the distinction between personal asset disposal and business income from land sales. The key takeaway is that URA cannot solely rely on a taxpayer's registered tax profile to classify an asset as a 'business asset' for income tax purposes. The Tribunal emphasized the 'badges of trade' test, requiring evidence of repeated transactions, short holding periods, and asset modifications to establish a business venture. This sets a precedent that mere registration of a business activity on a tax profile is insufficient without corroborating evidence of actual trading. Practitioners should advise clients to maintain clear documentation distinguishing personal investments from business assets and to ensure their tax profiles accurately reflect their actual business activities.
+*   Tax profiles are not conclusive proof of business activity.
+*   'Badges of trade' (frequency, intention, modifications, holding period) are critical for determining business income from asset sales.
+*   Capital gains on personal assets, not included in business income, are exempt under Section 21(1)(j) of the Income Tax Act.",2026-07-04 20:09:37.152946+00
+28153d44-02be-41ef-b880-f89dd6618beb,MISCELLANEOUS APPLICATION NO. 33 OF 2025,COCA-COLA BEVERAGES UGANDA LTD. v UGANDA REVENUE AUTHORITY,2025,Excise Duty,Allowed,"The Applicant sought orders for discovery of digital tax stamp coding machine reports, forensic inspection of the machines, and joinder of SICPA Uganda Limited (the operator of the machines) as a respondent in the main application. The Applicant argued that unstamped bottles were due to DTS machine malfunction, which SICPA exclusively controls. The Tribunal found that SICPA's presence was necessary for a complete adjudication of the matter, as a finding against the DTS machine's functionality would legally affect SICPA and have far-reaching consequences for the Tax Procedure Code (Tax Stamps) Regulations, 2018. The application was allowed with costs.","This application seeks the following orders;
+1. Discovery on oath be ordered for the Respondent to produce the digital tax stamps coding machine reports for 1st February 2024 batch of 300ml Novida Pineapple and 17th January 2024 batch of 2 litre sprite bottles.
+2. SICPA Uganda Limited, an entity contracted to operate the Digital Tax Stamps coding machine be joined as a Respondent to the suit on account of being a necessary party to enable the proper and complete adjudication of the matter.
+3. The Applicant be granted access to carry out a forensic inspection of the Digital Tax Stamps coding machines on line 2 and line 3 manned by SICPA Uganda Limited officials to verify their functionality and ensure transparency in their operation.
+4. Costs of the application be provided for.
+
+1. Background Facts
+The application is supported by the affidavit of Prossie Jjumba, the Applicant's tax manager. The affidavit in support states as follows;
+The Tax Procedure Code (Tax Stamps) Regulations, 2018 requires all manufactured goods to be affixed with a tax stamp.
+The Commissioner specified the mode of management of the tax stamps by taxpayers through a notice in the Gazette. This notice required the Applicant to acquire and install a digital tax stamp coding machine on its production line which would be manned and controlled by SICPA Uganda Limited (SICPA), an agent of the Respondent.
+In order to fulfil its obligations under the above law, the Applicant did the following;
+i. Its bulk paid for digital stamps prior to their use by the SICPA agent on the manufactured bottles.
+ii. The Applicant provided space on all its production lines allowing for an integration of the DTS machine into its production process.
+iii. The Applicant acquired a stamp applicator used by SICPA to ensure that all its products were stamped before they entered the market.
+iv. The Applicant acquired and paid for the rejector functionality as a safeguard to reject unstamped bottles manned by SICPA.
+v. The Applicant made provision for a clean power source for all DTS equipment elements.
+vi. The Applicant provided a secure server room, network cabling within the factory to enable the DTS equipment on each line to transmit production data to the DTS master server in the Respondent's server room.
+vii. The Applicant provided broadband internet connection with a dedicated IP Address to enable the DTS master server to transmit production data to the DTS central database at the Respondent's premises.
+The digital tax stamps are affixed by a digital tax stamps coding machine installed on the Applicant's production lines which is fully integrated with the packaging and labeling systems. This cost of purchasing this machine is borne by the Applicant although it is owned by the Respondent and operated exclusively by SICPA, an agent of the Respondent.
+The DTS coding machine which is indispensable to the production process is fully operated by SICPA without any operational input from the Applicant. This makes it impossible for production to take place without the machine.
+On 12th February, 2024, 20 unstamped Novida Pineapple (NPA) 300ml bottles produced on 1st February 2024 were found on a truck at the Coca-Cola depot in Gayaza. On 15th February 2024, six unstamped 2 litre bottles of Sprite produced on 17th January 2024 were seized in Kayunga.
+On 13th and 19th February 2024, following these discoveries, the Respondent issued assessments against the Applicant for the 20 Novida Pineapple 300 ml bottles and the 2 litre bottles of Sprite, totaling to Shs. 100,000,000.
+The Applicant's production reports on the dates of production showed that a total of 189,408 Novida Pineapple 300 ml bottles were produced. No issue was reported with the DTS coding machine which would have led to any of the bottles going unstamped. The entire production line stops when there is an issue with the DTS machine. No such issue was reported.
+The configuration of the production line ensures that bottles flow directly from the bottle filler and crowning machine to the DTS machine and then to the date coding machine. The confiscated unstamped products all have date codes thereby eliminating any possible out of the norm incidence which would have led to the bottles going unstamped besides the technical failure of the DTS machine.
+Invitations by the Applicant to SICPA officials were not honored. SICPA has exclusive control of the digital tax stamps coding machine and the all records of interruptions, malfunctions and other operational issues.
+The DTS coding machine malfunction reports are confidential between SICPA and the Respondent which makes it impossible for the Applicant to determine the root cause of the failure to affix the digital stamp.
+The DTS machine makes errors which may go undetected causing bottles to go unstamped.
+In reply to the application, the Respondent filed an affidavit deponed by Mr. Edmond Agaba, a supervisor in the Respondent's Legal and Board Affairs department.
+Mr. Agaba deponed that on 10th, 12th and 15th February, the Respondent examined the Applicant's trucks at different locations and established that some bottles of the beverages being sold by the Applicant were unstamped and did not bear the digital tax stamps.
+Further on 13th and 19th February 2024, the Respondent issued a penalty of Shs. 100,000,000 for the periods 1/1/2024 – 31/1/2024 and informed the Applicant by a letter dated 20th February 2024.
+The Applicant objected to this penalty. The Respondent's review team visited the enforcement stores and confirmed that the products in question had not been stamped. The penalty reversal requests by the Applicant were rejected by the Respondent.
+Mr. Agaba deponed that a DTS malfunction report has already been shared with the Respondent, that there was no need to add SICPA as a party as it is only a nominal party contracted by the Respondent to manage the system.
+The Respondent prayed for the dismissal of the Application.
+2. Issues
+i. Whether SICPA Uganda Limited, an entity contracted to operate the Digital Tax Stamps coding machine be joined as a respondent to the application?
+ii. Whether the discovery and inspection orders being sought by the Applicant should be granted by this Tribunal?
+3. Representation
+The Applicant was represented by Mr. Ronal Kalema while the Respondent was represented by Ms. Diana Mulira, Mr. Goerge Ssenyomo and Ms. Doreen Amutuhaire.
+4. Submissions of the Applicant.
+The Applicant submitted that the joinder of SICPA is necessary for the effective and complete adjudication of the core issue in dispute namely whether the Applicant is liable for the penalty imposed.
+In support of the above the Applicant relied on Order 1 Rule 10(2) of the Civil Procedure Rules and on the decisions in Departed Asians Property Custodian Board v Jaffer Brothers Ltd Civil Appeal No. 9 of 1998 and on the decision of the tribunal in Uganda Revenue Authority vs. Illiso Consulting (PTY) Ltd and Anor, Miscellaneous Application Bo. 34 of 2023.
+The Applicant submitted that it was necessary for SICPA to be joined as a party so as to provide clarity on how the DTS machine functions and address how the manufactured date coded bottles went unstamped yet the DTS machine comes before the date coding machine in the stamping sequence.
+The Applicant submitted that in order to ensure transparency and accountability it was necessary that it should be granted access to conduct a forensic inspection of the DTS Coding machines on the production lines 2 and 3 operated by SICPA.
+The Applicant submitted that SICPA maintains exclusive control over the digital stamps coding machines installed on the Applicant's production lines. No employee of the Applicant operates, services, or monitors these machines. The Applicant submitted further that the design of the production line confirms that products move sequentially from the bottle filler and crowner through the DTS machine and then to the date coding unit. The Applicant submitted that the seized bottles all bear valid date codes. The Applicant submitted that the sequencing eliminates any plausible explanation for unstamped bottles other than a failure of the DTS system itself which falls entirely under SICPA's control.
+The Applicant submitted that its liability to the penalty imposed by the Respondent hinges on whether the DTS machine functioned as required at the material time which fact cannot be established in the absence of SICPA. The Applicant submitted further that the Respondent has not shown that it will suffer any prejudice from the joinder of SICPA.
+The Applicant submitted that the circumstances of the case clearly establish that the report sought is both relevant and material to the issues in dispute, is not protected by any claim of privilege, is within the control of the Respondents and that prior efforts by the Applicant to obtain it voluntarily have been unsuccessful. The Applicant submitted that given the significance in determining whether the alleged unstamped products can justifiably be attributed to the Applicant, the report is essential for the fair and just resolution of this matter.
+In support of the above submissions the Applicant cited the provisions of S. 22(a) of the Civil Procedure Act, Order 10 of the Civil Procedure Rules and the decision in Bemanyisa Adonija v Mujuni Richard and Anor, Misc. Application No. 3858 of 2023. The Applicant also relied on the decision in Simbamanyo Estates Ltd and Peter Kamya vs. Equity Bank Uganda Ltd and 4 others.
+5. Submissions of the Respondent
+The Respondent submitted that SICPA does not have to be joined as a party to these proceedings for it to provide evidence. The Respondent submitted that SICPA can be called as a witness instead of being joined as a witness. The Respondent submitted that the Applicant has not demonstrated what interest SICPA has in the Applicant's assessment of Local Excise Duty issued by the Respondent.
+The Respondent submitted that it was highly improbable that the addition of SICPA as a party would lead to the avoidance of a multiplicity of suits.
+The Respondent submitted that for a matter to be brought to the tribunal, the Applicant should have an objection decision which they seek to review. The Respondent submitted that subsequent suits would require that subsequent Applicants have objection decisions with which they are dissatisfied. The Respondent submitted that tax assessments are unique to each taxpayer.
+The Respondent objected to the prayer for discovery on the ground that the application was a mere fishing expedition. The Respondent submitted on the authority of the decision in Mutesi vs. Attorney General, Misc. Application No. 912 of 2016, that courts have a duty to deny applications for discovery which seem to be fishing expeditions.
+Relying on the decisions in Karuhanga and Anor vs. Attorney General and 2 others, Misc. Cause No. 060 of 2015 and Gale vs. Denman Picture Houses Ltd [1930] KB 588, 590, the Respondent submitted that an application for discovery should not be used by a plaintiff merely to determine if they have a case. Instead, a plaintiff must already understand their claim before seeking supporting documents from the opposing side. Where an application is driven by the hope that something will emerge which may form the basis of or support the Applicant's claim, then it is a fishing expedition.
+6. Submissions of the Applicant rejoinder.
+In rejoinder the Applicant reiterated its earlier submissions and stated that the proposition by the Respondent that SICPA may simply be called as a witness rather than being joined as a party, misconceives both the nature of the dispute and the procedural safeguards necessary for a fair hearing. The Applicant stated that the instant case was not one where SICPA`s evidence is merely ancillary on the contrary, SICPA is at the centre of the controversy. The Applicant stated that its entire defence rests on the claim that any failure to affix digital stamps was due to the malfunction or omission of the SICPA system and not the Applicant's conduct.
+The Applicant rejoined that it does not merely seek SICPA's testimony but also challenges the functionality and reliability of a system that is fully controlled and operated by SICPA. The Applicant stated that the outcome of the Application turns on whether the DTS machine failed or not, and SICPA is the only party with the operational knowledge, system, records, diagnostic reports and accountability to speak to the issues in question meaningfully.
+The Applicant stated that as a mere witness, SICPA cannot be compelled to make full disclosure, nor can it be bound by the tribunal's findings. The Applicant stated further that SICPA enjoys a right not to implicate itself as a broader part of the right to a fair hearing. In support of this argument the Applicant cited the decision in Sserunkuuma George William and Anor vs. Attorney General Misc. Cause No. 102 of 2021.
+The Applicant rejoined that it cannot be expected to rebut allegations tied to a system it neither owns, controls, nor can interrogate without the cooperation of the entity accused of the failure.
+The Applicant rejoined further that if SICPA remains outside these proceedings, there is a real risk that the tribunal will be called upon to make findings that implicate SICPA`s conduct or systems without giving it the opportunity to defend itself. This the Applicant stated would offend the rules of natural justice and undermine the integrity of the process. The Applicant stated that joinder ensures that SICPA can respond fully to the allegations, disclose relevant evidence, and be bound by the outcome which avoids the injustice of findings being made in its absence.
+The Applicant stated that to determine whether the Applicant failed to affix stamps without SICPA's participation, is to adjudicate the matter with a missing piece of the puzzle. The Applicant rejoined that a fair and effectual resolution of this matter is not possible without SICPA's joinder. The Applicant stated further that SICPA having already refused to file a response despite having been served in the instant application cannot be expected to voluntarily assist as a witness.
+The Applicant stated further that the instant application seeks to avoid multiplicity of suits. The Applicant stated that in the event that the failure to affix the digital stamps was found to be due to the malfunction or negligence of the DTS system, the Applicant would ordinarily have a cause of action against the Respondents in tort for negligence. The Applicant stated that excluding SICPA from the present proceedings would compel the Applicant to institute a separate suit thereby fragmenting what is essentially a single controversy.
+7. Determination of the Application
+Having carefully read and considered the affidavits on record and the submissions of both parties, the following is the ruling of the tribunal.
+This application seeks the following orders;
+1. Discovery on oath be ordered for the Respondent to produce the digital tax stamps coding machine reports for 1st February 2024 batch of 300ml Novida Pineapple and 17th January 2024 batch of 2 litre sprite bottles.
+2. SICPA Uganda Limited, an entity contracted to operate the Digital Tax Stamps coding machine be joined as a Respondent to the suit on account of being a necessary party to enable the proper and complete adjudication of the matter.
+3. The Applicant be granted access to carry out a forensic inspection of the Digital Tax Stamps coding machines on line 2 and line 3 manned by SICPA Uganda Limited officials to verify their functionality and ensure transparency in their operation.
+4. Costs of the application be provided for.
+Discovery is provided for under S. 22 of the Civil Procedure Act, which states as follows:
+""Subject to such conditions and limitations as may be prescribed, the court may, at any time, either of its own motion or on the application of any party;
+a) Make such orders as may be necessary or reasonable in all matters relating to the delivery and answering of interrogatories, the admission of documents and facts and the discovery, inspection, production, impounding and return of documents or material objects producible as evidence;
+b) Issue summons to persons whose attendance is required either to give evidence or to produce documents or such other objects as aforesaid;
+c) Order any fact to be proved by affidavit.
+In Simbamanyo Estates Limited and Another vs. Equity Bank Uganda Ltd and 4 Others, Misc. Application No. 0583 of 2022, the court stated that in order for an applicant to succeed on an application for discovery, it must show that there is a sufficient prima facie basis for believing the evidence sought exists and that it is material and relevant to the issues at trial.
+In the instant case, the evidence sought by the Applicant are the digital tax stamps coding machine reports for 1st February 2024 batch of 300ml Novida Pineapple and the digital tax stamps coding machine reports for 17th January 2024 batch of 2 litre sprite bottles.
+There is no indication from the affidavit in reply deponed by Mr. Edmond Agaba on behalf of the Respondent that the above reports do not exist. Paragraph 14 of the affidavit in support of the Application deponed by Prossie Jjumba states that the DTS malfunction reports are confidential between SICPA and the Respondent. This piece of evidence establishes a prima facie basis for believing that the reports sought by the Applicant exist.
+The main issue at the trial is whether the failure to stamp the bottles in question were as a result of an omission by the Applicant or a malfunction of the DTS machine?
+The reports sought by the Applicant are both material and relevant to the determination of the above issue because they seek to determine whether there was an error in the machine which affected its functionality on the dates in question.
+Closely related to the above is the application to carry out a forensic inspection of the DTS machine on production lines 2 and 3. The reason given for this application is the need for transparency and accountability.
+We note that SICPA has exclusive control of the digital tax stamps coding machine, its personnel are solely responsible for operating, servicing and monitoring the efficacy of the DTS machine and records of interruptions, malfunctions and other operational issues are in their exclusive possession.
+Given the allegations made by the Applicant under paragraph 15 of the affidavit in support of the application deponed by Prossie Jjumba to the effect that the DTS machine is not 100% perfect and that it makes errors which may go undetected causing bottles to go unstamped, we take the position that the forensic inspection of the DTS machine sought by the Applicant will help the tribunal in determining whether the failure to stamp the bottles in question were as a result of an omission by the Applicant or a malfunction of the DTS machine.
+Joinder of parties to a suit is provided for under O. 1. Rule 10 (2) of the Civil Procedure Rules. It states as follows;
+""(2) The court may at any stage of the proceedings either upon or without the application of either party, and on such terms as may appear to the court to be just, order that the name of any party improperly joined, whether as plaintiff or defendant, be struck out, and that the name of any person who ought to have been joined, whether as plaintiff or defendant, or whose presence before the court may be necessary in order to enable the court effectually and completely to adjudicate upon and settle all questions involved in the suit, be added.""
+The Applicant's argument is that SICPA`s presence before the tribunal is necessary in order to enable the tribunal effectually and completely adjudicate upon and settle all questions involved in TAT Application No. 90 of 2024; Coca-Cola Beverages Uganda Ltd vs. URA.
+The criteria for determining whether the presence of a person is necessary under 0.1 r.10 (2) of the Civil Procedure Rules was set out by Mulenga J.S.C, in Departed Asians Property Custodian Board v Jaffer Brothers Limited (supra). A relevant excerpt from his ruling is reproduced here below;
+""However, taking a leaf from authorities in other jurisdictions having similar, and even identical rules of procedure, I would summarize the position as follows: For a person to be joined on the ground that his presence in the suit is necessary for effectual and complete settlement of all questions involved in the suit one of two things has to be shown. Either it has to be shown that the orders, which the plaintiff seeks in the suit would legally affect the interests of that person, and that it is desirable, for avoidance of multiplicity of suits, to have such person joined so that he is bound by the decision of the court in that suit. Alternatively, a person qualifies, (on application of a defendant) to be joined as a co-defendant, where it is shown that the defendant cannot effectually set up a defence he desires to set up unless that person is joined in it, or unless the order to be made is to bind that person. (See Mulla on the Code of Civil Procedure of India) 14th Ed. By J.M. Shelat, Vol.11 pp. 858 and 864-5 and Amon vs. Raphael Tuck & Sons Ltd (1956) 1 All ER 273 at p.290).""
+The criteria for determining whether the presence of a person is necessary under 0.1 r.10 (2) of the Civil Procedure Rules, are, firstly, that the orders which the plaintiff seeks in the suit would legally affect the interests of that person, and that it is desirable, for avoidance of multiplicity of suits, to have such person joined so that he or she is bound by the decision of the court in that suit.
+Alternatively, a person qualifies, (on application of a defendant) to be joined as a co-defendant, where it is shown that the defendant cannot effectually set up a defence he desires to set up unless that person is joined in it, or unless the order to be made is to bind that person.
+The scope and purpose of O.1.R 10(2) of the Indian Code of Civil Procedure which is in pari materia with O.1. R.10 (2) of our Civil Procedure Rules was explained as follows in the Indian decision of Ramesh Hira Chand Kundan Mittal Mal v. Municipal Corporation of Greater Bombay, AIR (1992) SCW 846:
+""It cannot be said that the main object of the rule is to prevent multiplicity of actions though it may incidentally have that effect. But that appears to be a desirable consequence of the rule rather than its main objective. The person to be joined must be one whose presence is necessary as a party. What makes a person a necessary party is not merely that he has relevant evidence to give on some questions involved; that would only make him a necessary witness. It is not merely that he has an interest in the correct solution of some question involved and has thought of relevant arguments to advance. The only reason which makes it necessary to make a person a party to an action is so that he should be bound by the result of the action and the question to be settled, therefore, must be a question in the action which cannot be effectually and completely settled unless he is a party. The line has been drawn on a wider construction of the rule between the direct interest or the legal interest and commercial interest. It is, therefore, necessary that the person must be directly or legally interested in the action in the answer, that is, he can say that the litigation may lead to a result which will affect him legally that is by curtailing his legal rights``.
+(Emphasis Added) (See Mulla, The Code of Civil Procedure 18th Edition Vol. 2 p.1525).""
+Applying the reasoning of the above authorities to the facts of the instant case, in order for the Applicant to succeed on the application to join SICPA as a party, it must show that the litigation may lead to a result which will affect SICPA legally.
+From the Applicant's submissions it is clear that the Applicant's entire case rests on the claim that any failure to affix digital stamps was due to the malfunction or omission of the SICPA system and not the Applicant's conduct.
+The question which the tribunal must answer, given the arguments made by the Applicant, about the functionality of the SICPA system, is whether litigation in the main Application may lead to a result which may affect SICPA legally?
+The resolution of this question is important given the allegation by the Applicant that the DTS system occasionally malfunctions. It is of the utmost importance that SICPA is part of the proceedings in the main Application in order to defend itself against these allegations. A finding by the tribunal that the omission to stamp the beverages in question was due to a fault with the DTS machine will not only affect SICPA`s reputation but will have far-reaching consequences in the implementation of the Tax Procedure Code (Tax Stamps) Regulations, 2018.
+Our answer to the above question is that it is possible that litigation of the Applicant's defence in the main Application could lead to a result which could affect SICPA legally.
+We accordingly find that SICPA`s presence before the tribunal is necessary in order to enable the tribunal effectually and completely adjudicate upon and settle all questions involved in TAT Application No. 90 of 2024; Coca-Cola Beverages Uganda Ltd vs. URA.
+In the result, this Application is allowed with the following orders:
+1. The Respondent is ordered to submit the digital tax stamps coding machine reports for 1st February 2024 batch of 300ml Novida Pineapple and 17th January 2024 batch of 2 litre sprite bottles to the tribunal by close of business on 21st November 2025.
+2. The Respondent and SICPA Uganda Limited will grant access to the Applicant to carry out a forensic inspection of the Digital Tax Stamps coding machines on line 2 and line 3 at the Applicant's factory. The inspection will be conducted in the presence of officials from the Respondent and from SICPA Uganda Limited.
+3. SICPA Uganda Limited is hereby joined as a Respondent to the main Application. SICPA Uganda Limited will file a response to the allegations made by the Applicant against it in the affidavit in support of the Application, by close of business on 24th November, 2025.
+4. The Applicant is awarded the costs of this application.
+This Application is accordingly allowed with costs.
+Dated at Kampala this 10th day of November 2025.","This ruling is a significant development for taxpayers dealing with Digital Tax Stamps (DTS) issues in Uganda, particularly regarding penalties for unstamped goods. The key takeaway is that the Tax Appeals Tribunal (TAT) recognizes the critical role of the DTS system operator (SICPA) in disputes concerning machine malfunctions. This precedent allows taxpayers to compel the involvement of SICPA and access crucial evidence, shifting the burden of proof beyond merely demonstrating unstamped products. Practitioners should note the Tribunal's emphasis on the necessity of joining parties whose legal interests may be affected by the outcome, as per Order 1 Rule 10(2) of the Civil Procedure Rules and the Tax Procedure Code (Tax Stamps) Regulations, 2018.
+
+*   Taxpayers can now more effectively challenge penalties related to DTS malfunctions by involving SICPA.
+*   The ruling underscores the importance of discovery and forensic inspection in complex technical tax disputes.
+*   It highlights the Tribunal's commitment to ensuring fair hearings and complete adjudication by including all necessary parties.",2026-07-06 18:17:20.161775+00
