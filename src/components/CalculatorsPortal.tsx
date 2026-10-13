@@ -46,28 +46,6 @@ const calculatorTabs: CalculatorTab[] = [
     format: (value: number) => `UGX ${Math.round(value).toLocaleString()}`,
   },
   {
-    id: "wht",
-    title: "Withholding Tax",
-    description: "Apply a simple withholding tax rate to a payment or invoice.",
-    accent: C.gold,
-    helper: "Useful for service fees, professional payments, and contract work.",
-    inputLabel: "Payment amount (UGX)",
-    inputValue: 800000,
-    inputMin: 0,
-    format: (value: number) => `UGX ${Math.round(value).toLocaleString()}`,
-  },
-  {
-    id: "import",
-    title: "Vehicle Import Duty",
-    description: "Estimate customs duty and VAT for vehicle imports.",
-    accent: C.green,
-    helper: "A practical planning tool for clearing agents and importers.",
-    inputLabel: "Customs value (UGX)",
-    inputValue: 30000000,
-    inputMin: 0,
-    format: (value: number) => `UGX ${Math.round(value).toLocaleString()}`,
-  },
-  {
     id: "corporate",
     title: "Corporate Tax",
     description: "Estimate corporate tax from annual taxable profit.",
@@ -97,8 +75,6 @@ export const CalculatorsPortal: React.FC = () => {
   const [rates, setRates] = useState({
     paye: 10,
     vat: 18,
-    wht: 6,
-    import: 43,
     corporate: 30,
   });
 
@@ -108,22 +84,18 @@ export const CalculatorsPortal: React.FC = () => {
         const { data, error } = await supabase
           .from("site_settings")
           .select("key,value")
-          .in("key", ["calc_paye_rate", "calc_vat_rate", "calc_wht_rate", "calc_import_rate", "calc_corporate_rate"]);
+          .in("key", ["calc_paye_rate", "calc_vat_rate", "calc_corporate_rate"]);
 
         if (!error && data && data.length > 0) {
           const rateMap = {
             paye: 10,
             vat: 18,
-            wht: 6,
-            import: 43,
             corporate: 30,
           };
           data.forEach(({ key, value }: { key: string; value: string }) => {
             const numValue = parseFloat(value) || 0;
             if (key === "calc_paye_rate") rateMap.paye = numValue;
             if (key === "calc_vat_rate") rateMap.vat = numValue;
-            if (key === "calc_wht_rate") rateMap.wht = numValue;
-            if (key === "calc_import_rate") rateMap.import = numValue;
             if (key === "calc_corporate_rate") rateMap.corporate = numValue;
           });
           setRates(rateMap);
@@ -174,20 +146,6 @@ export const CalculatorsPortal: React.FC = () => {
           rate: `${rates.vat}%`,
           note: "Applies to standard-rated supplies and invoices.",
         };
-      case "wht":
-        return {
-          label: "Withholding tax",
-          value: Math.max(0, Math.round(inputValue * (rates.wht / 100))),
-          rate: `${rates.wht}%`,
-          note: "Typical WHT for services paid to non-residents.",
-        };
-      case "import":
-        return {
-          label: "Estimated duty + VAT",
-          value: Math.max(0, Math.round(inputValue * (rates.import / 100))),
-          rate: `${rates.import}%`,
-          note: "Rough estimate for vehicle import duty plus VAT.",
-        };
       case "corporate":
         return {
           label: "Estimated corporate tax",
@@ -234,7 +192,7 @@ export const CalculatorsPortal: React.FC = () => {
               Tax calculators
             </h1>
             <p style={{ color: C.muted, fontSize: "1rem", margin: 0, maxWidth: 700 }}>
-              Switch between practical calculators for payroll, VAT, withholding tax, import duty, and corporate planning.
+              Switch between practical calculators for payroll, VAT, corporate planning, and rental income tax.
             </p>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
@@ -350,8 +308,6 @@ export const CalculatorsPortal: React.FC = () => {
                           <div style={{ background: C.offwhite, borderRadius: 12, padding: 12, color: C.text, fontSize: "0.88rem", lineHeight: 1.6 }}>
                             {activeCalculator.id === "paye" && "PAYE = progressive bands from 0% to 40% + 10% surtax"}
                             {activeCalculator.id === "vat" && `VAT = amount × ${rates.vat}%`}
-                            {activeCalculator.id === "wht" && `WHT = amount × ${rates.wht}%`}
-                            {activeCalculator.id === "import" && `Duty + VAT = value × ${rates.import}%`}
                             {activeCalculator.id === "corporate" && `Corporate tax = profit × ${rates.corporate}%`}
                           </div>
                         </div>

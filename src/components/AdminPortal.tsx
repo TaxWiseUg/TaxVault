@@ -1883,11 +1883,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
           {/* Hero Text */}
           <Card style={{ padding: 24 }}>
             <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.9rem", marginBottom: 6 }}>� Calculator Rates</div>
-            <p style={{ fontSize: "0.78rem", color: C.muted, marginBottom: 20, fontWeight: 500 }}>Update the country tax rates used by the PAYE, VAT, WHT, import duty, and corporate tax calculators.</p>
+            <p style={{ fontSize: "0.78rem", color: C.muted, marginBottom: 20, fontWeight: 500 }}>Update the country tax rates used by the PAYE, VAT, and corporate tax calculators.</p>
             <Field label="PAYE rate (%)" id="calc_paye_rate" value={siteSettings.calc_paye_rate} onChange={updateSetting("calc_paye_rate")} />
             <Field label="VAT rate (%)" id="calc_vat_rate" value={siteSettings.calc_vat_rate} onChange={updateSetting("calc_vat_rate")} />
-            <Field label="Withholding tax rate (%)" id="calc_wht_rate" value={siteSettings.calc_wht_rate} onChange={updateSetting("calc_wht_rate")} />
-            <Field label="Import duty + VAT rate (%)" id="calc_import_rate" value={siteSettings.calc_import_rate} onChange={updateSetting("calc_import_rate")} />
             <Field label="Corporate tax rate (%)" id="calc_corporate_rate" value={siteSettings.calc_corporate_rate} onChange={updateSetting("calc_corporate_rate")} />
           </Card>
 
