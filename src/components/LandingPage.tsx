@@ -74,7 +74,7 @@ const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value,
 
   return (
     <span ref={ref}>
-      {formatNumber(current)}{suffix}
+      {`${formatNumber(current)}${suffix}`}
     </span>
   );
 };
@@ -203,13 +203,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   const currentPrate = pct(currentPaye, currentIncome);
   const currentTrate = pct(currentNssf + currentPaye, currentIncome);
 
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+
   // Keyboard accessibility for mobile navigation menu (Escape key closes menu)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && mobileOpen) {
         setMobileOpen(false);
-        const btn = document.getElementById("menuBtn");
-        if (btn) btn.focus();
+        menuBtnRef.current?.focus();
       }
     };
     document.addEventListener("keydown", handleKeyDown);
@@ -384,312 +385,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#090D16", color: "#F4F4F5", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        .tw-dd { position: relative; }
-        .tw-dd:hover .tw-dropdown { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
-        .tw-dropdown { opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; }
-        @keyframes blink { 50% { opacity: 0; } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
-        .tw-cursor { display: inline-block; width: 8px; height: 1.1em; background: #3B82F6; vertical-align: text-bottom; animation: blink 1s step-end infinite; }
-        .tw-result-anim { animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
-        /* Dark Mode Bento Grid styles */
-        .tw-bento-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 24px;
-        }
-        .tw-feat-card {
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          background: rgba(14, 20, 36, 0.65) !important;
-          border: 1px solid rgba(22, 44, 86, 0.6) !important;
-          color: #F4F4F5 !important;
-          backdrop-filter: blur(10px);
-        }
-        .tw-feat-card:hover {
-          border-color: #3B82F6 !important;
-          background-color: rgba(18, 26, 48, 0.8) !important;
-          transform: translateY(-4px);
-          box-shadow: 0 12px 30px rgba(59, 130, 246, 0.12);
-        }
-        .tw-testi {
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          background: rgba(14, 20, 36, 0.6) !important;
-          border: 1px solid rgba(22, 44, 86, 0.6) !important;
-          color: #F4F4F5 !important;
-        }
-        .tw-testi:hover {
-          border-color: #2DD4BF !important;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(45, 212, 191, 0.08);
-        }
-        .tw-btn-hover {
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .tw-btn-hover:hover {
-          transform: translateY(-1.5px);
-          box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
-        }
-        .tw-nav-link:hover { color: #3B82F6 !important; }
-        .tw-footer-link:hover { color: #2DD4BF !important; }
-        .tw-mobile-link:hover { color: #3B82F6 !important; }
-        
-        .tw-price-card {
-          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-          background: rgba(14, 20, 36, 0.7) !important;
-          border: 1px solid rgba(22, 44, 86, 0.6) !important;
-          color: #F4F4F5 !important;
-        }
-        .tw-price-card:hover {
-          transform: translateY(-4px);
-          border-color: #3B82F6 !important;
-          box-shadow: 0 16px 40px rgba(59, 130, 246, 0.1);
-        }
-        
-        .glow-border {
-          position: relative;
-        }
-        .glow-border::after {
-          content: '';
-          position: absolute;
-          inset: -1.5px;
-          background: linear-gradient(135deg, #3B82F6, #2DD4BF);
-          border-radius: 8px;
-          z-index: -1;
-          opacity: 0.45;
-          filter: blur(2px);
-          transition: opacity 0.3s;
-        }
-        .glow-border:hover::after {
-          opacity: 0.85;
-          filter: blur(3px);
-        }
-
-        .tw-chevron {
-          transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .tw-dd:hover .tw-chevron {
-          transform: rotate(180deg);
-        }
-        
-        .tw-dropdown-container {
-          position: absolute;
-          top: 100%;
-          right: 0;
-          background: #0E1424;
-          border-radius: 8px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          min-width: 220px;
-          z-index: 400;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 6px;
-          margin-top: 4px;
-          opacity: 0;
-          visibility: hidden;
-          transform: translateY(-8px);
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-          pointer-events: none;
-        }
-        
-        .tw-dd:hover .tw-dropdown-container {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-          pointer-events: auto;
-        }
-        
-        .tw-dropdown-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 14px;
-          border-radius: 6px;
-          width: 100%;
-          border: none;
-          background: none;
-          cursor: pointer;
-          text-align: left;
-          font-family: inherit;
-          font-size: 0.82rem;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.8);
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .tw-dropdown-item:hover {
-          background-color: rgba(255, 255, 255, 0.08);
-          color: #3B82F6;
-          padding-left: 16px;
-        }
-        
-        .tw-dropdown-item svg {
-          color: rgba(255, 255, 255, 0.5);
-          transition: all 0.2s ease;
-        }
-        
-        .tw-dropdown-item:hover svg {
-          color: #3B82F6;
-          transform: scale(1.05);
-        }
-        
-        .tw-dropdown-item-logout {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 10px 14px;
-          border-radius: 6px;
-          width: 100%;
-          border: none;
-          background: none;
-          cursor: pointer;
-          text-align: left;
-          font-family: inherit;
-          font-size: 0.82rem;
-          font-weight: 600;
-          color: #EF4444;
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        
-        .tw-dropdown-item-logout:hover {
-          background-color: rgba(239, 68, 68, 0.12);
-          color: #F87171;
-          padding-left: 16px;
-        }
-        
-        .tw-dropdown-item-logout svg {
-          color: #EF4444;
-          transition: all 0.2s ease;
-        }
-        
-        .tw-dropdown-item-logout:hover svg {
-          color: #F87171;
-          transform: translateX(2px);
-        }
-
-        #menuBtn {
-          display: none;
-          align-items: center;
-          justify-content: center;
-          padding: 8px 16px;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 6px;
-          color: #FFFFFF;
-          font-size: 0.82rem;
-          font-weight: 700;
-          font-family: inherit;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        #menuBtn:hover, #menuBtn[aria-expanded="true"] {
-          background: rgba(59, 130, 246, 0.2);
-          border-color: #3B82F6;
-          color: #FFFFFF;
-        }
-
-        #mainNav.open {
-          display: block !important;
-        }
-
-        /* Range slider styling for live PAYE calculator */
-        #slide {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 100%;
-          height: 8px;
-          border-radius: 4px;
-          background: linear-gradient(to right, #3B82F6 0%, #2DD4BF 100%);
-          outline: none;
-          cursor: pointer;
-          margin: 10px 0;
-        }
-        #slide::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          background: #FFFFFF;
-          border: 3px solid #3B82F6;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-          cursor: pointer;
-          transition: transform 0.15s ease, background 0.15s;
-        }
-        #slide::-webkit-slider-thumb:hover {
-          transform: scale(1.15);
-          background: #EFF6FF;
-        }
-        #slide::-moz-range-thumb {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          background: #FFFFFF;
-          border: 3px solid #3B82F6;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-          cursor: pointer;
-        }
-
-        /* Mobile & Responsive Layout Modernization */
-        @media (max-width: 992px) {
-          .tw-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
-          .tw-hero-text-align { text-align: center; }
-          .tw-hero-text-align p { margin: 0 auto 28px !important; }
-          .tw-hero-ctas { justify-content: center; }
-          .tw-hero-checklists { justify-content: center; }
-          .tw-feat-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
-          .tw-testi-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
-          .tw-price-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
-          .tw-stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 20px !important; }
-          .tw-stat-item { border-right: none !important; border-bottom: 1px solid rgba(22, 44, 86, 0.4); padding-bottom: 16px; }
-          .tw-stat-item:nth-last-child(-n+2) { border-bottom: none !important; }
-          .tw-steps-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
-          .tw-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
-          .tw-section { padding: 64px 5% !important; }
-          .tw-hero-section { padding: 36px 5% 52px !important; }
-        }
-
-        @media (max-width: 768px) {
-          .tw-nav-desktop { display: none !important; }
-          .tw-hamburger, #menuBtn { display: inline-flex !important; }
-          .tw-bento-card { padding: 22px 16px !important; }
-          .tw-analysis-grid { grid-template-columns: 1fr !important; }
-          .tw-analysis-col-left, .tw-analysis-col-right { padding: 16px 14px !important; border-right: none !important; }
-          .tw-calc-grid { grid-template-columns: 1fr !important; padding: 18px 14px !important; gap: 18px !important; }
-          .tw-preview-header { padding: 8px 12px !important; gap: 8px !important; }
-          .tw-preview-tabs { max-width: 100%; overflow-x: auto; padding-bottom: 4px; }
-          .tw-preview-tabs::-webkit-scrollbar { display: none; }
-          .tw-hero-trust { padding: 6px 12px !important; font-size: 0.75rem !important; }
-          .tw-hero-ctas { flex-direction: column !important; align-items: stretch !important; max-width: 320px; margin: 0 auto 20px !important; }
-          .tw-hero-ctas button { width: 100% !important; justify-content: center; }
-          .tw-portal-assets-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
-          .tw-topbar { padding: 6px 14px !important; }
-          .tw-topbar-email { display: none !important; }
-          .tw-credibility-row { gap: 10px !important; font-size: 0.7rem !important; }
-        }
-
-        @media (max-width: 480px) {
-          .tw-section { padding: 44px 14px !important; }
-          .tw-hero-section { padding: 28px 14px 40px !important; }
-          .tw-stats-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
-          .tw-stat-item { border-bottom: 1px solid rgba(22, 44, 86, 0.4) !important; padding-bottom: 14px; }
-          .tw-stat-item:last-child { border-bottom: none !important; }
-          .tw-footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
-          .tw-bento-card { padding: 18px 12px !important; }
-          .tw-calc-subgrid { grid-template-columns: 1fr !important; }
-          .tw-sim-results { grid-template-columns: 1fr !important; }
-          .tw-tab-badge { display: none !important; }
-          .tw-hero-title { font-size: 1.85rem !important; }
-          .tw-topbar-tagline { font-size: 0.65rem !important; }
-          .tw-preview-version { display: none !important; }
-          .tw-preview-dots { display: none !important; }
-        }
-      `}</style>
 
       {/* DYNAMIC SCROLL PROGRESS BAR */}
       <div style={{ position: "fixed", top: 0, left: 0, height: "4px", background: "#C8922A", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out", pointerEvents: "none" }} />
@@ -932,6 +627,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
           {/* Accessible Mobile Menu Button */}
           <button 
+            ref={menuBtnRef}
             id="menuBtn"
             className="tw-hamburger" 
             onClick={() => setMobileOpen(v => !v)} 

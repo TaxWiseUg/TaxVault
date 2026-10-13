@@ -27,7 +27,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
-        <script src="/taxwise.js" defer></script>
       </body>
     </html>
   );
