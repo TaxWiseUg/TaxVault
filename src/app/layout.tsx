@@ -1,5 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: "TaxWise Uganda — Professional Tax & Compliance Platform",
@@ -21,6 +27,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <script src="/taxwise.js" defer></script>
       </body>
     </html>
   );

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
 import { supabase } from "../lib/supabaseClient";
-import { LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, Car, Calculator, GraduationCap, ShieldCheck, Mail, Check, Star, FileText, Cpu, TrendingUp, Clock, Building2, Globe, Sparkles, AlertTriangle, BookOpen } from "lucide-react";
+import { LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, Car, Calculator, GraduationCap, ShieldCheck, Mail, Check, Star, FileText, Cpu, TrendingUp, Clock, Building2, Globe, Sparkles, AlertTriangle, BookOpen, Menu, X } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 
 // Animated Counting Number Component
@@ -161,7 +161,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   const [taxToolsOpen, setTaxToolsOpen] = useState(false);
   const [heroText, setHeroText] = useState("");
   const [showResult, setShowResult] = useState(true);
-  const [previewTab, setPreviewTab] = useState<"analysis" | "calculator" | "precedents">("analysis");
+  const [previewTab, setPreviewTab] = useState<"analysis" | "calculator" | "precedents">("calculator");
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULTS);
@@ -175,7 +175,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   const [legalOpen, setLegalOpen] = useState(false);
   const [legalTab, setLegalTab] = useState<"privacy" | "terms" | "blog">("privacy");
 
+  // PAYE Live Calculator state (FY 2025/26 monthly rates, URA ITA Cap 340 4th Schedule)
+  const [grossPaye, setGrossPaye] = useState<number>(3500000);
+  const NSSF_RATE = 0.05; // 5% employee contribution
+
+  function calcPaye(income: number): number {
+    let tax = 0;
+    if (income > 235000) tax += (Math.min(income, 335000) - 235000) * 0.10;
+    if (income > 335000) tax += (Math.min(income, 410000) - 335000) * 0.20;
+    if (income > 410000) tax += (income - 410000) * 0.30;
+    if (income > 10000000) tax += (income - 10000000) * 0.10;
+    return Math.round(tax);
+  }
+
+  function money(n: number): string {
+    return "UGX " + Math.round(n).toLocaleString("en-US");
+  }
+
+  function pct(part: number, whole: number): string {
+    return whole ? ((part / whole) * 100).toFixed(1) + "%" : "0%";
+  }
+
+  const currentIncome = Math.max(0, Number(grossPaye) || 0);
+  const currentNssf = Math.round(currentIncome * NSSF_RATE);
+  const currentPaye = calcPaye(currentIncome);
+  const currentNet = currentIncome - currentNssf - currentPaye;
+  const currentPrate = pct(currentPaye, currentIncome);
+  const currentTrate = pct(currentNssf + currentPaye, currentIncome);
+
+  // Keyboard accessibility for mobile navigation menu (Escape key closes menu)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mobileOpen) {
+        setMobileOpen(false);
+        const btn = document.getElementById("menuBtn");
+        if (btn) btn.focus();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [mobileOpen]);
+
   const scrollToId = (id: string) => {
+    if (id === "calculator") {
+      setPreviewTab("calculator");
+    }
     if (typeof document !== "undefined") {
       const el = document.getElementById(id);
       if (el) {
@@ -528,25 +572,122 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           transform: translateX(2px);
         }
 
+        #menuBtn {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          padding: 8px 16px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 6px;
+          color: #FFFFFF;
+          font-size: 0.82rem;
+          font-weight: 700;
+          font-family: inherit;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        #menuBtn:hover, #menuBtn[aria-expanded="true"] {
+          background: rgba(59, 130, 246, 0.2);
+          border-color: #3B82F6;
+          color: #FFFFFF;
+        }
+
+        #mainNav.open {
+          display: block !important;
+        }
+
+        /* Range slider styling for live PAYE calculator */
+        #slide {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 8px;
+          border-radius: 4px;
+          background: linear-gradient(to right, #3B82F6 0%, #2DD4BF 100%);
+          outline: none;
+          cursor: pointer;
+          margin: 10px 0;
+        }
+        #slide::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #FFFFFF;
+          border: 3px solid #3B82F6;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+          cursor: pointer;
+          transition: transform 0.15s ease, background 0.15s;
+        }
+        #slide::-webkit-slider-thumb:hover {
+          transform: scale(1.15);
+          background: #EFF6FF;
+        }
+        #slide::-moz-range-thumb {
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          background: #FFFFFF;
+          border: 3px solid #3B82F6;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+          cursor: pointer;
+        }
+
+        /* Mobile & Responsive Layout Modernization */
         @media (max-width: 992px) {
-          .tw-hero-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
+          .tw-hero-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
           .tw-hero-text-align { text-align: center; }
-          .tw-hero-text-align p { margin: 0 auto 32px !important; }
+          .tw-hero-text-align p { margin: 0 auto 28px !important; }
           .tw-hero-ctas { justify-content: center; }
           .tw-hero-checklists { justify-content: center; }
+          .tw-feat-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .tw-testi-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .tw-price-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .tw-stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 20px !important; }
+          .tw-stat-item { border-right: none !important; border-bottom: 1px solid rgba(22, 44, 86, 0.4); padding-bottom: 16px; }
+          .tw-stat-item:nth-last-child(-n+2) { border-bottom: none !important; }
+          .tw-steps-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .tw-footer-grid { grid-template-columns: 1fr 1fr !important; gap: 32px !important; }
+          .tw-section { padding: 64px 5% !important; }
+          .tw-hero-section { padding: 36px 5% 52px !important; }
         }
+
         @media (max-width: 768px) {
-          .tw-feat-grid { grid-template-columns: 1fr 1fr !important; }
-          .tw-testi-grid { grid-template-columns: 1fr !important; }
-          .tw-price-grid { grid-template-columns: 1fr !important; }
-          .tw-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
-          .tw-footer-grid { grid-template-columns: 1fr 1fr !important; }
           .tw-nav-desktop { display: none !important; }
-          .tw-hamburger { display: flex !important; }
+          .tw-hamburger, #menuBtn { display: inline-flex !important; }
+          .tw-bento-card { padding: 22px 16px !important; }
+          .tw-analysis-grid { grid-template-columns: 1fr !important; }
+          .tw-analysis-col-left, .tw-analysis-col-right { padding: 16px 14px !important; border-right: none !important; }
+          .tw-calc-grid { grid-template-columns: 1fr !important; padding: 18px 14px !important; gap: 18px !important; }
+          .tw-preview-header { padding: 8px 12px !important; gap: 8px !important; }
+          .tw-preview-tabs { max-width: 100%; overflow-x: auto; padding-bottom: 4px; }
+          .tw-preview-tabs::-webkit-scrollbar { display: none; }
+          .tw-hero-trust { padding: 6px 12px !important; font-size: 0.75rem !important; }
+          .tw-hero-ctas { flex-direction: column !important; align-items: stretch !important; max-width: 320px; margin: 0 auto 20px !important; }
+          .tw-hero-ctas button { width: 100% !important; justify-content: center; }
+          .tw-portal-assets-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .tw-topbar { padding: 6px 14px !important; }
+          .tw-topbar-email { display: none !important; }
+          .tw-credibility-row { gap: 10px !important; font-size: 0.7rem !important; }
         }
+
         @media (max-width: 480px) {
-          .tw-feat-grid { grid-template-columns: 1fr !important; }
-          .tw-stats-grid { grid-template-columns: 1fr !important; }
+          .tw-section { padding: 44px 14px !important; }
+          .tw-hero-section { padding: 28px 14px 40px !important; }
+          .tw-stats-grid { grid-template-columns: 1fr !important; gap: 18px !important; }
+          .tw-stat-item { border-bottom: 1px solid rgba(22, 44, 86, 0.4) !important; padding-bottom: 14px; }
+          .tw-stat-item:last-child { border-bottom: none !important; }
+          .tw-footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .tw-bento-card { padding: 18px 12px !important; }
+          .tw-calc-subgrid { grid-template-columns: 1fr !important; }
+          .tw-sim-results { grid-template-columns: 1fr !important; }
+          .tw-tab-badge { display: none !important; }
+          .tw-hero-title { font-size: 1.85rem !important; }
+          .tw-topbar-tagline { font-size: 0.65rem !important; }
+          .tw-preview-version { display: none !important; }
+          .tw-preview-dots { display: none !important; }
         }
       `}</style>
 
@@ -554,17 +695,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       <div style={{ position: "fixed", top: 0, left: 0, height: "4px", background: "#C8922A", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out", pointerEvents: "none" }} />
 
       {/* TOP BAR */}
-      <div style={{ background: "#162C56", padding: "10px 5%", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: ".72rem", color: "rgba(250,249,246,0.9)", fontWeight: 500, letterSpacing: "0.04em", borderBottom: "1px solid rgba(250,249,246,0.08)" }}>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <Globe size={13} style={{ color: "#C8922A" }} />
-          {settings.topbar_text}
+      <div className="tw-topbar" style={{ background: "#162C56", padding: "8px 5%", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: ".72rem", color: "rgba(250,249,246,0.9)", fontWeight: 500, letterSpacing: "0.04em", borderBottom: "1px solid rgba(250,249,246,0.08)", flexWrap: "wrap", gap: 6 }}>
+        <span className="tw-topbar-tagline" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Globe size={13} style={{ color: "#C8922A", flexShrink: 0 }} />
+          <span>{settings.topbar_text}</span>
         </span>
-        <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-            <Mail size={13} style={{ color: "#C8922A" }} />
-            {settings.topbar_email}
+        <div className="tw-topbar-actions" style={{ display: "flex", gap: 16, alignItems: "center" }}>
+          <span className="tw-topbar-email" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+            <Mail size={13} style={{ color: "#C8922A", flexShrink: 0 }} />
+            <span>{settings.topbar_email}</span>
           </span>
-          <button type="button" onClick={onGetStarted} style={{ color: "#FAF9F6", background: "none", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: ".72rem", textDecoration: "underline" }}>Start Free Trial →</button>
+          <button type="button" onClick={onGetStarted} style={{ color: "#FAF9F6", background: "none", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: ".72rem", textDecoration: "underline", whiteSpace: "nowrap" }}>Start Free Trial →</button>
         </div>
       </div>
 
@@ -789,81 +930,106 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             )}
           </div>
 
-          {/* Mobile Menu Icon */}
+          {/* Accessible Mobile Menu Button */}
           <button 
+            id="menuBtn"
             className="tw-hamburger" 
             onClick={() => setMobileOpen(v => !v)} 
-            style={{ display: "none", flexDirection: "column", gap: 5, cursor: "pointer", padding: 8, background: "none", border: "none" }}
-            aria-label="Toggle navigation menu"
+            aria-expanded={mobileOpen}
+            aria-controls="mainNav"
+            aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+            style={{
+              display: "none",
+              alignItems: "center",
+              gap: 6,
+              padding: "8px 12px",
+              background: mobileOpen ? "rgba(59, 130, 246, 0.2)" : "rgba(255, 255, 255, 0.08)",
+              border: mobileOpen ? "1px solid #3B82F6" : "1px solid rgba(255, 255, 255, 0.2)",
+              borderRadius: 8,
+              color: "#FFFFFF",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
           >
-            {[0, 1, 2].map(i => <span key={i} style={{ display: "block", width: 22, height: 2, background: "#FFFFFF", borderRadius: 2, transition: "background 0.3s" }} />)}
+            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+            <span>{mobileOpen ? "Close" : "Menu"}</span>
           </button>
         </div>
 
-        {/* Mobile Navigation Dropdown */}
-        {mobileOpen && (
-          <div style={{ background: "#0C1B36", borderTop: "1px solid rgba(255,255,255,.08)", padding: "16px 5%", borderBottom: "1px solid rgba(255,255,255,.08)" }}>
-            {dbUser && (
-              <div style={{ padding: "8px 0 16px", borderBottom: "1px solid rgba(255,255,255,.08)", marginBottom: "8px" }}>
-                <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>Signed in as</span>
-                <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "white" }}>{dbUser.full_name}</div>
-              </div>
-            )}
-            {[
-              { label: "Case Analyzer", page: "analyzer" },
-              { label: "TAT Case Precedents Library", page: "library" },
-              { label: "Tax & Customs Calculators", page: "calculators" },
-              { label: "Uganda Tax Intelligence", page: "intelligence" },
-              { label: "Compliance Checklists", page: "compliance" },
-              { label: "Learning & Education Hub", page: "education" },
-              { label: "Pricing Plans", page: "pricing" },
-            ].map(item => (
+        {/* Accessible Mobile Navigation Drawer */}
+        <nav 
+          id="mainNav"
+          className={`tw-main-nav ${mobileOpen ? "open" : ""}`}
+          aria-label="Main navigation menu"
+          style={{ 
+            display: mobileOpen ? "block" : "none",
+            background: "#0C1B36", 
+            borderTop: "1px solid rgba(255,255,255,.08)", 
+            padding: "16px 5%", 
+            borderBottom: "1px solid rgba(255,255,255,.08)" 
+          }}
+        >
+          {dbUser && (
+            <div style={{ padding: "8px 0 16px", borderBottom: "1px solid rgba(255,255,255,.08)", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>Signed in as</span>
+              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "white" }}>{dbUser.full_name}</div>
+            </div>
+          )}
+          {[
+            { label: "Case Analyzer", page: "analyzer" },
+            { label: "TAT Case Precedents Library", page: "library" },
+            { label: "Tax & Customs Calculators", page: "calculators" },
+            { label: "Uganda Tax Intelligence", page: "intelligence" },
+            { label: "Compliance Checklists", page: "compliance" },
+            { label: "Learning & Education Hub", page: "education" },
+            { label: "Pricing Plans", page: "pricing" },
+          ].map(item => (
+            <button 
+              key={item.label} 
+              onClick={() => {
+                setMobileOpen(false);
+                if (onNavigate) {
+                  onNavigate(item.page);
+                } else {
+                  onGetStarted();
+                }
+              }} 
+              className="tw-mobile-link" 
+              style={{ display: "block", padding: "12px 0", color: "rgba(255,255,255,.8)", background: "none", border: "none", fontSize: ".9rem", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,.06)", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
+            >
+              {item.label}
+            </button>
+          ))}
+          {!dbUser ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
               <button 
-                key={item.label} 
-                onClick={() => {
-                  setMobileOpen(false);
-                  if (onNavigate) {
-                    onNavigate(item.page);
-                  } else {
-                    onGetStarted();
-                  }
-                }} 
-                className="tw-mobile-link" 
-                style={{ display: "block", padding: "12px 0", color: "rgba(255,255,255,.8)", background: "none", border: "none", fontSize: ".9rem", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,.06)", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
+                onClick={() => { setMobileOpen(false); onSignIn(); }} 
+                style={{ display: "block", padding: "11px 16px", color: "white", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
               >
-                {item.label}
+                Sign In
               </button>
-            ))}
-            {!dbUser ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
-                <button 
-                  onClick={() => { setMobileOpen(false); onSignIn(); }} 
-                  style={{ display: "block", padding: "11px 16px", color: "white", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
-                >
-                  Sign In
-                </button>
-                <button 
-                  onClick={() => { setMobileOpen(false); onGetStarted(); }} 
-                  style={{ display: "block", padding: "11px 16px", color: "white", background: "#3B82F6", border: "none", borderRadius: 6, fontSize: ".875rem", fontWeight: 700, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
-                >
-                  Start Free Trial →
-                </button>
-              </div>
-            ) : (
               <button 
-                onClick={() => { setMobileOpen(false); if (onSignOut) onSignOut(); }} 
-                style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#FCA5A5", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}
+                onClick={() => { setMobileOpen(false); onGetStarted(); }} 
+                style={{ display: "block", padding: "11px 16px", color: "white", background: "#3B82F6", border: "none", borderRadius: 6, fontSize: ".875rem", fontWeight: 700, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
               >
-                <LogOut size={16} />
-                <span>Sign Out</span>
+                Start Free Trial →
               </button>
-            )}
-          </div>
-        )}
+            </div>
+          ) : (
+            <button 
+              onClick={() => { setMobileOpen(false); if (onSignOut) onSignOut(); }} 
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#FCA5A5", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}
+            >
+              <LogOut size={16} />
+              <span>Sign Out</span>
+            </button>
+          )}
+        </nav>
       </div>
 
       {/* HERO SECTION CONTAINER */}
-      <div style={{ background: "#090D16", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", padding: "48px 5% 64px" }}>
+      <div className="tw-hero-section" style={{ background: "#090D16", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", padding: "48px 5% 64px" }}>
         {/* Ambient Blurred Backdrop Glows */}
         <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: "600px", height: "300px", background: "radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(45, 212, 191, 0.08) 50%, transparent 100%)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none", zIndex: 1 }} />
         <div style={{ position: "absolute", top: "40%", left: "30%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(200, 146, 42, 0.05) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(80px)", pointerEvents: "none", zIndex: 1 }} />
@@ -883,7 +1049,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           
           {/* Main Centered Title */}
           <h1 
-            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(2.4rem, 5vw, 3.8rem)", color: "#FFFFFF", lineHeight: 1.15, marginBottom: 18, letterSpacing: "-0.03em", fontWeight: 800 }}
+            className="tw-hero-title"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.95rem, 5.2vw, 3.8rem)", color: "#FFFFFF", lineHeight: 1.15, marginBottom: 18, letterSpacing: "-0.03em", fontWeight: 800 }}
           >
             Professional Legal &amp;<br />
             <span style={{ background: "linear-gradient(135deg, #3B82F6 0%, #2DD4BF 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
@@ -893,13 +1060,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           
           {/* Hero Subtitle */}
           <p 
-            style={{ color: "rgba(255,255,255,0.78)", fontSize: "1.05rem", lineHeight: 1.65, maxWidth: 680, margin: "0 auto 24px", fontWeight: 500 }}
+            style={{ color: "rgba(255,255,255,0.78)", fontSize: "1.05rem", lineHeight: 1.65, maxWidth: 680, margin: "0 auto 24px", fontWeight: 500, padding: "0 4px" }}
           >
             {settings.hero_subtitle}
           </p>
           
           {/* Centered CTA Buttons */}
           <div 
+            className="tw-hero-ctas"
             style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 20 }}
           >
             {dbUser ? (
@@ -920,19 +1088,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
           {/* COMPACT TRUST LINE & CREDIBILITY SIGNALS */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 32 }}>
-            <div style={{ 
-              display: "inline-flex", 
-              alignItems: "center", 
-              gap: 12, 
-              background: "rgba(255, 255, 255, 0.04)", 
-              border: "1px solid rgba(255, 255, 255, 0.1)", 
-              borderRadius: 30, 
-              padding: "7px 20px", 
-              fontSize: "0.82rem", 
-              color: "rgba(255, 255, 255, 0.85)", 
-              fontWeight: 600,
-              boxShadow: "0 4px 14px rgba(0,0,0,0.25)"
-            }}>
+            <div 
+              className="tw-hero-trust"
+              style={{ 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: 12, 
+                background: "rgba(255, 255, 255, 0.04)", 
+                border: "1px solid rgba(255, 255, 255, 0.1)", 
+                borderRadius: 30, 
+                padding: "7px 20px", 
+                fontSize: "0.82rem", 
+                color: "rgba(255, 255, 255, 0.85)", 
+                fontWeight: 600,
+                boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+                flexWrap: "wrap",
+                justifyContent: "center"
+              }}
+            >
               <span style={{ color: "#2DD4BF", fontWeight: 700 }}>Uganda-focused research</span>
               <span style={{ opacity: 0.35 }}>·</span>
               <span style={{ color: "#C8922A", fontWeight: 700 }}>Tax calculation tools</span>
@@ -940,7 +1113,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               <span style={{ color: "#60A5FA", fontWeight: 700 }}>Case-law references</span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", fontSize: "0.74rem", color: "rgba(255, 255, 255, 0.55)", fontWeight: 500 }}>
+            <div className="tw-credibility-row" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", fontSize: "0.74rem", color: "rgba(255, 255, 255, 0.55)", fontWeight: 500 }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                 <ShieldCheck size={14} style={{ color: "#2DD4BF" }} />
                 <span>Verified TAT Tribunal Coverage (2015–2026)</span>
@@ -971,16 +1144,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             }}
           >
             {/* Header: Window controls & interactive preview tabs */}
-            <div style={{ background: "rgba(22, 44, 86, 0.5)", borderBottom: "1px solid rgba(22, 44, 86, 0.7)", padding: "10px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div className="tw-preview-header" style={{ background: "rgba(22, 44, 86, 0.5)", borderBottom: "1px solid rgba(22, 44, 86, 0.7)", padding: "10px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, maxWidth: "100%", overflowX: "auto" }}>
+                <div className="tw-preview-dots" style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444" }} />
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B" }} />
                   <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981" }} />
                 </div>
                 
                 {/* Preview Navigation Tabs */}
-                <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(5, 8, 16, 0.6)", padding: "3px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="tw-preview-tabs" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(5, 8, 16, 0.6)", padding: "3px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
                   {[
                     { id: "analysis", label: "Case Analysis", icon: <Scale size={13} style={{ color: "#3B82F6" }} />, badge: "Live Output" },
                     { id: "calculator", label: "Tax Calculation Suite", icon: <Calculator size={13} style={{ color: "#2DD4BF" }} />, badge: "Interactive" },
@@ -990,6 +1163,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                       type="button"
                       key={tab.id}
                       onClick={() => setPreviewTab(tab.id as any)}
+                      className="tw-preview-tab-btn"
                       style={{
                         padding: "5px 12px",
                         borderRadius: 6,
@@ -1003,12 +1177,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                         transition: "all 0.15s ease",
                         display: "flex",
                         alignItems: "center",
-                        gap: 6
+                        gap: 6,
+                        whiteSpace: "nowrap",
+                        flexShrink: 0
                       }}
                     >
                       <span style={{ display: "flex", alignItems: "center" }}>{tab.icon}</span>
                       <span>{tab.label}</span>
-                      <span style={{ 
+                      <span className="tw-tab-badge" style={{ 
                         fontSize: ".62rem", 
                         padding: "1px 5px", 
                         borderRadius: 4, 
@@ -1022,7 +1198,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div className="tw-preview-version" style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#2DD4BF", boxShadow: "0 0 6px #2DD4BF" }} />
                 <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: ".68rem", color: "#2DD4BF", fontWeight: 600 }}>
                   URA Tax Act 2026 v4.2
@@ -1033,9 +1209,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {/* TAB CONTENT 1: CASE ANALYSIS OUTPUT */}
             {previewTab === "analysis" && (
               <div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
+                <div className="tw-analysis-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
                   {/* Left Column: Case Overview & Live Parsing Stream */}
-                  <div style={{ padding: "20px 24px", background: "rgba(10, 15, 28, 0.5)", borderRight: "1px solid rgba(22, 44, 86, 0.4)", display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div className="tw-analysis-col-left" style={{ padding: "20px 24px", background: "rgba(10, 15, 28, 0.5)", borderRight: "1px solid rgba(22, 44, 86, 0.4)", display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span style={{ fontSize: ".7rem", color: "#3B82F6", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 5 }}>
                         <Cpu size={13} /> Document Input &amp; Facts
@@ -1072,7 +1248,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                   </div>
 
                   {/* Right Column: Tax Analysis Results (Immediately visible!) */}
-                  <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div className="tw-analysis-col-right" style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <Sparkles size={14} style={{ color: "#2DD4BF" }} />
@@ -1157,75 +1333,248 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               </div>
             )}
 
-            {/* TAB CONTENT 2: TAX CALCULATION SUITE */}
+            {/* TAB CONTENT 2: LIVE PAYE & STATUTORY CALCULATOR (FY 2025/26) */}
             {previewTab === "calculator" && (
-              <div style={{ padding: "24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
-                {/* PAYE Sample Card */}
-                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 10, padding: "18px", display: "flex", flexDirection: "column", gap: 12 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div className="tw-calc-grid" style={{ padding: "24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 24 }}>
+                {/* Left Column: Interactive Inputs & Controls */}
+                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.7)", borderRadius: 10, padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Calculator size={16} style={{ color: "#3B82F6" }} />
-                      <span style={{ fontSize: ".85rem", fontWeight: 700, color: "#FFFFFF" }}>Uganda PAYE Statutory Schedule</span>
+                      <Calculator size={17} style={{ color: "#3B82F6" }} />
+                      <span style={{ fontSize: ".88rem", fontWeight: 700, color: "#FFFFFF" }}>Uganda PAYE Calculator</span>
                     </div>
-                    <span style={{ fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.1)", padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
-                      ITA 4th Schedule
+                    <span style={{ fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.12)", border: "1px solid rgba(45, 212, 191, 0.3)", padding: "2px 8px", borderRadius: 4, fontWeight: 700 }}>
+                      FY 2025/26 Monthly Rates
                     </span>
                   </div>
-                  
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, fontSize: ".78rem" }}>
-                    <div style={{ background: "rgba(22, 44, 86, 0.3)", padding: "10px", borderRadius: 6 }}>
-                      <span style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: ".7rem" }}>Contractual Gross</span>
-                      <strong style={{ color: "#FFFFFF", fontSize: ".9rem" }}>UGX 6,500,000</strong>
-                    </div>
-                    <div style={{ background: "rgba(22, 44, 86, 0.3)", padding: "10px", borderRadius: 6 }}>
-                      <span style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: ".7rem" }}>NSSF 5% (Retirement)</span>
-                      <strong style={{ color: "#FCA5A5", fontSize: ".9rem" }}>-UGX 325,000</strong>
-                    </div>
-                    <div style={{ background: "rgba(22, 44, 86, 0.3)", padding: "10px", borderRadius: 6 }}>
-                      <span style={{ color: "rgba(255,255,255,0.5)", display: "block", fontSize: ".7rem" }}>Chargeable Base</span>
-                      <strong style={{ color: "#60A5FA", fontSize: ".9rem" }}>UGX 6,175,000</strong>
-                    </div>
-                    <div style={{ background: "rgba(45, 212, 191, 0.08)", padding: "10px", borderRadius: 6, border: "1px solid rgba(45, 212, 191, 0.2)" }}>
-                      <span style={{ color: "#2DD4BF", display: "block", fontSize: ".7rem", fontWeight: 700 }}>Net Monthly PAYE</span>
-                      <strong style={{ color: "#2DD4BF", fontSize: ".95rem" }}>UGX 1,642,500</strong>
-                    </div>
-                  </div>
 
-                  <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
-                    Net Take-Home Pay: <strong>UGX 4,532,500</strong> (Effective Tax Rate: 25.3%). Computes across all statutory threshold brackets.
-                  </div>
-                </div>
-
-                {/* Additional Calculators Quick Summary */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 2 }}>
-                    Included Statutory Tax Calculators
-                  </div>
-                  {[
-                    { name: "Corporate Income Tax (CIT)", rate: "30% standard / 25% listed", detail: "Form DT-2002 Schedule 1 add-backs & deductions" },
-                    { name: "Value Added Tax (VAT)", rate: "18% standard rate", detail: "Monthly input/output reconciliations with deemed EFRIS rules" },
-                    { name: "Rental Income Tax", rate: "12% individual / 30% corporate", detail: "Automatic 50% deemed expense deduction logic" },
-                    { name: "Vehicle Customs Duty", rate: "CIF + 25% Duty + 18% VAT", detail: "URA valuation guide depreciation scale (up to 70%)" },
-                  ].map(c => (
-                    <div key={c.name} style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 6, padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <div style={{ fontSize: ".76rem", fontWeight: 700, color: "#F4F4F5" }}>{c.name}</div>
-                        <div style={{ fontSize: ".68rem", color: "rgba(255,255,255,0.5)" }}>{c.detail}</div>
-                      </div>
-                      <span style={{ fontSize: ".68rem", color: "#C8922A", background: "rgba(200, 146, 42, 0.1)", padding: "2px 6px", borderRadius: 4, fontWeight: 700, whiteSpace: "nowrap" }}>
-                        {c.rate}
+                  {/* Gross Income Input Field */}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                      <label htmlFor="gross" style={{ fontSize: ".76rem", color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>
+                        Gross Monthly Income
+                      </label>
+                      <span style={{ fontSize: ".72rem", color: "#60A5FA", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>
+                        {money(currentIncome)}
                       </span>
                     </div>
-                  ))}
-                  <button 
-                    onClick={() => {
-                      if (onNavigate) onNavigate("calculators");
-                      else onGetStarted();
-                    }}
-                    style={{ marginTop: 4, background: "#3B82F6", color: "white", padding: "10px", borderRadius: 6, fontSize: ".8rem", fontWeight: 700, border: "none", cursor: "pointer", textAlign: "center" }}
-                  >
-                    Open Full Tax Calculator Suite →
-                  </button>
+                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                      <span style={{ position: "absolute", left: 12, fontSize: ".75rem", color: "rgba(255,255,255,0.45)", fontWeight: 700, pointerEvents: "none" }}>
+                        UGX
+                      </span>
+                      <input
+                        id="gross"
+                        type="number"
+                        min="0"
+                        step="50000"
+                        value={grossPaye}
+                        onChange={(e) => setGrossPaye(Math.max(0, Number(e.target.value) || 0))}
+                        style={{
+                          width: "100%",
+                          padding: "10px 12px 10px 48px",
+                          background: "rgba(10, 15, 28, 0.9)",
+                          border: "1.5px solid rgba(59, 130, 246, 0.4)",
+                          borderRadius: 8,
+                          color: "#FFFFFF",
+                          fontSize: ".9rem",
+                          fontWeight: 700,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          outline: "none",
+                          transition: "border-color 0.2s"
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Range Slider linked to gross */}
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".68rem", color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>
+                      <span>Slide Income:</span>
+                      <span style={{ color: "#2DD4BF", fontWeight: 700 }}>0 to 20,000,000+</span>
+                    </div>
+                    <input
+                      id="slide"
+                      type="range"
+                      min="0"
+                      max="20000000"
+                      step="50000"
+                      value={grossPaye}
+                      onChange={(e) => setGrossPaye(Math.max(0, Number(e.target.value) || 0))}
+                    />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".65rem", color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
+                      <span>UGX 0</span>
+                      <span>UGX 5M</span>
+                      <span style={{ color: "#F59E0B" }}>UGX 10M (Surcharge)</span>
+                      <span>UGX 20M</span>
+                    </div>
+                  </div>
+
+                  {/* Preset Salary Chips */}
+                  <div>
+                    <span style={{ fontSize: ".68rem", color: "rgba(255,255,255,0.5)", display: "block", marginBottom: 6, fontWeight: 600 }}>
+                      Quick Salary Presets:
+                    </span>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {[
+                        { label: "500K", val: 500000 },
+                        { label: "1.5M", val: 1500000 },
+                        { label: "3.5M", val: 3500000 },
+                        { label: "6.5M", val: 6500000 },
+                        { label: "12M (Exec)", val: 12000000 },
+                      ].map(p => (
+                        <button
+                          type="button"
+                          key={p.label}
+                          onClick={() => setGrossPaye(p.val)}
+                          style={{
+                            background: grossPaye === p.val ? "rgba(59, 130, 246, 0.3)" : "rgba(22, 44, 86, 0.4)",
+                            border: grossPaye === p.val ? "1px solid #3B82F6" : "1px solid rgba(255,255,255,0.08)",
+                            color: grossPaye === p.val ? "#FFFFFF" : "rgba(255,255,255,0.75)",
+                            borderRadius: 4,
+                            padding: "4px 8px",
+                            fontSize: ".68rem",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 0.15s"
+                          }}
+                        >
+                          UGX {p.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Visual Proportion Bar */}
+                  {currentIncome > 0 && (
+                    <div style={{ background: "rgba(10, 15, 28, 0.6)", padding: "10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".68rem", color: "rgba(255,255,255,0.6)", marginBottom: 6 }}>
+                        <span>Salary Distribution</span>
+                        <span>Take-Home: <strong style={{ color: "#2DD4BF" }}>{pct(currentNet, currentIncome)}</strong></span>
+                      </div>
+                      <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.1)", display: "flex", overflow: "hidden" }}>
+                        <div style={{ width: pct(currentNet, currentIncome), background: "#2DD4BF", transition: "width 0.2s" }} title="Net Take-Home" />
+                        <div style={{ width: pct(currentPaye, currentIncome), background: "#3B82F6", transition: "width 0.2s" }} title="PAYE Tax" />
+                        <div style={{ width: pct(currentNssf, currentIncome), background: "#F59E0B", transition: "width 0.2s" }} title="NSSF 5%" />
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".62rem", color: "rgba(255,255,255,0.45)", marginTop: 6 }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2DD4BF" }} /> Net Pay</span>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B82F6" }} /> PAYE Tax</span>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#F59E0B" }} /> NSSF (5%)</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column: Instant Statutory Calculation Results */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {/* Hero Net Take-Home Card */}
+                  <div style={{ background: "rgba(45, 212, 191, 0.08)", border: "1.5px solid rgba(45, 212, 191, 0.35)", borderRadius: 10, padding: "16px 18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <span style={{ fontSize: ".72rem", color: "#2DD4BF", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "block" }}>
+                        Net Take-Home Pay
+                      </span>
+                      <strong id="net" style={{ fontSize: "1.35rem", color: "#FFFFFF", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                        {money(currentNet)}
+                      </strong>
+                      <span style={{ fontSize: ".68rem", color: "rgba(255,255,255,0.6)" }}>
+                        Direct deposit after statutory PAYE &amp; employee NSSF
+                      </span>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <span style={{ fontSize: ".65rem", color: "rgba(255,255,255,0.5)", display: "block" }}>Total Deductions</span>
+                      <span id="trate" style={{ fontSize: ".9rem", fontWeight: 800, color: "#FCA5A5", fontFamily: "'JetBrains Mono', monospace" }}>
+                        {currentTrate}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Secondary Metrics Grid */}
+                  <div className="tw-calc-subgrid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    {/* PAYE Tax */}
+                    <div style={{ background: "rgba(10, 15, 28, 0.7)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "12px" }}>
+                      <span style={{ fontSize: ".68rem", color: "#93C5FD", fontWeight: 600, display: "block" }}>Monthly PAYE Tax</span>
+                      <strong id="paye" style={{ fontSize: "1rem", color: "#60A5FA", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                        {money(currentPaye)}
+                      </strong>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, fontSize: ".65rem", color: "rgba(255,255,255,0.5)" }}>
+                        <span>Effective Rate:</span>
+                        <strong id="prate" style={{ color: "#93C5FD" }}>{currentPrate}</strong>
+                      </div>
+                    </div>
+
+                    {/* Employee NSSF (5%) */}
+                    <div style={{ background: "rgba(10, 15, 28, 0.7)", border: "1px solid rgba(245, 158, 11, 0.25)", borderRadius: 8, padding: "12px" }}>
+                      <span style={{ fontSize: ".68rem", color: "#FCD34D", fontWeight: 600, display: "block" }}>Employee NSSF (5%)</span>
+                      <strong id="nssf" style={{ fontSize: "1rem", color: "#FBBF24", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                        {money(currentNssf)}
+                      </strong>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, fontSize: ".65rem", color: "rgba(255,255,255,0.5)" }}>
+                        <span>Retirement fund:</span>
+                        <strong style={{ color: "#FCD34D" }}>5.0%</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Statutory Band Schedule Details */}
+                  <div style={{ background: "rgba(5, 8, 16, 0.6)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 8, padding: "12px" }}>
+                    <div style={{ fontSize: ".72rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
+                      <span>Uganda Income Tax Act (ITA Cap 340) Bands:</span>
+                      <span style={{ color: "#2DD4BF", fontSize: ".65rem" }}>Resident Schedule</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: ".67rem", color: "rgba(255,255,255,0.65)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                        <span>First UGX 235,000</span>
+                        <span style={{ color: "#34D399", fontWeight: 600 }}>0% (Exempt)</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                        <span>UGX 235,001 – 335,000</span>
+                        <span style={{ color: "#60A5FA", fontWeight: 600 }}>10% of excess over 235k</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                        <span>UGX 335,001 – 410,000</span>
+                        <span style={{ color: "#60A5FA", fontWeight: 600 }}>20% (+UGX 10,000)</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                        <span>UGX 410,001 – 10,000,000</span>
+                        <span style={{ color: "#F59E0B", fontWeight: 600 }}>30% (+UGX 25,000)</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
+                        <span>Above UGX 10,000,000</span>
+                        <span style={{ color: "#EF4444", fontWeight: 600 }}>40% (Extra 10% Surcharge)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions & Navigation */}
+                  <div style={{ display: "flex", gap: 10, marginTop: "auto" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onNavigate) onNavigate("calculators");
+                        else onGetStarted();
+                      }}
+                      style={{
+                        flex: 1,
+                        background: "#3B82F6",
+                        color: "white",
+                        padding: "10px 14px",
+                        borderRadius: 6,
+                        fontSize: ".8rem",
+                        fontWeight: 700,
+                        border: "none",
+                        cursor: "pointer",
+                        textAlign: "center",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <Calculator size={14} />
+                      <span>Open Full Multi-Tax Calculator Suite →</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -1233,21 +1582,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {/* TAB CONTENT 3: TAT PRECEDENT ENGINE */}
             {previewTab === "precedents" && (
               <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 16 }}>
-                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-                  <Search size={15} style={{ color: "#3B82F6" }} />
-                  <span style={{ fontSize: ".82rem", color: "#FFFFFF", fontFamily: "'JetBrains Mono', monospace" }}>
+                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <Search size={15} style={{ color: "#3B82F6", flexShrink: 0 }} />
+                  <span style={{ fontSize: ".82rem", color: "#FFFFFF", fontFamily: "'JetBrains Mono', monospace", flex: 1, minWidth: "180px" }}>
                     &ldquo;EFRIS input tax credit disallowance reconciliation&rdquo;
                   </span>
-                  <span style={{ marginLeft: "auto", fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.12)", padding: "2px 8px", borderRadius: 4, fontWeight: 700 }}>
+                  <span style={{ fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.12)", padding: "2px 8px", borderRadius: 4, fontWeight: 700, flexShrink: 0 }}>
                     3 Matching Precedents
                   </span>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: 12 }}>
                   <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                       <span style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF" }}>Uganda Clays v. URA (2024)</span>
-                      <span style={{ fontSize: ".65rem", color: "#10B981", background: "rgba(16, 185, 129, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700 }}>Assessment Quashed</span>
+                      <span style={{ fontSize: ".65rem", color: "#10B981", background: "rgba(16, 185, 129, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700, flexShrink: 0 }}>Assessment Quashed</span>
                     </div>
                     <p style={{ margin: 0, fontSize: ".72rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
                       EFRIS fiscal document numbers provide valid documentary trail; URA cannot disallow input tax based on perceived similarity of expense description.
@@ -1256,9 +1605,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                   </div>
 
                   <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                       <span style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF" }}>Edward Mwanje v. URA (2025)</span>
-                      <span style={{ fontSize: ".65rem", color: "#F87171", background: "rgba(239, 68, 68, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700 }}>Jurisdiction Denied</span>
+                      <span style={{ fontSize: ".65rem", color: "#F87171", background: "rgba(239, 68, 68, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700, flexShrink: 0 }}>Jurisdiction Denied</span>
                     </div>
                     <p style={{ margin: 0, fontSize: ".72rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
                       TAT holds zero jurisdiction to entertain late appeal without an explicit statutory extension application under Section 14(2) TAT Act.
@@ -1267,7 +1616,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                   </div>
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(22, 44, 86, 0.4)", paddingTop: 12 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(22, 44, 86, 0.4)", paddingTop: 12, flexWrap: "wrap", gap: 10 }}>
                   <span style={{ fontSize: ".74rem", color: "rgba(255,255,255,0.5)" }}>
                     Indexed over 68 binding Uganda tax judgments from 2015 to 2026.
                   </span>
@@ -1303,7 +1652,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             [dynamicStats.practitioners, "Active Practitioners"],
             [dynamicStats.calculators, "Live Tax Calculators"],
           ].map(([num, desc], i, arr) => (
-            <div key={desc} style={{ padding: "0 10px", textAlign: "center", borderRight: i < arr.length - 1 ? "1px solid rgba(22, 44, 86, 0.4)" : "none" }}>
+            <div key={desc} className="tw-stat-item" style={{ padding: "0 10px", textAlign: "center", borderRight: i < arr.length - 1 ? "1px solid rgba(22, 44, 86, 0.4)" : "none" }}>
               <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2.5rem", color: "#C8922A", fontWeight: 800 }}>
                 <CountingNumber value={num} />
               </div>
@@ -1314,7 +1663,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       </div>
 
       {/* FEATURES SECTION */}
-      <section id="features" style={{ padding: "96px 5%", background: "#090D16", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", position: "relative" }}>
+      <section id="features" className="tw-section" style={{ padding: "96px 5%", background: "#090D16", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", position: "relative" }}>
         {/* Background ambient glow behind Bento */}
         <div style={{ position: "absolute", bottom: "10%", right: "5%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(59, 130, 246, 0.04) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
 
@@ -1336,6 +1685,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             
             {/* CARD 1: Interactive PAYE Simulator (Double Width / Left Side) */}
             <motion.div 
+              className="tw-bento-card"
               style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)" }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1406,7 +1756,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 const effectiveRate = g > 0 ? (totalDeductions / g) * 100 : 0;
 
                 return (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                  <div className="tw-sim-results" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                     <div style={{ background: "rgba(22, 44, 86, 0.2)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 8, padding: "16px" }}>
                       <div style={{ fontSize: ".68rem", fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 4 }}>NSSF Employee (5%)</div>
                       <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#E4E4E7" }}>UGX {Math.round(nssf).toLocaleString()}</div>
@@ -1432,6 +1782,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
             {/* CARD 2: Active Ugandan Court Precedents (Compact Card / Right Side) */}
             <motion.div 
+              className="tw-bento-card"
               style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1483,6 +1834,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             
             {/* CARD 3: Vehicle Depreciation Import Calculator */}
             <motion.div 
+              className="tw-bento-card"
               style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1545,6 +1897,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
 
             {/* CARD 4: Unified Platform Features Grid (Right Side) */}
             <motion.div 
+              className="tw-bento-card"
               style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)" }}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -1556,7 +1909,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               </div>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 20 }}>Comprehensive Professional Features</h3>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+              <div className="tw-portal-assets-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
                 {[
                   { title: "Case Analyzer", desc: "Scan litigation briefs & objection templates against Cap 340/349 statutory provisions.", icon: <Search size={20} style={{ color: "#3B82F6" }} /> },
                   { title: "Compliance Checklists", desc: "Validate transaction workflows to bypass the standard UGX 6M URA penalty fine.", icon: <Check size={20} style={{ color: "#2DD4BF" }} /> },
@@ -1577,7 +1930,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       </section>
 
       {/* HOW IT WORKS */}
-      <section style={{ padding: "96px 5%", background: "#090D16", borderTop: "1px solid rgba(22, 44, 86, 0.4)", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
+      <section className="tw-section" style={{ padding: "96px 5%", background: "#090D16", borderTop: "1px solid rgba(22, 44, 86, 0.4)", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <motion.div 
             style={{ textAlign: "center", marginBottom: 64 }}
@@ -1590,7 +1943,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "#FFFFFF", fontWeight: 800, letterSpacing: "-0.02em" }}>Legal intelligence in three simple steps</h2>
           </motion.div>
           
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 40, overflow: "hidden" }}>
+          <div className="tw-steps-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 40, overflow: "hidden" }}>
             {[
               { step: "01", icon: <FileText size={24} style={{ color: "#3B82F6" }} />, title: "Upload or paste your case", desc: "Upload a TAT ruling PDF, paste a URA assessment, or describe your scenario. We accept all text structures.", x: -50, y: 0 },
               { step: "02", icon: <Cpu size={24} style={{ color: "#3B82F6" }} />, title: "Analyzes in 30 seconds", desc: "The engine references Uganda tax acts, TAT precedents, and URA practice notes to deliver an interactive report.", x: 0, y: 50 },
@@ -1615,7 +1968,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       </section>
 
       {/* TESTIMONIALS SECTION */}
-      <section style={{ padding: "96px 5%", background: "#0E1424" }}>
+      <section className="tw-section" style={{ padding: "96px 5%", background: "#0E1424" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <motion.div 
             style={{ textAlign: "center", marginBottom: 64 }}
@@ -1661,7 +2014,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       </section>
 
       {/* PRICING SECTION */}
-      <section id="pricing" style={{ padding: "96px 5%", background: "#090D16", position: "relative" }}>
+      <section id="pricing" className="tw-section" style={{ padding: "96px 5%", background: "#090D16", position: "relative" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 0)", backgroundSize: "32px 32px" }} />
         
         <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 10 }}>
@@ -1806,7 +2159,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       </section>
 
       {/* CTA BANNER */}
-      <section style={{ padding: "80px 5%", background: "#0E1424", borderTop: "1px solid rgba(22, 44, 86, 0.5)", borderBottom: "1px solid rgba(22, 44, 86, 0.5)", position: "relative", overflow: "hidden" }}>
+      <section className="tw-section" style={{ padding: "80px 5%", background: "#0E1424", borderTop: "1px solid rgba(22, 44, 86, 0.5)", borderBottom: "1px solid rgba(22, 44, 86, 0.5)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(59, 130, 246, 0.04) 1.5px, transparent 0)", backgroundSize: "32px 32px", opacity: 0.8 }} />
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "450px", height: "450px", background: "radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
         
@@ -1839,7 +2192,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       </section>
 
       {/* FOOTER */}
-      <footer style={{ background: "#090D16", padding: "64px 5% 32px", borderTop: "1px solid rgba(22, 44, 86, 0.5)", position: "relative" }}>
+      <footer className="tw-footer" style={{ background: "#090D16", padding: "64px 5% 32px", borderTop: "1px solid rgba(22, 44, 86, 0.5)", position: "relative" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 10 }}>
           <div className="tw-footer-grid" style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr 1fr 1fr 1fr", gap: 40, marginBottom: 48 }}>
             <div>
