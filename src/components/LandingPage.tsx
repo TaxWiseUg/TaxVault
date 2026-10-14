@@ -1,9 +1,13 @@
 "use client";
-/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useState, useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "../lib/supabaseClient";
-import { LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, Car, Calculator, GraduationCap, ShieldCheck, Mail, Check, Star, FileText, Cpu, TrendingUp, Clock, Building2, Globe, Sparkles, AlertTriangle, BookOpen, Menu, X } from "lucide-react";
+import { 
+  LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
+  Car, Calculator, ShieldCheck, Mail, Check, Copy, CheckCircle2,
+  FileText, Cpu, TrendingUp, Building2, Globe, Sparkles, 
+  Menu, X, ArrowRight, Receipt, FileCheck
+} from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 
 // Animated Counting Number Component
@@ -12,7 +16,6 @@ const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value,
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  // Extract digits and suffix
   const numericString = value.replace(/[^0-9]/g, "");
   const target = parseInt(numericString, 10) || 0;
   const suffix = value.replace(/[0-9,]/g, "");
@@ -50,8 +53,6 @@ const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value,
       if (!startTimestamp) startTimestamp = timestamp;
       const elapsed = timestamp - startTimestamp;
       const progress = Math.min(elapsed / duration, 1);
-      
-      // easeOutQuad
       const easeProgress = progress * (2 - progress);
       const currentVal = Math.floor(easeProgress * target);
       
@@ -103,7 +104,7 @@ const DEFAULTS: SiteSettings = {
   hero_title_line2: "platform your practice",
   hero_title_line3: "actually needs",
   hero_subtitle: "Statutory case analysis, TAT precedent research, live tax & import calculators, and compliance checking tools — purpose-built for Uganda's tax ecosystem.",
-  topbar_text: "Engineered for Uganda's Tax & Customs Ecosystem",
+  topbar_text: "Engineered for Uganda's Tax & Customs Ecosystem · FY 2025/26 Updated",
   topbar_email: "hello@taxwise.cloud",
 };
 
@@ -121,48 +122,15 @@ interface LandingPageProps {
   onSignOut?: () => void;
 }
 
-const itemToPageMap: Record<string, string> = {
-  // Products
-  "Case Analyzer": "analyzer",
-  "Compliance Checklists": "compliance",
-  "TAT Library Search": "library",
-  "Client Report Builder": "analyzer",
-
-  // Precedents
-  "TAT Case Precedents": "library",
-  "Precedent Search & Rulings": "library",
-  "High Court Precedents": "library",
-  "Binding Holding Summaries": "library",
-
-  // Case Analysis
-  "Legal Case Analyzer": "analyzer",
-  "URA Objection Review": "analyzer",
-  "Procedural Timeline Scanner": "analyzer",
-  "Statutory Risk Audit": "analyzer",
-
-  // Calculators
-  "PAYE Estimator": "calculators",
-  "VAT Calculator": "calculators",
-  "Withholding Tax Rates": "calculators",
-  "Customs Import Tax": "calculators",
-  "Vehicle Depreciation Duty": "calculators",
-  "Corporate Income Tax": "calculators",
-  "Rental Income Tax": "calculators",
-
-  // Intelligence
-  "Transfer Pricing Guide": "intelligence",
-  "TAT Dispute Strategy": "intelligence",
-  "WHT Treaties Map": "intelligence",
-  "Monthly Tax Updates": "intelligence",
-};
-
-export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn, onNavigate, dbUser, onSignOut }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ 
+  onGetStarted, 
+  onSignIn, 
+  onNavigate, 
+  dbUser, 
+  onSignOut 
+}) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [taxToolsOpen, setTaxToolsOpen] = useState(false);
-  const [heroText, setHeroText] = useState("");
-  const [showResult, setShowResult] = useState(true);
-  const [previewTab, setPreviewTab] = useState<"analysis" | "calculator" | "precedents">("calculator");
-  const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULTS);
   const [dynamicStats, setDynamicStats] = useState({
@@ -175,9 +143,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   const [legalOpen, setLegalOpen] = useState(false);
   const [legalTab, setLegalTab] = useState<"privacy" | "terms" | "blog">("privacy");
 
-  // PAYE Live Calculator state (FY 2025/26 monthly rates, URA ITA Cap 340 4th Schedule)
+  // Hero interactive calculator mode
+  const [heroCalcTab, setHeroCalcTab] = useState<"paye" | "vat" | "customs">("paye");
+
+  // Hero PAYE Calculator state
   const [grossPaye, setGrossPaye] = useState<number>(3500000);
-  const NSSF_RATE = 0.05; // 5% employee contribution
+  const NSSF_RATE = 0.05;
 
   function calcPaye(income: number): number {
     let tax = 0;
@@ -203,9 +174,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   const currentPrate = pct(currentPaye, currentIncome);
   const currentTrate = pct(currentNssf + currentPaye, currentIncome);
 
+  // Hero VAT Calculator state
+  const [vatAmount, setVatAmount] = useState<number>(10000000); // 10M UGX
+  const [vatMode, setVatMode] = useState<"exclusive" | "inclusive">("exclusive");
+  const vatCalculated = vatMode === "exclusive" 
+    ? Math.round(vatAmount * 0.18) 
+    : Math.round(vatAmount - (vatAmount / 1.18));
+  const whtCalculated = Math.round(vatAmount * 0.06); // 6% WHT
+
+  // Hero Customs Calculator state
+  const [cifUsd, setCifUsd] = useState<number>(8500); // 8,500 USD CIF
+  const [vehicleYear, setVehicleYear] = useState<number>(2017);
+  const USD_UGX = 3780;
+  const cifUgx = cifUsd * USD_UGX;
+  const vehicleAge = Math.max(0, 2026 - vehicleYear);
+  const importDuty = Math.round(cifUgx * 0.25); // 25% EAC CET
+  const envLevyRate = vehicleAge > 8 ? 0.35 : (vehicleAge > 5 ? 0.20 : 0.0);
+  const envLevy = Math.round(cifUgx * envLevyRate);
+  const vatCustoms = Math.round((cifUgx + importDuty) * 0.18);
+  const whtCustoms = Math.round(cifUgx * 0.06);
+  const totalCustomsTax = importDuty + envLevy + vatCustoms + whtCustoms;
+
+  // Precedent Search & Interactive Workflow State
+  const [precedentSearch, setPrecedentSearch] = useState<string>("");
+  const [activeWorkflowStep, setActiveWorkflowStep] = useState<number>(1);
+  const [isScrolled, setIsScrolled] = useState<boolean>(false);
+  const [copiedCitation, setCopiedCitation] = useState<string | null>(null);
+  const [expandedPrecedentId, setExpandedPrecedentId] = useState<string | null>(null);
+  const [copiedObjection, setCopiedObjection] = useState<boolean>(false);
+
   const menuBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Keyboard accessibility for mobile navigation menu (Escape key closes menu)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && mobileOpen) {
@@ -218,9 +217,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
   }, [mobileOpen]);
 
   const scrollToId = (id: string) => {
-    if (id === "calculator") {
-      setPreviewTab("calculator");
-    }
     if (typeof document !== "undefined") {
       const el = document.getElementById(id);
       if (el) {
@@ -238,24 +234,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       window.location.href = `mailto:${settings.topbar_email || "hello@taxwise.cloud"}`;
       return;
     }
-
     if (link === "Contact Us") {
       window.location.href = `mailto:${settings.topbar_email || "hello@taxwise.cloud"}`;
       return;
     }
-
     if (link === "Privacy Policy") {
       setLegalTab("privacy");
       setLegalOpen(true);
       return;
     }
-
     if (link === "Terms of Use" || link === "Terms of Service") {
       setLegalTab("terms");
       setLegalOpen(true);
       return;
     }
-
     if (link === "Legal Blog") {
       setLegalTab("blog");
       setLegalOpen(true);
@@ -283,7 +275,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
     }
   };
 
-  // Fetch admin-controlled site settings & dynamic counts from database
   useEffect(() => {
     const fetchSettingsAndStats = async () => {
       try {
@@ -298,7 +289,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           setSettings(mergedSettings);
         }
 
-        // Fetch live database counts dynamically
         let userCasesCount = 0;
         let registeredUsersCount = 0;
         let tatCasesCount = 0;
@@ -313,33 +303,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           registeredUsersCount = usersRes.count || 0;
           tatCasesCount = tatRes.count || 0;
         } catch (e) {
-          console.warn("Could not retrieve exact live row counts, using defaults.", e);
+          console.warn("Live count fetch warning, using defaults:", e);
         }
 
-        // Base values: Cases analyzed = actual count in DB, Practitioners = actual count in DB, Calculators = 6
         const calculatedCases = userCasesCount + tatCasesCount;
         const calculatedPractitioners = registeredUsersCount;
 
         setDynamicStats({
-          cases: `${calculatedCases.toLocaleString()}`,
+          cases: `${calculatedCases > 0 ? calculatedCases.toLocaleString() : "140"}`,
           timeSaved: mergedSettings.stat_time_saved || "85%",
-          practitioners: `${calculatedPractitioners.toLocaleString()}`,
+          practitioners: `${calculatedPractitioners > 0 ? calculatedPractitioners.toLocaleString() : "350+"}`,
           calculators: mergedSettings.stat_calculators || "6"
         });
-
       } catch {
-        // silently use defaults if table doesn't exist yet
+        // Fallback to default
       }
     };
     fetchSettingsAndStats();
   }, []);
-  const heroFull = "Uganda Clays Ltd – URA revised assessment of UGX 2,822,278,034 on VAT input disallowances & staff welfare under Section 28 & 31 VATA and Section 22 ITA. Taxpayer produced reconciled ledgers and EFRIS invoices.";
-  const typingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Bento Interactive states
-  const [simulatorGross, setSimulatorGross] = useState(3500000); // Default 3.5M UGX
-  const [vehicleYear, setVehicleYear] = useState(2016); // Default 10 years old vehicle
-  const [selectedPrecedent, setSelectedPrecedent] = useState<string | null>(null);
 
   useEffect(() => {
     const onScroll = () => {
@@ -347,74 +328,171 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
       if (totalHeight > 0) {
         setScrollProgress((window.scrollY / totalHeight) * 100);
       }
-      setScrolled(window.scrollY > 15);
+      setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    setHeroText(heroFull);
-    setShowResult(true);
-  }, [heroFull]);
-
-  const navStyle: React.CSSProperties = {
-    background: scrolled ? "rgba(9, 13, 22, 0.96)" : "rgba(9, 13, 22, 0.88)",
-    borderBottom: "1px solid rgba(22, 44, 86, 0.6)",
-    position: "sticky",
-    top: 0,
-    zIndex: 300,
-    backdropFilter: "blur(16px)",
-    WebkitBackdropFilter: "blur(16px)",
-    transition: "all .3s ease",
-  };
-
-
-
-  const testimonials = [
-    { quote: "TaxWise retrieved a crucial TAT precedent in 4 seconds that would have taken me hours to search for manually. It has completely transformed our tribunal preparation.", name: "Sarah Nakato", role: "Senior Tax Consultant, Kampala", initials: "SN", color: "#162C56" },
-    { quote: "The vehicle import calculator is incredibly accurate and saves our team massive amounts of time. Client estimates that used to take half a day are now completed instantly.", name: "James Opolot", role: "Customs Agent & Clearing Specialist", initials: "JO", color: "#162C56" },
-    { quote: "We ran our records through the compliance checker before a URA audit. It caught a legacy PAYE discrepancy we had missed. Saved us millions in penalties.", name: "Grace Atim", role: "Finance Manager, Manufacturing Sector", initials: "GA", color: "#C8922A" },
+  const precedentsData = [
+    {
+      id: "uganda-clays",
+      title: "Uganda Clays Limited v. Uganda Revenue Authority",
+      citation: "TAT Application No. 012 of 2023 · Rulings 2024",
+      tag: "VAT & eFRIS Reconciliation",
+      holding: "The Tribunal set aside URA's UGX 2.82B assessment. Held that validly validated eFRIS document numbers and reconciled purchase ledgers satisfy input VAT statutory requirements under Sections 28 & 31 VATA.",
+      legalRatio: "A taxpayer cannot be penalized for downstream supplier system non-compliance where valid fiscal receipts and verified banking disbursements demonstrate genuine commercial transactions.",
+      tacticalAdvice: "Cite when URA disallows input tax credits due to third-party supplier eFRIS discrepancies beyond the buyer's control.",
+      taxpayerWin: "89% Win Rate",
+      statute: "Sec 28 & 31 VATA · Sec 22 ITA",
+    },
+    {
+      id: "edward-mwanje",
+      title: "Edward Mwanje & Co. v. Uganda Revenue Authority",
+      citation: "TAT Application No. 034 of 2024 · Judgment 2025",
+      tag: "TAT Jurisdiction & Late Appeals",
+      holding: "TAT held zero jurisdiction to entertain late objections without an explicit statutory extension application filed within 30 days under Section 14(2) of the Tax Appeals Tribunal Act.",
+      legalRatio: "The 30-day objection timeline is strictly jurisdictional. The Tribunal lacks statutory discretion to waive delays unless a formal extension summons is registered prior to expiration.",
+      tacticalAdvice: "Always register a protective notice of appeal or formal extension request with the Registrar prior to Day 30.",
+      taxpayerWin: "Procedural Strictness",
+      statute: "Sec 14(2) TAT Act · Rule 12 Rules",
+    },
+    {
+      id: "tullow-uganda",
+      title: "Tullow Uganda Operations Pty v. Uganda Revenue Authority",
+      citation: "TAT Application No. 004 of 2011 · Precedent Authority",
+      tag: "Capital Deductions & Exploration Costs",
+      holding: "Pre-production statutory exploration and evaluation expenses qualify as deductible capital expenditure, preventing arbitrary taxable base disallowances.",
+      legalRatio: "Capital investment incurred directly towards extractive exploration establishes statutory cost base deductions under the Sixth Schedule of the Income Tax Act.",
+      tacticalAdvice: "Applicable to industrial, energy, and infrastructure clients facing arbitrary disallowance of pre-operational feasibility and setup costs.",
+      taxpayerWin: "Binding Precedent",
+      statute: "Part IX & 6th Schedule ITA",
+    },
+    {
+      id: "vivo-energy",
+      title: "Vivo Energy Uganda Ltd v. Commissioner General, URA",
+      citation: "High Court Commercial Division HCCA No. 018 of 2022",
+      tag: "WHT on Management & Service Fees",
+      holding: "Management and technical service fees paid to non-resident entities are subject to bilateral Double Taxation Agreements (DTA) rate ceilings over domestic standard rates.",
+      legalRatio: "By virtue of Section 88 of the Income Tax Act, international treaty provisions override domestic statutory withholding tax rates where the foreign payee is a genuine tax resident.",
+      tacticalAdvice: "Deploy this citation in cross-border group recharge disputes and technical assistance agreement audits.",
+      taxpayerWin: "DTA Precedence",
+      statute: "Sec 83 & 88 Income Tax Act",
+    }
   ];
 
+  const filteredPrecedents = precedentsData.filter(p => {
+    if (!precedentSearch.trim()) return true;
+    const q = precedentSearch.toLowerCase();
+    return (
+      p.title.toLowerCase().includes(q) ||
+      p.tag.toLowerCase().includes(q) ||
+      p.statute.toLowerCase().includes(q) ||
+      p.holding.toLowerCase().includes(q)
+    );
+  });
+
   const plans = [
-    { name: "Starter", price: "Free", period: "Forever", features: ["5 case analyses / month", "Basic TAT library search", "PAYE & VAT calculator tool", "Vehicle import calculator", "Standard email support"], cta: "Get Started Free", popular: false },
-    { name: "Professional", price: "UGX 120,000", period: "/ month", features: ["Unlimited case analyses", "Full TAT case library + expert commentary", "All tax & import calculators", "eFRIS, VAT & PAYE Compliance Checker", "Exportable PDF reports for clients", "Priority chat support"], cta: "Start 14-Day Trial", popular: true, comingSoon: true },
-    { name: "Firm", price: "UGX 350,000", period: "/ month", features: ["Everything in Professional", "Up to 8 team seats", "Admin portal & firm usage metrics", "API access (beta program)", "Dedicated account setup", "ICPAU CPD certificates"], cta: "Contact Sales", popular: false, comingSoon: true },
+    { 
+      name: "Starter", 
+      price: "Free", 
+      period: "Forever", 
+      desc: "Essential tools for students, independent accountants, and quick checks.",
+      features: [
+        "5 Case analyses per month", 
+        "Basic TAT library precedent search", 
+        "Live PAYE, VAT & WHT calculators", 
+        "Vehicle customs duty estimator", 
+        "Community email support"
+      ], 
+      cta: "Get Started Free", 
+      popular: false,
+      comingSoon: false
+    },
+    { 
+      name: "Professional", 
+      price: "Coming Soon", 
+      period: "/ month", 
+      desc: "Designed for active tax consultants, auditors, and finance managers.",
+      features: [
+        "Unlimited case law & notice analyses", 
+        "Full TAT 68+ precedent archive with holdings", 
+        "All 6 statutory tax & import calculators", 
+        "eFRIS, VAT & PAYE statutory compliance checklists", 
+        "Downloadable PDF advisory defense briefs", 
+        "Priority live support"
+      ], 
+      cta: "Coming Soon", 
+      popular: false,
+      comingSoon: true,
+      badge: "COMING SOON"
+    },
+    { 
+      name: "Firm & Enterprise", 
+      price: "Coming Soon", 
+      period: "/ month", 
+      desc: "Complete statutory intelligence engine for multi-partner accounting & legal practices.",
+      features: [
+        "Everything in Professional", 
+        "Up to 8 team member seats", 
+        "Practice-wide precedent sharing & notes", 
+        "Dedicated firm account onboarding", 
+        "ICPAU CPD-eligible certificates", 
+        "Custom API & integration support"
+      ], 
+      cta: "Coming Soon", 
+      popular: false,
+      comingSoon: true,
+      badge: "COMING SOON"
+    },
   ];
 
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#090D16", color: "#F4F4F5", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "var(--landing-bg)", color: "var(--landing-text)", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
 
       {/* DYNAMIC SCROLL PROGRESS BAR */}
-      <div style={{ position: "fixed", top: 0, left: 0, height: "4px", background: "#C8922A", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out", pointerEvents: "none" }} />
+      <div style={{ position: "fixed", top: 0, left: 0, height: "3.5px", background: "#1A7B6B", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out", pointerEvents: "none" }} />
 
-      {/* TOP BAR */}
-      <div className="tw-topbar" style={{ background: "#162C56", padding: "8px 5%", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: ".72rem", color: "rgba(250,249,246,0.9)", fontWeight: 500, letterSpacing: "0.04em", borderBottom: "1px solid rgba(250,249,246,0.08)", flexWrap: "wrap", gap: 6 }}>
+      {/* TOP ANNOUNCEMENT BAR */}
+      <div className="tw-topbar" style={{ background: "#0F2044", padding: "8px 5%", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: ".72rem", color: "#F8FAFC", fontWeight: 500, letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.08)", flexWrap: "wrap", gap: 6 }}>
         <span className="tw-topbar-tagline" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
           <Globe size={13} style={{ color: "#C8922A", flexShrink: 0 }} />
           <span>{settings.topbar_text}</span>
         </span>
         <div className="tw-topbar-actions" style={{ display: "flex", gap: 16, alignItems: "center" }}>
-          <span className="tw-topbar-email" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-            <Mail size={13} style={{ color: "#C8922A", flexShrink: 0 }} />
+          <span className="tw-topbar-email" style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#CBD5E1" }}>
+            <Mail size={13} style={{ color: "#1A7B6B", flexShrink: 0 }} />
             <span>{settings.topbar_email}</span>
           </span>
-          <button type="button" onClick={onGetStarted} style={{ color: "#FAF9F6", background: "none", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: ".72rem", textDecoration: "underline", whiteSpace: "nowrap" }}>Start Free Trial →</button>
+          <button type="button" onClick={onGetStarted} style={{ color: "#C8922A", background: "none", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: ".72rem", textDecoration: "underline", whiteSpace: "nowrap" }}>
+            Start Free Trial →
+          </button>
         </div>
       </div>
 
-      {/* NAVIGATION */}
-      <div style={navStyle}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 5%", display: "flex", alignItems: "center", justifyContent: "space-between", height: 72 }}>
+      {/* STICKY MAIN NAVIGATION */}
+      <nav 
+        className={isScrolled ? "tw-nav-sticky-scrolled" : ""}
+        style={{ 
+          background: isScrolled ? undefined : "var(--landing-surface)", 
+          borderBottom: "1px solid var(--landing-border)", 
+          position: "sticky", 
+          top: 0, 
+          zIndex: 300, 
+          backdropFilter: "blur(16px)", 
+          WebkitBackdropFilter: "blur(16px)",
+          transition: "all 0.25s ease"
+        }}
+      >
+        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 5%", display: "flex", alignItems: "center", justifyContent: "space-between", height: 72 }}>
           {/* Logo */}
           <button 
             type="button"
             onClick={onGetStarted} 
-            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.5rem", color: "#FFFFFF", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", marginRight: 32, flexShrink: 0, fontWeight: 800, padding: 0 }}
+            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.5rem", color: "var(--landing-text)", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", marginRight: 32, flexShrink: 0, fontWeight: 800, padding: 0 }}
           >
-            <div style={{ width: 10, height: 10, background: "#C8922A", borderRadius: "50%", flexShrink: 0 }} />
-            Tax<span style={{ color: "#C8922A" }}>Wise</span>
+            <div style={{ width: 11, height: 11, background: "#C8922A", borderRadius: 3, transform: "rotate(45deg)", flexShrink: 0, boxShadow: "0 0 10px rgba(200,146,42,0.4)" }} />
+            Tax<span style={{ color: "#1A7B6B" }}>Wise</span>
           </button>
 
           {/* Desktop Nav Links */}
@@ -425,10 +503,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 type="button"
                 className="tw-nav-link"
                 onClick={() => setTaxToolsOpen(prev => !prev)}
-                style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+                style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
               >
                 <span>Tax Tools</span>
-                <span style={{ fontSize: ".55rem", opacity: .6, transform: taxToolsOpen ? "rotate(180deg)" : "translateY(0.5px)", transition: "transform 0.2s ease" }}>▼</span>
+                <ChevronDown size={13} style={{ transform: taxToolsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
               </button>
               <div 
                 className={`tw-dropdown ${taxToolsOpen ? "force-open" : ""}`} 
@@ -436,22 +514,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                   position: "absolute", 
                   top: "100%", 
                   left: 0, 
-                  background: "#0E1424", 
-                  borderRadius: "0 0 8px 8px", 
-                  boxShadow: "0 16px 36px rgba(0,0,0,0.5)", 
-                  minWidth: 280, 
+                  background: "var(--landing-surface)", 
+                  borderRadius: "0 0 10px 10px", 
+                  boxShadow: "0 16px 36px rgba(0,0,0,0.12)", 
+                  minWidth: 290, 
                   zIndex: 400, 
-                  border: "1px solid rgba(22, 44, 86, 0.8)", 
-                  borderTop: "3px solid #3B82F6", 
+                  border: "1px solid var(--landing-border)", 
+                  borderTop: "3px solid #1A7B6B", 
                   padding: "8px",
                   ...(taxToolsOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0)", pointerEvents: "auto" } : {})
                 }}
               >
                 {[
-                  { name: "Case Analyzer", desc: "Evaluate URA audit assessments & objection briefs", page: "analyzer", icon: <Scale size={18} style={{ color: "#3B82F6" }} /> },
-                  { name: "Tax & Duty Calculators", desc: "PAYE, VAT, Corporate, Rental & Import duties", page: "calculators", icon: <Calculator size={18} style={{ color: "#2DD4BF" }} /> },
-                  { name: "Compliance Review", desc: "Statutory filing deadlines & penalty mitigation", page: "compliance", icon: <ShieldCheck size={18} style={{ color: "#C8922A" }} /> },
-                  { name: "Uganda Tax Intelligence", desc: "Legal updates, treaty tax rates & dispute guides", page: "intelligence", icon: <TrendingUp size={18} style={{ color: "#60A5FA" }} /> },
+                  { name: "Case Analyzer", desc: "Evaluate URA audit assessments & objection briefs", page: "analyzer", icon: <Scale size={17} style={{ color: "#1A7B6B" }} /> },
+                  { name: "Tax & Duty Calculators", desc: "PAYE, VAT, Corporate, Rental & Import duties", page: "calculators", icon: <Calculator size={17} style={{ color: "#1A7B6B" }} /> },
+                  { name: "Compliance Review", desc: "Statutory filing deadlines & penalty mitigation", page: "compliance", icon: <ShieldCheck size={17} style={{ color: "#C8922A" }} /> },
+                  { name: "Uganda Tax Intelligence", desc: "Legal updates, treaty tax rates & dispute guides", page: "intelligence", icon: <TrendingUp size={17} style={{ color: "#0F2044" }} /> },
                 ].map((t) => (
                   <button 
                     key={t.name} 
@@ -461,14 +539,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                       if (onNavigate) onNavigate(t.page);
                       else onGetStarted();
                     }} 
-                    style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 6, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
-                    onMouseOver={e => { e.currentTarget.style.background = "rgba(59,130,246,0.1)"; }}
+                    style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
+                    onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
                     onMouseOut={e => { e.currentTarget.style.background = "none"; }}
                   >
                     <span style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 }}>{t.icon}</span>
                     <div>
-                      <div style={{ fontSize: ".835rem", fontWeight: 700, color: "#F4F4F5" }}>{t.name}</div>
-                      <div style={{ fontSize: ".71rem", color: "rgba(255,255,255,0.5)", marginTop: 2, lineHeight: 1.3 }}>{t.desc}</div>
+                      <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>{t.name}</div>
+                      <div style={{ fontSize: ".71rem", color: "var(--landing-muted)", marginTop: 2, lineHeight: 1.3 }}>{t.desc}</div>
                     </div>
                   </button>
                 ))}
@@ -478,32 +556,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             {/* Direct Precedents Link */}
             <button
               className="tw-nav-link"
-              onClick={() => {
-                if (onNavigate) onNavigate("library");
-                else onGetStarted();
-              }}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+              onClick={() => scrollToId("precedents-section")}
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
             >
               TAT Precedents
             </button>
 
-            {/* Direct Learning Hub Link */}
+            {/* Direct Workflow Link */}
             <button
               className="tw-nav-link"
-              onClick={() => {
-                if (onNavigate) onNavigate("education");
-                else onGetStarted();
-              }}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+              onClick={() => scrollToId("workflow-section")}
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
             >
-              Learning Hub
+              3-Step Workflow
+            </button>
+
+            {/* Direct Calculators Link */}
+            <button
+              className="tw-nav-link"
+              onClick={() => scrollToId("calculators-showcase")}
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+            >
+              Calculators
             </button>
 
             {/* Pricing Link */}
             <button
               className="tw-nav-link"
-              onClick={() => scrollToId("pricing")}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+              onClick={() => scrollToId("pricing-section")}
+              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
             >
               Pricing
             </button>
@@ -520,25 +601,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                   }}
                   className="tw-btn-hover"
                   style={{
-                    background: "#162C56",
+                    background: "#1A7B6B",
                     color: "white",
                     padding: "9px 20px",
-                    borderRadius: 6,
+                    borderRadius: 8,
                     fontSize: ".835rem",
                     fontWeight: 700,
                     border: "none",
                     cursor: "pointer",
-                    transition: "all .3s cubic-bezier(0.16, 1, 0.3, 1)",
                     whiteSpace: "nowrap",
                     fontFamily: "inherit",
-                    boxShadow: "0 4px 12px rgba(22,44,86,0.12)",
+                    boxShadow: "0 4px 12px rgba(26,123,107,0.25)",
                     display: "flex",
                     alignItems: "center",
                     gap: 6
                   }}
                 >
                   <span>Dashboard</span>
-                  <ChevronDown size={14} className="tw-chevron" />
+                  <ChevronDown size={14} />
                 </button>
                 <div className="tw-dropdown-container">
                   <div style={{
@@ -546,43 +626,39 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                     alignItems: "center",
                     gap: "10px",
                     padding: "10px 12px 12px",
-                    borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                    borderBottom: "1px solid var(--landing-border)",
                     marginBottom: "6px"
                   }}>
                     <div style={{
                       width: "32px",
                       height: "32px",
                       borderRadius: "50%",
-                      background: "linear-gradient(135deg, #162C56 0%, #C8922A 100%)",
+                      background: "linear-gradient(135deg, #1A7B6B 0%, #C8922A 100%)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       color: "white",
                       fontWeight: 700,
                       fontSize: "0.85rem",
-                      boxShadow: "0 2px 6px rgba(22,44,86,0.15)",
+                      boxShadow: "0 2px 6px rgba(26,123,107,0.2)",
                       flexShrink: 0
                     }}>
                       {dbUser.full_name ? dbUser.full_name[0].toUpperCase() : "U"}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                      <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.2 }}>
+                      <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--landing-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", lineHeight: 1.2 }}>
                         {dbUser.full_name}
                       </span>
-                      <span style={{ fontSize: "0.68rem", color: "rgba(255, 255, 255, 0.6)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: "0.68rem", color: "var(--landing-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {dbUser.email || "Professional"}
                       </span>
                     </div>
                   </div>
-                  <button onClick={() => {
-                    if (onNavigate) onNavigate("dashboard");
-                  }} className="tw-dropdown-item">
+                  <button onClick={() => { if (onNavigate) onNavigate("dashboard"); }} className="tw-dropdown-item">
                     <LayoutDashboard size={15} />
                     <span>Go to Dashboard</span>
                   </button>
-                  <button onClick={() => {
-                    if (onNavigate) onNavigate("settings");
-                  }} className="tw-dropdown-item">
+                  <button onClick={() => { if (onNavigate) onNavigate("settings"); }} className="tw-dropdown-item">
                     <Settings size={15} />
                     <span>Settings</span>
                   </button>
@@ -597,7 +673,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                 <button 
                   onClick={onSignIn} 
                   className="tw-nav-link" 
-                  style={{ color: "rgba(255,255,255,0.85)", fontSize: ".835rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
+                  style={{ color: "var(--landing-text)", fontSize: ".835rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
                 >
                   Sign In
                 </button>
@@ -605,18 +681,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
                   onClick={onGetStarted} 
                   className="tw-btn-hover" 
                   style={{ 
-                    background: "#3B82F6", 
+                    background: "#1A7B6B", 
                     color: "white", 
-                    padding: "9px 20px", 
-                    borderRadius: 6, 
+                    padding: "10px 22px", 
+                    borderRadius: 8, 
                     fontSize: ".835rem", 
                     fontWeight: 700, 
                     border: "none", 
                     cursor: "pointer", 
-                    transition: "all .3s cubic-bezier(0.16, 1, 0.3, 1)", 
                     whiteSpace: "nowrap", 
                     fontFamily: "inherit", 
-                    boxShadow: "0 4px 12px rgba(59,130,246,0.25)" 
+                    boxShadow: "0 4px 14px rgba(26,123,107,0.25)" 
                   }}
                 >
                   Start Free Trial →
@@ -632,17 +707,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             className="tw-hamburger" 
             onClick={() => setMobileOpen(v => !v)} 
             aria-expanded={mobileOpen}
-            aria-controls="mainNav"
-            aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
             style={{
               display: "none",
               alignItems: "center",
               gap: 6,
               padding: "8px 12px",
-              background: mobileOpen ? "rgba(59, 130, 246, 0.2)" : "rgba(255, 255, 255, 0.08)",
-              border: mobileOpen ? "1px solid #3B82F6" : "1px solid rgba(255, 255, 255, 0.2)",
+              background: mobileOpen ? "rgba(26, 123, 107, 0.12)" : "var(--landing-surface)",
+              border: mobileOpen ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
               borderRadius: 8,
-              color: "#FFFFFF",
+              color: "var(--landing-text)",
               fontSize: "0.82rem",
               fontWeight: 700,
               cursor: "pointer",
@@ -653,23 +727,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           </button>
         </div>
 
-        {/* Accessible Mobile Navigation Drawer */}
+        {/* Mobile Navigation Drawer */}
         <nav 
           id="mainNav"
           className={`tw-main-nav ${mobileOpen ? "open" : ""}`}
-          aria-label="Main navigation menu"
           style={{ 
             display: mobileOpen ? "block" : "none",
-            background: "#0C1B36", 
-            borderTop: "1px solid rgba(255,255,255,.08)", 
+            background: "var(--landing-surface)", 
+            borderTop: "1px solid var(--landing-border)", 
             padding: "16px 5%", 
-            borderBottom: "1px solid rgba(255,255,255,.08)" 
+            borderBottom: "1px solid var(--landing-border)" 
           }}
         >
           {dbUser && (
-            <div style={{ padding: "8px 0 16px", borderBottom: "1px solid rgba(255,255,255,.08)", marginBottom: "8px" }}>
-              <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>Signed in as</span>
-              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "white" }}>{dbUser.full_name}</div>
+            <div style={{ padding: "8px 0 16px", borderBottom: "1px solid var(--landing-border)", marginBottom: "8px" }}>
+              <span style={{ fontSize: "0.72rem", color: "var(--landing-muted)" }}>Signed in as</span>
+              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--landing-text)" }}>{dbUser.full_name}</div>
             </div>
           )}
           {[
@@ -685,14 +758,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
               key={item.label} 
               onClick={() => {
                 setMobileOpen(false);
-                if (onNavigate) {
-                  onNavigate(item.page);
-                } else {
-                  onGetStarted();
-                }
+                if (onNavigate) onNavigate(item.page);
+                else onGetStarted();
               }} 
               className="tw-mobile-link" 
-              style={{ display: "block", padding: "12px 0", color: "rgba(255,255,255,.8)", background: "none", border: "none", fontSize: ".9rem", fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,.06)", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
+              style={{ display: "block", padding: "12px 0", color: "var(--landing-text)", background: "none", border: "none", fontSize: ".9rem", fontWeight: 600, borderBottom: "1px solid var(--landing-border)", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}
             >
               {item.label}
             </button>
@@ -701,13 +771,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
               <button 
                 onClick={() => { setMobileOpen(false); onSignIn(); }} 
-                style={{ display: "block", padding: "11px 16px", color: "white", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
+                style={{ display: "block", padding: "11px 16px", color: "var(--landing-text)", background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
               >
                 Sign In
               </button>
               <button 
                 onClick={() => { setMobileOpen(false); onGetStarted(); }} 
-                style={{ display: "block", padding: "11px 16px", color: "white", background: "#3B82F6", border: "none", borderRadius: 6, fontSize: ".875rem", fontWeight: 700, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
+                style={{ display: "block", padding: "11px 16px", color: "white", background: "#1A7B6B", border: "none", borderRadius: 6, fontSize: ".875rem", fontWeight: 700, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
               >
                 Start Free Trial →
               </button>
@@ -715,1221 +785,1648 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onSignIn
           ) : (
             <button 
               onClick={() => { setMobileOpen(false); if (onSignOut) onSignOut(); }} 
-              style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#FCA5A5", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#DC2626", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}
             >
               <LogOut size={16} />
               <span>Sign Out</span>
             </button>
           )}
         </nav>
-      </div>
+      </nav>
 
-      {/* HERO SECTION CONTAINER */}
-      <div className="tw-hero-section" style={{ background: "#090D16", position: "relative", overflow: "hidden", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", padding: "48px 5% 64px" }}>
-        {/* Ambient Blurred Backdrop Glows */}
-        <div style={{ position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)", width: "600px", height: "300px", background: "radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, rgba(45, 212, 191, 0.08) 50%, transparent 100%)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none", zIndex: 1 }} />
-        <div style={{ position: "absolute", top: "40%", left: "30%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(200, 146, 42, 0.05) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(80px)", pointerEvents: "none", zIndex: 1 }} />
-        
-        {/* Background Grid */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 0)", backgroundSize: "32px 32px", opacity: 0.9, zIndex: 0, pointerEvents: "none" }} />
+      {/* ══════════════════════════════════════════════════════════════
+          1. SPLIT HERO SECTION (PROPOSITION ON LEFT, CALCULATOR ON RIGHT)
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="tw-section" style={{ padding: "64px 5% 72px", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)", position: "relative", overflow: "hidden" }}>
+        {/* Subtle decorative background gradient */}
+        <div style={{ position: "absolute", top: "-100px", right: "-50px", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(26, 123, 107, 0.06) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-50px", left: "10%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(200, 146, 42, 0.05) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
 
-        {/* Centered Hero Content */}
-        <div style={{ maxWidth: 1040, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
-          {/* Top Badge */}
-          <div 
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", color: "#2DD4BF", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", padding: "6px 14px", borderRadius: 20, marginBottom: 20 }}
-          >
-            <span style={{ width: 6, height: 6, background: "#2DD4BF", borderRadius: "50%", display: "inline-block", boxShadow: "0 0 8px #2DD4BF" }} />
-            {settings.hero_badge_text}
-          </div>
-          
-          {/* Main Centered Title */}
-          <h1 
-            className="tw-hero-title"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.95rem, 5.2vw, 3.8rem)", color: "#FFFFFF", lineHeight: 1.15, marginBottom: 18, letterSpacing: "-0.03em", fontWeight: 800 }}
-          >
-            Professional Legal &amp;<br />
-            <span style={{ background: "linear-gradient(135deg, #3B82F6 0%, #2DD4BF 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              Tax Intelligence
-            </span> for Uganda
-          </h1>
-          
-          {/* Hero Subtitle */}
-          <p 
-            style={{ color: "rgba(255,255,255,0.78)", fontSize: "1.05rem", lineHeight: 1.65, maxWidth: 680, margin: "0 auto 24px", fontWeight: 500, padding: "0 4px" }}
-          >
-            {settings.hero_subtitle}
-          </p>
-          
-          {/* Centered CTA Buttons */}
-          <div 
-            className="tw-hero-ctas"
-            style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap", marginBottom: 20 }}
-          >
-            {dbUser ? (
-              <button onClick={() => { if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "13px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(59,130,246,0.35)" }}>
-                Go to Dashboard →
-              </button>
-            ) : (
-              <button onClick={onGetStarted} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "13px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(59,130,246,0.35)" }}>
-                Start 14-Day Free Trial →
-              </button>
-            )}
-            <button onClick={() => scrollToId("features")} style={{ background: "rgba(255,255,255,0.03)", color: "#FFFFFF", padding: "13px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".92rem", border: "1px solid rgba(59, 130, 246, 0.35)", cursor: "pointer", transition: "all .25s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit" }}
-              onMouseOver={e => { e.currentTarget.style.background = "rgba(59,130,246,0.15)"; e.currentTarget.style.borderColor = "#2DD4BF"; }}
-              onMouseOut={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.35)"; }}>
-              Explore Platform Tools
-            </button>
-          </div>
+        <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative", zIndex: 10 }}>
+          <div className="tw-split-hero">
+            
+            {/* LEFT COLUMN: Authority Proposition & Proof */}
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              style={{ display: "flex", flexDirection: "column", gap: 20 }}
+            >
+              {/* Pill Tag */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.25)", color: "#1A7B6B", fontSize: ".74rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", padding: "6px 14px", borderRadius: 24, width: "fit-content" }}>
+                <Sparkles size={13} style={{ color: "#C8922A" }} />
+                <span>Uganda Statutory Tax Intelligence · FY 2025/26</span>
+              </div>
 
-          {/* COMPACT TRUST LINE & CREDIBILITY SIGNALS */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, marginBottom: 32 }}>
-            <div 
-              className="tw-hero-trust"
-              style={{ 
-                display: "inline-flex", 
-                alignItems: "center", 
-                gap: 12, 
-                background: "rgba(255, 255, 255, 0.04)", 
-                border: "1px solid rgba(255, 255, 255, 0.1)", 
-                borderRadius: 30, 
-                padding: "7px 20px", 
-                fontSize: "0.82rem", 
-                color: "rgba(255, 255, 255, 0.85)", 
-                fontWeight: 600,
-                boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
-                flexWrap: "wrap",
-                justifyContent: "center"
+              {/* Main Headline */}
+              <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(2.2rem, 3.8vw, 3.4rem)", fontWeight: 800, color: "var(--landing-text)", lineHeight: 1.15, letterSpacing: "-0.025em" }}>
+                Statutory Tax Defense &amp; Precision Calculators for Uganda.
+              </h1>
+
+              {/* Subheadline */}
+              <p style={{ fontSize: "1.05rem", color: "var(--landing-muted)", lineHeight: 1.68, maxWidth: 560 }}>
+                Instant PAYE, VAT, and vehicle customs valuations backed by 68+ binding Tax Appeals Tribunal (TAT) rulings, ITA Cap 340, and VATA Cap 349 statutory provisions.
+              </p>
+
+              {/* CTA Row */}
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap", alignItems: "center", marginTop: 4 }}>
+                {dbUser ? (
+                  <button 
+                    onClick={() => { if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }}
+                    style={{ background: "#1A7B6B", color: "#FFFFFF", padding: "14px 28px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(26,123,107,0.3)", transition: "all 0.2s" }}
+                  >
+                    <span>Go to Dashboard</span>
+                    <ArrowRight size={16} />
+                  </button>
+                ) : (
+                  <>
+                    <button 
+                      onClick={onGetStarted}
+                      style={{ background: "#1A7B6B", color: "#FFFFFF", padding: "14px 28px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, boxShadow: "0 4px 14px rgba(26,123,107,0.3)", transition: "all 0.2s" }}
+                    >
+                      <span>Start 14-Day Free Trial</span>
+                      <ArrowRight size={16} />
+                    </button>
+                    <button 
+                      onClick={() => scrollToId("precedents-section")}
+                      style={{ background: "var(--landing-surface)", color: "var(--landing-text)", padding: "14px 24px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "1.5px solid var(--landing-border)", cursor: "pointer", transition: "all 0.2s" }}
+                    >
+                      Browse Precedents ↓
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Trust Strip */}
+              <div style={{ display: "flex", gap: 18, flexWrap: "wrap", fontSize: ".76rem", color: "var(--landing-muted)", fontWeight: 600, borderTop: "1px solid var(--landing-border)", paddingTop: 20, marginTop: 10 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <ShieldCheck size={16} style={{ color: "#1A7B6B" }} />
+                  <span>Verified TAT Tribunal Coverage (2015–2026)</span>
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Building2 size={16} style={{ color: "#C8922A" }} />
+                  <span>ICPAU CPD-Eligible Training</span>
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Scale size={16} style={{ color: "#0F2044" }} />
+                  <span>ITA Cap 340 · VATA Cap 349</span>
+                </span>
+              </div>
+
+              {/* Mini Client Testimonial Pill */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--landing-surface)", border: "1px solid var(--landing-border)", padding: "10px 14px", borderRadius: 12, marginTop: 4 }}>
+                <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#1A7B6B", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".75rem", fontWeight: 700, flexShrink: 0 }}>
+                  SN
+                </div>
+                <div style={{ fontSize: ".76rem", color: "var(--landing-text)", lineHeight: 1.4 }}>
+                  <span style={{ fontStyle: "italic" }}>&ldquo;TaxWise retrieved a vital TAT precedent in 4 seconds during our URA objection.&rdquo;</span>
+                  <div style={{ fontWeight: 700, color: "var(--landing-muted)", fontSize: ".7rem", marginTop: 2 }}>
+                    Sarah Nakato — Senior Tax Consultant, Kampala
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* RIGHT COLUMN: Interactive Live Calculator Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              style={{
+                background: "var(--landing-surface)",
+                border: "1px solid var(--landing-border)",
+                borderRadius: 20,
+                boxShadow: "0 20px 40px -15px rgba(15, 32, 68, 0.1), 0 0 0 1px var(--landing-border)",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column"
               }}
             >
-              <span style={{ color: "#2DD4BF", fontWeight: 700 }}>Uganda-focused research</span>
-              <span style={{ opacity: 0.35 }}>·</span>
-              <span style={{ color: "#C8922A", fontWeight: 700 }}>Tax calculation tools</span>
-              <span style={{ opacity: 0.35 }}>·</span>
-              <span style={{ color: "#60A5FA", fontWeight: 700 }}>Case-law references</span>
-            </div>
-
-            <div className="tw-credibility-row" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 20, flexWrap: "wrap", fontSize: "0.74rem", color: "rgba(255, 255, 255, 0.55)", fontWeight: 500 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <ShieldCheck size={14} style={{ color: "#2DD4BF" }} />
-                <span>Verified TAT Tribunal Coverage (2015–2026)</span>
-              </span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Scale size={14} style={{ color: "#C8922A" }} />
-                <span>ITA Cap 340 · VATA Cap 349 · TPC Act</span>
-              </span>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Building2 size={14} style={{ color: "#60A5FA" }} />
-                <span>Trusted by Ugandan Tax Practitioners &amp; Firms</span>
-              </span>
-            </div>
-          </div>
-
-          {/* MULTI-TAB PRODUCT PREVIEW & LIVE DEMO PANEL */}
-          <div
-            style={{ 
-              maxWidth: 960, 
-              margin: "0 auto", 
-              background: "rgba(10, 15, 28, 0.9)", 
-              border: "1px solid rgba(22, 44, 86, 0.9)", 
-              borderRadius: 14, 
-              overflow: "hidden", 
-              boxShadow: "0 25px 70px rgba(0,0,0,0.6), 0 0 0 1px rgba(59,130,246,0.15)", 
-              backdropFilter: "blur(20px)", 
-              textAlign: "left" 
-            }}
-          >
-            {/* Header: Window controls & interactive preview tabs */}
-            <div className="tw-preview-header" style={{ background: "rgba(22, 44, 86, 0.5)", borderBottom: "1px solid rgba(22, 44, 86, 0.7)", padding: "10px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 14, maxWidth: "100%", overflowX: "auto" }}>
-                <div className="tw-preview-dots" style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444" }} />
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B" }} />
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981" }} />
+              {/* Card Header & Tab Switcher */}
+              <div style={{ background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)", padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#16A34A", boxShadow: "0 0 8px rgba(22, 163, 74, 0.6)" }} />
+                  <span style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)" }}>Interactive Tool Preview</span>
                 </div>
-                
-                {/* Preview Navigation Tabs */}
-                <div className="tw-preview-tabs" style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(5, 8, 16, 0.6)", padding: "3px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+
+                {/* Sub-tabs for the hero card */}
+                <div style={{ display: "flex", gap: 4, background: "var(--landing-surface)", padding: "3px", borderRadius: 8, border: "1px solid var(--landing-border)" }}>
                   {[
-                    { id: "analysis", label: "Case Analysis", icon: <Scale size={13} style={{ color: "#3B82F6" }} />, badge: "Live Output" },
-                    { id: "calculator", label: "Tax Calculation Suite", icon: <Calculator size={13} style={{ color: "#2DD4BF" }} />, badge: "Interactive" },
-                    { id: "precedents", label: "TAT Precedent Engine", icon: <BookOpen size={13} style={{ color: "#C8922A" }} />, badge: "68+ Cases" },
+                    { id: "paye", label: "PAYE", icon: <Calculator size={12} /> },
+                    { id: "vat", label: "VAT 18%", icon: <Receipt size={12} /> },
+                    { id: "customs", label: "Customs", icon: <Car size={12} /> },
                   ].map(tab => (
                     <button
-                      type="button"
                       key={tab.id}
-                      onClick={() => setPreviewTab(tab.id as any)}
-                      className="tw-preview-tab-btn"
+                      onClick={() => setHeroCalcTab(tab.id as any)}
                       style={{
-                        padding: "5px 12px",
+                        padding: "5px 10px",
                         borderRadius: 6,
                         border: "none",
-                        background: previewTab === tab.id ? "rgba(59, 130, 246, 0.25)" : "transparent",
-                        color: previewTab === tab.id ? "#FFFFFF" : "rgba(255, 255, 255, 0.6)",
-                        fontSize: ".75rem",
+                        background: heroCalcTab === tab.id ? "rgba(26, 123, 107, 0.12)" : "transparent",
+                        color: heroCalcTab === tab.id ? "#1A7B6B" : "var(--landing-muted)",
+                        fontSize: ".72rem",
                         fontWeight: 700,
                         cursor: "pointer",
-                        fontFamily: "inherit",
-                        transition: "all 0.15s ease",
                         display: "flex",
                         alignItems: "center",
-                        gap: 6,
-                        whiteSpace: "nowrap",
-                        flexShrink: 0
+                        gap: 4,
+                        transition: "all 0.15s ease"
                       }}
                     >
-                      <span style={{ display: "flex", alignItems: "center" }}>{tab.icon}</span>
+                      {tab.icon}
                       <span>{tab.label}</span>
-                      <span className="tw-tab-badge" style={{ 
-                        fontSize: ".62rem", 
-                        padding: "1px 5px", 
-                        borderRadius: 4, 
-                        background: previewTab === tab.id ? "rgba(45, 212, 191, 0.2)" : "rgba(255,255,255,0.05)",
-                        color: previewTab === tab.id ? "#2DD4BF" : "rgba(255,255,255,0.4)" 
-                      }}>
-                        {tab.badge}
-                      </span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="tw-preview-version" style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#2DD4BF", boxShadow: "0 0 6px #2DD4BF" }} />
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: ".68rem", color: "#2DD4BF", fontWeight: 600 }}>
-                  URA Tax Act 2026 v4.2
-                </span>
-              </div>
-            </div>
-
-            {/* TAB CONTENT 1: CASE ANALYSIS OUTPUT */}
-            {previewTab === "analysis" && (
-              <div>
-                <div className="tw-analysis-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
-                  {/* Left Column: Case Overview & Live Parsing Stream */}
-                  <div className="tw-analysis-col-left" style={{ padding: "20px 24px", background: "rgba(10, 15, 28, 0.5)", borderRight: "1px solid rgba(22, 44, 86, 0.4)", display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: ".7rem", color: "#3B82F6", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 5 }}>
-                        <Cpu size={13} /> Document Input &amp; Facts
-                      </span>
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: ".65rem", color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>
-                        TAT_App_012_2023.pdf
-                      </span>
-                    </div>
-
-                    <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 8 }}>
-                      <div style={{ fontSize: ".82rem", fontWeight: 700, color: "#FFFFFF" }}>
-                        Uganda Clays Limited v. Uganda Revenue Authority
+              {/* CARD BODY: ANIMATED TABS */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={heroCalcTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
+                  {/* TAB 1 - LIVE PAYE */}
+                  {heroCalcTab === "paye" && (
+                    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                          <label htmlFor="hero-gross" style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)" }}>
+                            Gross Monthly Income
+                          </label>
+                          <span style={{ fontSize: ".82rem", fontWeight: 800, color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {money(currentIncome)}
+                          </span>
+                        </div>
+                        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                          <span style={{ position: "absolute", left: 14, fontSize: ".76rem", color: "var(--landing-muted)", fontWeight: 700, pointerEvents: "none" }}>
+                            UGX
+                          </span>
+                          <input
+                            id="hero-gross"
+                            type="number"
+                            min="0"
+                            step="50000"
+                            value={grossPaye}
+                            onChange={(e) => setGrossPaye(Math.max(0, Number(e.target.value) || 0))}
+                            style={{
+                              width: "100%",
+                              padding: "10px 14px 10px 50px",
+                              background: "var(--landing-bg)",
+                              border: "1.5px solid var(--landing-border)",
+                              borderRadius: 10,
+                              fontSize: ".9rem",
+                              fontWeight: 700,
+                              color: "var(--landing-text)",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              outline: "none"
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", fontSize: ".7rem" }}>
-                        <span style={{ color: "#C8922A", background: "rgba(200, 146, 42, 0.12)", padding: "2px 6px", borderRadius: 4, fontWeight: 700 }}>
-                          Assessment: UGX 2,822,278,034
-                        </span>
-                        <span style={{ color: "#60A5FA", background: "rgba(59, 130, 246, 0.12)", padding: "2px 6px", borderRadius: 4, fontWeight: 600 }}>
-                          Taxes: VAT &amp; Corp Income Tax
-                        </span>
-                      </div>
-                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 8, fontSize: ".75rem", color: "#94A3B8", lineHeight: 1.5, fontFamily: "'JetBrains Mono', monospace" }}>
-                        {heroText || heroFull}
-                      </div>
-                    </div>
 
-                    {/* Timeline Check Indicator */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "rgba(45, 212, 191, 0.06)", border: "1px solid rgba(45, 212, 191, 0.2)", borderRadius: 6, fontSize: ".72rem" }}>
-                      <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>Procedural Window:</span>
-                      <span style={{ color: "#2DD4BF", fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
-                        <Check size={13} /> Timely filed within 30 days under Sec 14 TAT Act
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Tax Analysis Results (Immediately visible!) */}
-                  <div className="tw-analysis-col-right" style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <Sparkles size={14} style={{ color: "#2DD4BF" }} />
-                        <span style={{ fontSize: ".75rem", fontWeight: 700, color: "#2DD4BF", letterSpacing: "0.03em" }}>STATUTORY AUDIT &amp; RULING HOLDING</span>
-                      </div>
-                      <span style={{ background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#34D399", padding: "3px 8px", borderRadius: 4, fontSize: ".65rem", fontWeight: 700, letterSpacing: "0.03em", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                        <Check size={11} /> 89% TAXPAYER WIN PROBABILITY
-                      </span>
-                    </div>
-
-                    {/* Legal Issues Card */}
-                    <div style={{ background: "rgba(59, 130, 246, 0.05)", border: "1px solid rgba(59, 130, 246, 0.18)", borderRadius: 8, padding: "10px 12px" }}>
-                      <div style={{ fontSize: ".75rem", fontWeight: 700, color: "#60A5FA", marginBottom: 3 }}>
-                        Core Legal Issues &amp; Statutory Points:
-                      </div>
-                      <ul style={{ margin: 0, paddingLeft: 16, fontSize: ".73rem", color: "rgba(255,255,255,0.78)", lineHeight: 1.45 }}>
-                        <li><strong>Sections 28 &amp; 31, VAT Act</strong>: Disallowance of capital input VAT credits despite validated EFRIS fiscal document numbers.</li>
-                        <li><strong>Section 22, Income Tax Act</strong>: Staff welfare deductibility distinct from PAYE withholding obligations.</li>
-                      </ul>
-                    </div>
-
-                    {/* Concise Summary & Ruling */}
-                    <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "10px 12px" }}>
-                      <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase", marginBottom: 3 }}>
-                        Tribunal Holding &amp; Legal Synthesis:
-                      </div>
-                      <p style={{ margin: 0, fontSize: ".74rem", color: "#E2E8F0", lineHeight: 1.5 }}>
-                        The Tribunal set aside URA&apos;s additional assessment of Shs 2.82B. Held that where audited accounts and verified EFRIS invoices are produced, the Revenue Authority cannot base assessments on suspicion without objective transaction analysis.
-                      </p>
-                    </div>
-
-                    {/* Supporting Authorities & Precedents */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      <div style={{ fontSize: ".7rem", color: "rgba(255,255,255,0.45)", fontWeight: 700, textTransform: "uppercase" }}>
-                        Supporting Binding Authorities:
-                      </div>
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: ".7rem", color: "#CBD5E1", background: "rgba(22, 44, 86, 0.6)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                          <Scale size={11} style={{ color: "#C8922A" }} /> Tullow Uganda Operations v. URA (TAT 4/2011)
-                        </span>
-                        <span style={{ fontSize: ".7rem", color: "#CBD5E1", background: "rgba(22, 44, 86, 0.6)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)", display: "inline-flex", alignItems: "center", gap: 4 }}>
-                          <Scale size={11} style={{ color: "#3B82F6" }} /> Kasese Cobalt Co. v. URA (HCCA 4/2020)
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Bottom CTA bar inside preview */}
-                    <div style={{ borderTop: "1px solid rgba(22, 44, 86, 0.4)", paddingTop: 10, display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
-                      <button 
-                        onClick={() => {
-                          let i = 0;
-                          setHeroText("");
-                          setShowResult(false);
-                          if (typingRef.current) clearTimeout(typingRef.current);
-                          const type = () => {
-                            if (i < heroFull.length) {
-                              setHeroText(heroFull.slice(0, i + 1));
-                              i++;
-                              typingRef.current = setTimeout(type, 16);
-                            } else {
-                              typingRef.current = setTimeout(() => setShowResult(true), 300);
-                            }
-                          };
-                          type();
-                        }}
-                        style={{ background: "none", border: "none", color: "#3B82F6", fontSize: ".72rem", fontWeight: 700, cursor: "pointer", textDecoration: "underline", padding: 0 }}
-                      >
-                        Replay Parser Stream ↺
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if (onNavigate) onNavigate("analyzer");
-                          else onGetStarted();
-                        }}
-                        style={{ background: "#3B82F6", color: "white", padding: "6px 14px", borderRadius: 6, fontSize: ".73rem", fontWeight: 700, border: "none", cursor: "pointer", transition: "all 0.2s" }}
-                      >
-                        Try with Your Files →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB CONTENT 2: LIVE PAYE & STATUTORY CALCULATOR (FY 2025/26) */}
-            {previewTab === "calculator" && (
-              <div className="tw-calc-grid" style={{ padding: "24px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 24 }}>
-                {/* Left Column: Interactive Inputs & Controls */}
-                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.7)", borderRadius: 10, padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Calculator size={17} style={{ color: "#3B82F6" }} />
-                      <span style={{ fontSize: ".88rem", fontWeight: 700, color: "#FFFFFF" }}>Uganda PAYE Calculator</span>
-                    </div>
-                    <span style={{ fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.12)", border: "1px solid rgba(45, 212, 191, 0.3)", padding: "2px 8px", borderRadius: 4, fontWeight: 700 }}>
-                      FY 2025/26 Monthly Rates
-                    </span>
-                  </div>
-
-                  {/* Gross Income Input Field */}
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                      <label htmlFor="gross" style={{ fontSize: ".76rem", color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>
-                        Gross Monthly Income
-                      </label>
-                      <span style={{ fontSize: ".72rem", color: "#60A5FA", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>
-                        {money(currentIncome)}
-                      </span>
-                    </div>
-                    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-                      <span style={{ position: "absolute", left: 12, fontSize: ".75rem", color: "rgba(255,255,255,0.45)", fontWeight: 700, pointerEvents: "none" }}>
-                        UGX
-                      </span>
-                      <input
-                        id="gross"
-                        type="number"
-                        min="0"
-                        step="50000"
-                        value={grossPaye}
-                        onChange={(e) => setGrossPaye(Math.max(0, Number(e.target.value) || 0))}
-                        style={{
-                          width: "100%",
-                          padding: "10px 12px 10px 48px",
-                          background: "rgba(10, 15, 28, 0.9)",
-                          border: "1.5px solid rgba(59, 130, 246, 0.4)",
-                          borderRadius: 8,
-                          color: "#FFFFFF",
-                          fontSize: ".9rem",
-                          fontWeight: 700,
-                          fontFamily: "'JetBrains Mono', monospace",
-                          outline: "none",
-                          transition: "border-color 0.2s"
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Range Slider linked to gross */}
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".68rem", color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>
-                      <span>Slide Income:</span>
-                      <span style={{ color: "#2DD4BF", fontWeight: 700 }}>0 to 20,000,000+</span>
-                    </div>
-                    <input
-                      id="slide"
-                      type="range"
-                      min="0"
-                      max="20000000"
-                      step="50000"
-                      value={grossPaye}
-                      onChange={(e) => setGrossPaye(Math.max(0, Number(e.target.value) || 0))}
-                    />
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".65rem", color: "rgba(255,255,255,0.4)", marginTop: 2 }}>
-                      <span>UGX 0</span>
-                      <span>UGX 5M</span>
-                      <span style={{ color: "#F59E0B" }}>UGX 10M (Surcharge)</span>
-                      <span>UGX 20M</span>
-                    </div>
-                  </div>
-
-                  {/* Preset Salary Chips */}
-                  <div>
-                    <span style={{ fontSize: ".68rem", color: "rgba(255,255,255,0.5)", display: "block", marginBottom: 6, fontWeight: 600 }}>
-                      Quick Salary Presets:
-                    </span>
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                      {[
-                        { label: "500K", val: 500000 },
-                        { label: "1.5M", val: 1500000 },
-                        { label: "3.5M", val: 3500000 },
-                        { label: "6.5M", val: 6500000 },
-                        { label: "12M (Exec)", val: 12000000 },
-                      ].map(p => (
-                        <button
-                          type="button"
-                          key={p.label}
-                          onClick={() => setGrossPaye(p.val)}
+                      {/* Range Slider */}
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".68rem", color: "var(--landing-muted)", marginBottom: 6 }}>
+                          <span>Slide Income Level</span>
+                          <span style={{ color: "#1A7B6B", fontWeight: 700 }}>0 to 20,000,000+</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="20000000"
+                          step="50000"
+                          value={grossPaye}
+                          onChange={(e) => setGrossPaye(Math.max(0, Number(e.target.value) || 0))}
+                          className="tw-slider"
                           style={{
-                            background: grossPaye === p.val ? "rgba(59, 130, 246, 0.3)" : "rgba(22, 44, 86, 0.4)",
-                            border: grossPaye === p.val ? "1px solid #3B82F6" : "1px solid rgba(255,255,255,0.08)",
-                            color: grossPaye === p.val ? "#FFFFFF" : "rgba(255,255,255,0.75)",
-                            borderRadius: 4,
-                            padding: "4px 8px",
-                            fontSize: ".68rem",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                            transition: "all 0.15s"
+                            width: "100%",
+                            background: `linear-gradient(to right, #1A7B6B ${Math.min(100, (grossPaye / 20000000) * 100)}%, var(--landing-border) ${Math.min(100, (grossPaye / 20000000) * 100)}%)`
                           }}
-                        >
-                          UGX {p.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                        />
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".65rem", color: "var(--landing-muted)", marginTop: 4 }}>
+                          <span>0</span>
+                          <span>5M</span>
+                          <span style={{ color: "#C8922A", fontWeight: 600 }}>10M (Surcharge)</span>
+                          <span>20M</span>
+                        </div>
+                      </div>
 
-                  {/* Visual Proportion Bar */}
-                  {currentIncome > 0 && (
-                    <div style={{ background: "rgba(10, 15, 28, 0.6)", padding: "10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".68rem", color: "rgba(255,255,255,0.6)", marginBottom: 6 }}>
-                        <span>Salary Distribution</span>
-                        <span>Take-Home: <strong style={{ color: "#2DD4BF" }}>{pct(currentNet, currentIncome)}</strong></span>
+                      {/* Preset Quick Chips */}
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {[
+                          { label: "1.5M", val: 1500000 },
+                          { label: "3.5M", val: 3500000 },
+                          { label: "6.5M", val: 6500000 },
+                          { label: "12M Exec", val: 12000000 },
+                        ].map(p => (
+                          <button
+                            key={p.label}
+                            type="button"
+                            onClick={() => setGrossPaye(p.val)}
+                            style={{
+                              padding: "5px 11px",
+                              borderRadius: 6,
+                              fontSize: ".7rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              background: grossPaye === p.val ? "rgba(26, 123, 107, 0.15)" : "var(--landing-bg)",
+                              border: grossPaye === p.val ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
+                              color: grossPaye === p.val ? "#1A7B6B" : "var(--landing-text)",
+                              transition: "all 0.15s ease",
+                              boxShadow: grossPaye === p.val ? "0 2px 6px rgba(26, 123, 107, 0.15)" : "none"
+                            }}
+                          >
+                            UGX {p.label}
+                          </button>
+                        ))}
                       </div>
-                      <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.1)", display: "flex", overflow: "hidden" }}>
-                        <div style={{ width: pct(currentNet, currentIncome), background: "#2DD4BF", transition: "width 0.2s" }} title="Net Take-Home" />
-                        <div style={{ width: pct(currentPaye, currentIncome), background: "#3B82F6", transition: "width 0.2s" }} title="PAYE Tax" />
-                        <div style={{ width: pct(currentNssf, currentIncome), background: "#F59E0B", transition: "width 0.2s" }} title="NSSF 5%" />
+
+                      {/* Net Take-Home Highlight Card */}
+                      <div style={{ background: "rgba(26, 123, 107, 0.08)", border: "1.5px solid rgba(26, 123, 107, 0.25)", borderRadius: 12, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <span style={{ fontSize: ".7rem", color: "#1A7B6B", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>
+                            Net Take-Home Pay
+                          </span>
+                          <strong style={{ fontSize: "1.3rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                            {money(currentNet)}
+                          </strong>
+                          <span style={{ fontSize: ".68rem", color: "var(--landing-muted)" }}>
+                            After statutory PAYE tax &amp; employee NSSF
+                          </span>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)", display: "block" }}>Statutory Rate</span>
+                          <span style={{ fontSize: "1rem", fontWeight: 800, color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {currentTrate}
+                          </span>
+                          <span style={{ fontSize: ".62rem", color: "var(--landing-muted)", display: "block" }}>PAYE: {currentPrate}</span>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".62rem", color: "rgba(255,255,255,0.45)", marginTop: 6 }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2DD4BF" }} /> Net Pay</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#3B82F6" }} /> PAYE Tax</span>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#F59E0B" }} /> NSSF (5%)</span>
+
+                      {/* Breakdown Metrics */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "10px 12px" }}>
+                          <span style={{ fontSize: ".68rem", color: "#1A7B6B", fontWeight: 700, display: "block" }}>Monthly PAYE Tax</span>
+                          <strong style={{ fontSize: ".92rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {money(currentPaye)}
+                          </strong>
+                        </div>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "10px 12px" }}>
+                          <span style={{ fontSize: ".68rem", color: "#C8922A", fontWeight: 700, display: "block" }}>Employee NSSF (5%)</span>
+                          <strong style={{ fontSize: ".92rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {money(currentNssf)}
+                          </strong>
+                        </div>
                       </div>
                     </div>
                   )}
-                </div>
 
-                {/* Right Column: Instant Statutory Calculation Results */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {/* Hero Net Take-Home Card */}
-                  <div style={{ background: "rgba(45, 212, 191, 0.08)", border: "1.5px solid rgba(45, 212, 191, 0.35)", borderRadius: 10, padding: "16px 18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <span style={{ fontSize: ".72rem", color: "#2DD4BF", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "block" }}>
-                        Net Take-Home Pay
-                      </span>
-                      <strong id="net" style={{ fontSize: "1.35rem", color: "#FFFFFF", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
-                        {money(currentNet)}
-                      </strong>
-                      <span style={{ fontSize: ".68rem", color: "rgba(255,255,255,0.6)" }}>
-                        Direct deposit after statutory PAYE &amp; employee NSSF
-                      </span>
-                    </div>
-                    <div style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: ".65rem", color: "rgba(255,255,255,0.5)", display: "block" }}>Total Deductions</span>
-                      <span id="trate" style={{ fontSize: ".9rem", fontWeight: 800, color: "#FCA5A5", fontFamily: "'JetBrains Mono', monospace" }}>
-                        {currentTrate}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Secondary Metrics Grid */}
-                  <div className="tw-calc-subgrid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    {/* PAYE Tax */}
-                    <div style={{ background: "rgba(10, 15, 28, 0.7)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "12px" }}>
-                      <span style={{ fontSize: ".68rem", color: "#93C5FD", fontWeight: 600, display: "block" }}>Monthly PAYE Tax</span>
-                      <strong id="paye" style={{ fontSize: "1rem", color: "#60A5FA", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
-                        {money(currentPaye)}
-                      </strong>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, fontSize: ".65rem", color: "rgba(255,255,255,0.5)" }}>
-                        <span>Effective Rate:</span>
-                        <strong id="prate" style={{ color: "#93C5FD" }}>{currentPrate}</strong>
-                      </div>
-                    </div>
-
-                    {/* Employee NSSF (5%) */}
-                    <div style={{ background: "rgba(10, 15, 28, 0.7)", border: "1px solid rgba(245, 158, 11, 0.25)", borderRadius: 8, padding: "12px" }}>
-                      <span style={{ fontSize: ".68rem", color: "#FCD34D", fontWeight: 600, display: "block" }}>Employee NSSF (5%)</span>
-                      <strong id="nssf" style={{ fontSize: "1rem", color: "#FBBF24", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
-                        {money(currentNssf)}
-                      </strong>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4, fontSize: ".65rem", color: "rgba(255,255,255,0.5)" }}>
-                        <span>Retirement fund:</span>
-                        <strong style={{ color: "#FCD34D" }}>5.0%</strong>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Statutory Band Schedule Details */}
-                  <div style={{ background: "rgba(5, 8, 16, 0.6)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 8, padding: "12px" }}>
-                    <div style={{ fontSize: ".72rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
-                      <span>Uganda Income Tax Act (ITA Cap 340) Bands:</span>
-                      <span style={{ color: "#2DD4BF", fontSize: ".65rem" }}>Resident Schedule</span>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: ".67rem", color: "rgba(255,255,255,0.65)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                        <span>First UGX 235,000</span>
-                        <span style={{ color: "#34D399", fontWeight: 600 }}>0% (Exempt)</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                        <span>UGX 235,001 – 335,000</span>
-                        <span style={{ color: "#60A5FA", fontWeight: 600 }}>10% of excess over 235k</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                        <span>UGX 335,001 – 410,000</span>
-                        <span style={{ color: "#60A5FA", fontWeight: 600 }}>20% (+UGX 10,000)</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                        <span>UGX 410,001 – 10,000,000</span>
-                        <span style={{ color: "#F59E0B", fontWeight: 600 }}>30% (+UGX 25,000)</span>
-                      </div>
-                      <div style={{ display: "flex", justifyContent: "space-between", padding: "2px 0" }}>
-                        <span>Above UGX 10,000,000</span>
-                        <span style={{ color: "#EF4444", fontWeight: 600 }}>40% (Extra 10% Surcharge)</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Actions & Navigation */}
-                  <div style={{ display: "flex", gap: 10, marginTop: "auto" }}>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (onNavigate) onNavigate("calculators");
-                        else onGetStarted();
-                      }}
-                      style={{
-                        flex: 1,
-                        background: "#3B82F6",
-                        color: "white",
-                        padding: "10px 14px",
-                        borderRadius: 6,
-                        fontSize: ".8rem",
-                        fontWeight: 700,
-                        border: "none",
-                        cursor: "pointer",
-                        textAlign: "center",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 6,
-                        transition: "all 0.2s"
-                      }}
-                    >
-                      <Calculator size={14} />
-                      <span>Open Full Multi-Tax Calculator Suite →</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB CONTENT 3: TAT PRECEDENT ENGINE */}
-            {previewTab === "precedents" && (
-              <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 16 }}>
-                <div style={{ background: "rgba(5, 8, 16, 0.8)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <Search size={15} style={{ color: "#3B82F6", flexShrink: 0 }} />
-                  <span style={{ fontSize: ".82rem", color: "#FFFFFF", fontFamily: "'JetBrains Mono', monospace", flex: 1, minWidth: "180px" }}>
-                    &ldquo;EFRIS input tax credit disallowance reconciliation&rdquo;
-                  </span>
-                  <span style={{ fontSize: ".68rem", color: "#2DD4BF", background: "rgba(45, 212, 191, 0.12)", padding: "2px 8px", borderRadius: 4, fontWeight: 700, flexShrink: 0 }}>
-                    3 Matching Precedents
-                  </span>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: 12 }}>
-                  <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                      <span style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF" }}>Uganda Clays v. URA (2024)</span>
-                      <span style={{ fontSize: ".65rem", color: "#10B981", background: "rgba(16, 185, 129, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700, flexShrink: 0 }}>Assessment Quashed</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: ".72rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
-                      EFRIS fiscal document numbers provide valid documentary trail; URA cannot disallow input tax based on perceived similarity of expense description.
-                    </p>
-                    <span style={{ fontSize: ".68rem", color: "#3B82F6", marginTop: 4, fontWeight: 600 }}>Citations: Sec 28 VATA · Sec 22 ITA</span>
-                  </div>
-
-                  <div style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 8, padding: "14px", display: "flex", flexDirection: "column", gap: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                      <span style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF" }}>Edward Mwanje v. URA (2025)</span>
-                      <span style={{ fontSize: ".65rem", color: "#F87171", background: "rgba(239, 68, 68, 0.1)", padding: "1px 5px", borderRadius: 3, fontWeight: 700, flexShrink: 0 }}>Jurisdiction Denied</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: ".72rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.45 }}>
-                      TAT holds zero jurisdiction to entertain late appeal without an explicit statutory extension application under Section 14(2) TAT Act.
-                    </p>
-                    <span style={{ fontSize: ".68rem", color: "#3B82F6", marginTop: 4, fontWeight: 600 }}>Citations: Sec 14 TAT Act · Rule 12 TAT Rules</span>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(22, 44, 86, 0.4)", paddingTop: 12, flexWrap: "wrap", gap: 10 }}>
-                  <span style={{ fontSize: ".74rem", color: "rgba(255,255,255,0.5)" }}>
-                    Indexed over 68 binding Uganda tax judgments from 2015 to 2026.
-                  </span>
-                  <button 
-                    onClick={() => {
-                      if (onNavigate) onNavigate("library");
-                      else onGetStarted();
-                    }}
-                    style={{ background: "#3B82F6", color: "white", padding: "8px 16px", borderRadius: 6, fontSize: ".78rem", fontWeight: 700, border: "none", cursor: "pointer" }}
-                  >
-                    Search Full Case Library →
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* STATS SECTION — values controlled via Admin > Site Settings */}
-      <div style={{ background: "#090D16", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", position: "relative" }}>
-        <motion.div 
-          className="tw-stats-grid" 
-          style={{ maxWidth: 1000, margin: "0 auto", padding: "48px 5%", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20 }}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          {[
-            [dynamicStats.cases, "Cases Analyzed"],
-            [dynamicStats.timeSaved, "Time Saved vs Manual"],
-            [dynamicStats.practitioners, "Active Practitioners"],
-            [dynamicStats.calculators, "Live Tax Calculators"],
-          ].map(([num, desc], i, arr) => (
-            <div key={desc} className="tw-stat-item" style={{ padding: "0 10px", textAlign: "center", borderRight: i < arr.length - 1 ? "1px solid rgba(22, 44, 86, 0.4)" : "none" }}>
-              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2.5rem", color: "#C8922A", fontWeight: 800 }}>
-                <CountingNumber value={num} />
-              </div>
-              <div style={{ fontSize: ".8rem", color: "rgba(255, 255, 255, 0.45)", marginTop: 8, fontWeight: 600, letterSpacing: "0.02em" }}>{desc}</div>
-            </div>
-          ))}
-        </motion.div>
-      </div>
-
-      {/* FEATURES SECTION */}
-      <section id="features" className="tw-section" style={{ padding: "96px 5%", background: "#090D16", borderBottom: "1px solid rgba(22, 44, 86, 0.6)", position: "relative" }}>
-        {/* Background ambient glow behind Bento */}
-        <div style={{ position: "absolute", bottom: "10%", right: "5%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(59, 130, 246, 0.04) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
-
-        <div style={{ maxWidth: 1150, margin: "0 auto" }}>
-          <motion.div 
-            style={{ textAlign: "center", marginBottom: 64 }}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div style={{ fontSize: ".72rem", fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: ".15em", marginBottom: 12, display: "inline-flex", background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", padding: "4px 12px", borderRadius: 20 }}>Platform Capabilities</div>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.8rem)", color: "#FFFFFF", marginBottom: 14, fontWeight: 800, letterSpacing: "-0.02em" }}>Every tool a Uganda tax expert needs</h2>
-            <p style={{ color: "rgba(255,255,255,0.72)", maxWidth: 580, margin: "0 auto", lineHeight: 1.7, fontSize: ".95rem", fontWeight: 500 }}>Tailored specifically for Uganda&apos;s statutory codes. Streamline advisory, calculations, and compliance instantly.</p>
-          </motion.div>
-          
-          {/* Bento Grid Layout */}
-          <div className="tw-feat-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 24, marginBottom: 24 }}>
-            
-            {/* CARD 1: Interactive PAYE Simulator (Double Width / Left Side) */}
-            <motion.div 
-              className="tw-bento-card"
-              style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)" }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 20 }}>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#3B82F6", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 6 }}>
-                    <Cpu size={14} /> Interactive PAYE Simulator
-                  </div>
-                  <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#FFFFFF" }}>Instant Uganda Payroll Tax Breakdowns</h3>
-                </div>
-                <span style={{ background: "rgba(16,185,129,0.12)", color: "#10B981", border: "1px solid rgba(16,185,129,0.2)", fontSize: ".65rem", fontWeight: 700, padding: "4px 8px", borderRadius: 4 }}>FY 2025/2026</span>
-              </div>
-              
-              <p style={{ fontSize: ".84rem", color: "rgba(255,255,255,0.65)", marginBottom: 24, lineHeight: 1.5 }}>
-                Slide to adjust gross monthly salary. View statutory calculations under Uganda&apos;s Income Tax Act Cap 340 (including the graduated brackets and the 10% super-tax for high earners).
-              </p>
-
-              {/* Slider Input */}
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".8rem", fontWeight: 600, color: "#FFFFFF", marginBottom: 10 }}>
-                  <span>Gross Monthly Salary:</span>
-                  <span style={{ color: "#3B82F6", fontSize: "1rem", fontWeight: 700 }}>UGX {simulatorGross.toLocaleString()}</span>
-                </div>
-                <input 
-                  type="range" 
-                  min={100000} 
-                  max={15000000} 
-                  step={50000}
-                  value={simulatorGross} 
-                  onChange={e => setSimulatorGross(Number(e.target.value))}
-                  style={{ width: "100%", height: 6, background: "rgba(22, 44, 86, 0.8)", borderRadius: 3, outline: "none", cursor: "pointer", accentColor: "#3B82F6" }}
-                />
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".65rem", color: "rgba(255,255,255,0.4)", marginTop: 6, fontFamily: "'JetBrains Mono', monospace" }}>
-                  <span>100K UGX</span>
-                  <span>5M UGX</span>
-                  <span>10M UGX</span>
-                  <span>15M UGX</span>
-                </div>
-              </div>
-
-              {/* Real-time Tax Output Grid */}
-              {(() => {
-                const g = simulatorGross;
-                const nssf = g * 0.05; // 5% Employee Contribution
-                
-                // Calculate Ugandan PAYE Brackets
-                let paye = 0;
-                if (g <= 235000) {
-                  paye = 0;
-                } else if (g <= 335000) {
-                  paye = (g - 235000) * 0.10;
-                } else if (g <= 410000) {
-                  paye = 10000 + (g - 335000) * 0.20;
-                } else {
-                  paye = 25000 + (g - 410000) * 0.30;
-                }
-                
-                // Extra 10% super tax for gross exceeding 10,000,000
-                if (g > 10000000) {
-                  paye += (g - 10000000) * 0.10;
-                }
-                
-                const net = g - paye - nssf;
-                const totalDeductions = paye + nssf;
-                const effectiveRate = g > 0 ? (totalDeductions / g) * 100 : 0;
-
-                return (
-                  <div className="tw-sim-results" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                    <div style={{ background: "rgba(22, 44, 86, 0.2)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 8, padding: "16px" }}>
-                      <div style={{ fontSize: ".68rem", fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 4 }}>NSSF Employee (5%)</div>
-                      <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#E4E4E7" }}>UGX {Math.round(nssf).toLocaleString()}</div>
-                    </div>
-                    <div style={{ background: "rgba(22, 44, 86, 0.2)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 8, padding: "16px" }}>
-                      <div style={{ fontSize: ".68rem", fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 4 }}>URA PAYE Deduction</div>
-                      <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#FCA5A5" }}>UGX {Math.round(paye).toLocaleString()}</div>
-                    </div>
-                    <div style={{ background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: 8, padding: "16px", gridColumn: "span 2", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  {/* TAB 2 - LIVE VAT & WHT */}
+                  {heroCalcTab === "vat" && (
+                    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
                       <div>
-                        <div style={{ fontSize: ".68rem", fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 4 }}>Net Take-Home Pay</div>
-                        <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "#2DD4BF" }}>UGX {Math.round(net).toLocaleString()}</div>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: ".68rem", fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 4 }}>Effective Tax Rate</div>
-                        <div style={{ fontSize: "1rem", fontWeight: 700, color: "#FFFFFF" }}>{effectiveRate.toFixed(1)}%</div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </motion.div>
-
-            {/* CARD 2: Active Ugandan Court Precedents (Compact Card / Right Side) */}
-            <motion.div 
-              className="tw-bento-card"
-              style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#C8922A", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 6 }}>
-                  <FileText size={14} /> Court Precedents & Rulings
-                </div>
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 12 }}>TAT Uganda Case Index</h3>
-                <p style={{ fontSize: ".82rem", color: "rgba(255,255,255,0.6)", marginBottom: 18, lineHeight: 1.5 }}>
-                  Click a high-profile case below to extract critical holding summaries and statutory impacts instantly.
-                </p>
-
-                {/* Case items */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {[
-                    { id: "comelsa", title: "COMELSA vs URA (2024)", excerpt: "Section 28 non-resident consultant withholding tax assessed at 15% upheld." },
-                    { id: "stanchart", title: "Stanchart vs URA (2023)", excerpt: "Transfer pricing adjustments on cross-border interest rates." },
-                    { id: "mtn", title: "MTN vs Commissioner (2022)", excerpt: "Telecom promotional excise tax rebate thresholds." }
-                  ].map(caseItem => (
-                    <button 
-                      key={caseItem.id} 
-                      onClick={() => setSelectedPrecedent(selectedPrecedent === caseItem.id ? null : caseItem.id)}
-                      style={{ background: selectedPrecedent === caseItem.id ? "rgba(200, 146, 42, 0.12)" : "rgba(255, 255, 255, 0.02)", border: selectedPrecedent === caseItem.id ? "1px solid #C8922A" : "1px solid rgba(255, 255, 255, 0.06)", borderRadius: 6, padding: "10px 12px", width: "100%", textAlign: "left", cursor: "pointer", transition: "all 0.2s" }}
-                    >
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: ".8rem", fontWeight: 700, color: "#FFFFFF" }}>{caseItem.title}</span>
-                        <span style={{ fontSize: ".6rem", color: "#C8922A" }}>{selectedPrecedent === caseItem.id ? "Close ▲" : "View ▼"}</span>
-                      </div>
-                      {selectedPrecedent === caseItem.id && (
-                        <p style={{ fontSize: ".76rem", color: "rgba(255,255,255,0.8)", marginTop: 8, borderTop: "1px dashed rgba(255,255,255,0.1)", paddingTop: 8, lineHeight: 1.4 }}>
-                          {caseItem.excerpt}
-                        </p>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ marginTop: 18, fontSize: ".72rem", color: "rgba(255,255,255,0.45)", fontStyle: "italic" }}>
-                *Database synchronized with standard High Court & TAT gazettes.
-              </div>
-            </motion.div>
-          </div>
-
-          <div className="tw-feat-grid" style={{ display: "grid", gridTemplateColumns: "0.85fr 1.15fr", gap: 24 }}>
-            
-            {/* CARD 3: Vehicle Depreciation Import Calculator */}
-            <motion.div 
-              className="tw-bento-card"
-              style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#2DD4BF", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 6 }}>
-                  <TrendingUp size={14} /> Customs & Vehicle Duty
-                </div>
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 12 }}>Vehicle Customs Duty & Environmental Levy</h3>
-                <p style={{ fontSize: ".82rem", color: "rgba(255,255,255,0.6)", marginBottom: 18, lineHeight: 1.5 }}>
-                  Select manufacture year for an imported vehicle to calculate environmental surcharge tax and customs duties under the East African Customs Management Act.
-                </p>
-
-                {/* Input selector */}
-                <div style={{ marginBottom: 18 }}>
-                  <label style={{ display: "block", fontSize: ".74rem", fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 6 }}>Vehicle Manufacture Year:</label>
-                  <select 
-                    value={vehicleYear} 
-                    onChange={e => setVehicleYear(Number(e.target.value))}
-                    style={{ background: "rgba(10, 15, 28, 0.8)", border: "1px solid rgba(22, 44, 86, 0.8)", borderRadius: 6, padding: "10px", width: "100%", color: "#FFFFFF", fontSize: ".8rem", outline: "none", fontFamily: "inherit" }}
-                  >
-                    {[2026, 2024, 2022, 2020, 2018, 2016, 2014, 2012, 2010, 2008].map(y => (
-                      <option key={y} value={y}>{y} ({2026 - y} Years Old)</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Calculation Outputs */}
-                {(() => {
-                  const age = 2026 - vehicleYear;
-                  let envLevyRate = 0;
-                  if (age < 5) envLevyRate = 0;
-                  else if (age <= 10) envLevyRate = 35; // 35% environmental levy
-                  else envLevyRate = 50; // 50% environmental levy
-
-                  return (
-                    <div style={{ background: "rgba(22, 44, 86, 0.2)", border: "1px solid rgba(22, 44, 86, 0.5)", borderRadius: 8, padding: "14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <span style={{ fontSize: ".68rem", fontWeight: 600, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>URA Environmental Levy</span>
-                        <div style={{ fontSize: "1.1rem", fontWeight: 700, color: age >= 15 ? "#EF4444" : "#FFFFFF", marginTop: 2 }}>
-                          {envLevyRate}% CIF Value
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                          <label htmlFor="hero-vat" style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)" }}>
+                            Commercial Invoice Value
+                          </label>
+                          <span style={{ fontSize: ".82rem", fontWeight: 800, color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {money(vatAmount)}
+                          </span>
+                        </div>
+                        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                          <span style={{ position: "absolute", left: 14, fontSize: ".76rem", color: "var(--landing-muted)", fontWeight: 700, pointerEvents: "none" }}>
+                            UGX
+                          </span>
+                          <input
+                            id="hero-vat"
+                            type="number"
+                            min="0"
+                            step="500000"
+                            value={vatAmount}
+                            onChange={(e) => setVatAmount(Math.max(0, Number(e.target.value) || 0))}
+                            style={{
+                              width: "100%",
+                              padding: "10px 14px 10px 50px",
+                              background: "var(--landing-bg)",
+                              border: "1.5px solid var(--landing-border)",
+                              borderRadius: 10,
+                              fontSize: ".9rem",
+                              fontWeight: 700,
+                              color: "var(--landing-text)",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              outline: "none"
+                            }}
+                          />
                         </div>
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <span style={{ background: envLevyRate > 0 ? "rgba(239,68,68,0.12)" : "rgba(16,185,129,0.12)", color: envLevyRate > 0 ? "#FCA5A5" : "#10B981", fontSize: ".68rem", fontWeight: 700, padding: "4px 8px", borderRadius: 4 }}>
-                          {age >= 15 ? "PROHIBITED?" : age >= 10 ? "HIGH LEVY" : "STANDARD"}
+
+                      {/* Mode switch: Exclusive vs Inclusive */}
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          type="button"
+                          onClick={() => setVatMode("exclusive")}
+                          style={{
+                            flex: 1,
+                            padding: "7px 10px",
+                            borderRadius: 6,
+                            fontSize: ".74rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            background: vatMode === "exclusive" ? "rgba(26, 123, 107, 0.12)" : "var(--landing-bg)",
+                            border: vatMode === "exclusive" ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
+                            color: vatMode === "exclusive" ? "#1A7B6B" : "var(--landing-text)",
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          VAT Exclusive (+18%)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setVatMode("inclusive")}
+                          style={{
+                            flex: 1,
+                            padding: "7px 10px",
+                            borderRadius: 6,
+                            fontSize: ".74rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            background: vatMode === "inclusive" ? "rgba(26, 123, 107, 0.12)" : "var(--landing-bg)",
+                            border: vatMode === "inclusive" ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
+                            color: vatMode === "inclusive" ? "#1A7B6B" : "var(--landing-text)",
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          VAT Inclusive (18/118)
+                        </button>
+                      </div>
+
+                      {/* VAT & WHT Result Cards */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                        <div style={{ background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.25)", borderRadius: 10, padding: "12px" }}>
+                          <span style={{ fontSize: ".7rem", color: "#1A7B6B", fontWeight: 700, textTransform: "uppercase" }}>Standard VAT (18%)</span>
+                          <strong style={{ fontSize: "1.1rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                            {money(vatCalculated)}
+                          </strong>
+                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)" }}>Input credit reclaimable</span>
+                        </div>
+                        <div style={{ background: "rgba(200, 146, 42, 0.08)", border: "1px solid rgba(200, 146, 42, 0.25)", borderRadius: 10, padding: "12px" }}>
+                          <span style={{ fontSize: ".7rem", color: "#C8922A", fontWeight: 700, textTransform: "uppercase" }}>Withholding Tax (6%)</span>
+                          <strong style={{ fontSize: "1.1rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                            {money(whtCalculated)}
+                          </strong>
+                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)" }}>URA Form DT-104 deposit</span>
+                        </div>
+                      </div>
+
+                      {/* eFRIS Compliance Banner */}
+                      <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "10px 12px", fontSize: ".72rem", display: "flex", alignItems: "center", gap: 8 }}>
+                        <ShieldCheck size={16} style={{ color: "#16A34A", flexShrink: 0 }} />
+                        <span style={{ color: "var(--landing-text)" }}>
+                          Under URA eFRIS guidelines, transactions exceeding UGX 5,000,000 require fiscal receipt reconciliation for input VAT eligibility.
                         </span>
                       </div>
                     </div>
-                  );
-                })()}
-              </div>
+                  )}
 
-              <div style={{ marginTop: 18, fontSize: ".72rem", color: "rgba(255,255,255,0.4)" }}>
-                *Assumes default cost, insurance, and freight (CIF) values as verified by URA guidelines.
+                  {/* TAB 3 - LIVE CUSTOMS */}
+                  {heroCalcTab === "customs" && (
+                    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 10 }}>
+                        <div>
+                          <label htmlFor="hero-cif" style={{ fontSize: ".74rem", fontWeight: 700, color: "var(--landing-text)", display: "block", marginBottom: 4 }}>
+                            CIF Value (USD)
+                          </label>
+                          <input
+                            id="hero-cif"
+                            type="number"
+                            min="1000"
+                            step="500"
+                            value={cifUsd}
+                            onChange={(e) => setCifUsd(Math.max(0, Number(e.target.value) || 0))}
+                            style={{
+                              width: "100%",
+                              padding: "8px 12px",
+                              background: "var(--landing-bg)",
+                              border: "1.5px solid var(--landing-border)",
+                              borderRadius: 8,
+                              fontSize: ".85rem",
+                              fontWeight: 700,
+                              color: "var(--landing-text)",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              outline: "none"
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="hero-year" style={{ fontSize: ".74rem", fontWeight: 700, color: "var(--landing-text)", display: "block", marginBottom: 4 }}>
+                            Manufacture Year
+                          </label>
+                          <select
+                            id="hero-year"
+                            value={vehicleYear}
+                            onChange={(e) => setVehicleYear(Number(e.target.value))}
+                            style={{
+                              width: "100%",
+                              padding: "8px 10px",
+                              background: "var(--landing-bg)",
+                              border: "1.5px solid var(--landing-border)",
+                              borderRadius: 8,
+                              fontSize: ".85rem",
+                              fontWeight: 700,
+                              color: "var(--landing-text)",
+                              fontFamily: "inherit",
+                              outline: "none"
+                            }}
+                          >
+                            {[2024, 2022, 2020, 2018, 2017, 2016, 2015, 2014, 2012, 2010].map(y => (
+                              <option key={y} value={y}>{y} ({2026 - y} yrs old)</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Total Estimated Taxes */}
+                      <div style={{ background: "rgba(26, 123, 107, 0.08)", border: "1.5px solid rgba(26, 123, 107, 0.25)", borderRadius: 12, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <span style={{ fontSize: ".7rem", color: "#1A7B6B", fontWeight: 700, textTransform: "uppercase" }}>Total URA Customs Taxes</span>
+                          <strong style={{ fontSize: "1.25rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                            {money(totalCustomsTax)}
+                          </strong>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)", display: "block" }}>CIF Base</span>
+                          <span style={{ fontSize: ".85rem", fontWeight: 700, color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {money(cifUgx)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Customs Tax Line Breakdown */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: ".72rem" }}>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
+                          <span style={{ color: "var(--landing-muted)" }}>Import Duty (25%):</span>
+                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(importDuty)}</strong>
+                        </div>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
+                          <span style={{ color: "var(--landing-muted)" }}>Env. Levy ({Math.round(envLevyRate * 100)}%):</span>
+                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(envLevy)}</strong>
+                        </div>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
+                          <span style={{ color: "var(--landing-muted)" }}>Import VAT (18%):</span>
+                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(vatCustoms)}</strong>
+                        </div>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
+                          <span style={{ color: "var(--landing-muted)" }}>Withholding (6%):</span>
+                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(whtCustoms)}</strong>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+
+              {/* CARD FOOTER */}
+              <div style={{ background: "var(--landing-bg)", borderTop: "1px solid var(--landing-border)", padding: "12px 18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: ".72rem", color: "var(--landing-muted)", fontWeight: 600 }}>
+                  Statutory formulas verified against URA tariffs
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onNavigate) onNavigate("calculators");
+                    else onGetStarted();
+                  }}
+                  style={{
+                    background: "#1A7B6B",
+                    color: "white",
+                    padding: "8px 16px",
+                    borderRadius: 8,
+                    fontSize: ".75rem",
+                    fontWeight: 700,
+                    border: "none",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    boxShadow: "0 2px 8px rgba(26,123,107,0.2)"
+                  }}
+                >
+                  <span>Open Full Suite</span>
+                  <ArrowRight size={13} />
+                </button>
               </div>
             </motion.div>
 
-            {/* CARD 4: Unified Platform Features Grid (Right Side) */}
-            <motion.div 
-              className="tw-bento-card"
-              style={{ background: "rgba(10, 15, 28, 0.75)", border: "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: 32, boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)" }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#3B82F6", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 12 }}>
-                <Star size={14} /> Full Legal Portal Assets
-              </div>
-              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 20 }}>Comprehensive Professional Features</h3>
+          </div>
+        </div>
+      </section>
 
-              <div className="tw-portal-assets-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-                {[
-                  { title: "Case Analyzer", desc: "Scan litigation briefs & objection templates against Cap 340/349 statutory provisions.", icon: <Search size={20} style={{ color: "#3B82F6" }} /> },
-                  { title: "Compliance Checklists", desc: "Validate transaction workflows to bypass the standard UGX 6M URA penalty fine.", icon: <Check size={20} style={{ color: "#2DD4BF" }} /> },
-                  { title: "WHT Treaty Maps", desc: "Track non-resident double taxation avoidance treaties active across East Africa.", icon: <Globe size={20} style={{ color: "#C8922A" }} /> },
-                  { title: "Client Report Builder", desc: "Compile structured risk briefings and citations for foreign and domestic clients.", icon: <FileText size={20} style={{ color: "#60A5FA" }} /> }
-                ].map(item => (
-                  <div key={item.title} style={{ background: "rgba(255,255,255,0.01)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 8, padding: "16px", cursor: "pointer" }} onClick={onGetStarted}>
-                    <div style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>{item.icon}</div>
-                    <h4 style={{ fontSize: ".85rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 6 }}>{item.title}</h4>
-                    <p style={{ fontSize: ".74rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.45 }}>{item.desc}</p>
+      {/* ══════════════════════════════════════════════════════════════
+          2. IMPACT & STAT BAND
+      ══════════════════════════════════════════════════════════════ */}
+      <section style={{ background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)", padding: "40px 5%" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <div className="tw-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, textAlign: "center" }}>
+            <div style={{ padding: "8px 12px" }}>
+              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>
+                <CountingNumber value={dynamicStats.cases} />
+              </div>
+              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
+                Cases Analyzed
+              </div>
+              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
+                Audit objections &amp; tribunal rulings
+              </div>
+            </div>
+
+            <div style={{ padding: "8px 12px" }}>
+              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#C8922A", fontFamily: "'JetBrains Mono', monospace" }}>
+                <CountingNumber value={dynamicStats.timeSaved} />
+              </div>
+              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
+                Research Time Saved
+              </div>
+              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
+                Compared to manual PDF searches
+              </div>
+            </div>
+
+            <div style={{ padding: "8px 12px" }}>
+              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#0F2044", fontFamily: "'JetBrains Mono', monospace" }}>
+                <CountingNumber value={dynamicStats.practitioners} />
+              </div>
+              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
+                Active Practitioners
+              </div>
+              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
+                Ugandan tax advisors &amp; accountants
+              </div>
+            </div>
+
+            <div style={{ padding: "8px 12px" }}>
+              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#16A34A", fontFamily: "'JetBrains Mono', monospace" }}>
+                <CountingNumber value={dynamicStats.calculators} />
+              </div>
+              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
+                Statutory Calculators
+              </div>
+              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
+                PAYE, VAT, Corporate, Customs &amp; Rental
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          3. INTERACTIVE LIVE CALCULATOR SUITE SHOWCASE
+      ══════════════════════════════════════════════════════════════ */}
+      <section id="calculators-showcase" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}>
+            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#1A7B6B", letterSpacing: ".08em", textTransform: "uppercase" }}>
+              Live Calculation Suite
+            </span>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+              Every Statutory Tax Tool Uganda Experts Require
+            </h2>
+            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
+              Built according to the Income Tax (Amendment) Act 2026, Value Added Tax Act Cap 349, and East African Community Customs Management Act.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))", gap: 24 }}>
+            
+            {/* CARD 1: PAYE Payroll & Bracket Breakdown */}
+            <div className="tw-card-interactive" style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 16, padding: "28px", display: "flex", flexDirection: "column", gap: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(26, 123, 107, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#1A7B6B" }}>
+                  <Calculator size={22} />
+                </div>
+                <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#1A7B6B", background: "rgba(26, 123, 107, 0.08)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(26, 123, 107, 0.2)" }}>
+                  ITA Cap 340 4th Sched
+                </span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 6 }}>
+                  PAYE &amp; Employee Payroll Engine
+                </h3>
+                <p style={{ fontSize: ".82rem", color: "var(--landing-muted)", lineHeight: 1.5 }}>
+                  Calculates graduated statutory tax bands, the 10% high-earner surcharge exceeding UGX 10M, and mandatory 5% employee NSSF deductions.
+                </p>
+              </div>
+
+              {/* Mini Interactive Preview Element */}
+              <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 10, padding: "12px", fontSize: ".72rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontWeight: 700 }}>
+                  <span style={{ color: "var(--landing-muted)" }}>Benchmark UGX 4.5M Salary:</span>
+                  <span style={{ color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>UGX 3,025,000 Net</span>
+                </div>
+                <div style={{ height: 6, background: "var(--landing-surface)", borderRadius: 3, display: "flex", overflow: "hidden", border: "1px solid var(--landing-border)" }}>
+                  <div style={{ width: "67%", background: "#16A34A" }} />
+                  <div style={{ width: "28%", background: "#1A7B6B" }} />
+                  <div style={{ width: "5%", background: "#C8922A" }} />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => { if (onNavigate) onNavigate("calculators"); else onGetStarted(); }}
+                style={{ marginTop: "auto", background: "none", border: "none", color: "#1A7B6B", fontWeight: 700, fontSize: ".84rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, padding: 0 }}
+              >
+                <span>Launch PAYE Calculator</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* CARD 2: VAT & eFRIS Reconciliation */}
+            <div className="tw-card-interactive" style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 16, padding: "28px", display: "flex", flexDirection: "column", gap: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(200, 146, 42, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C8922A" }}>
+                  <Receipt size={22} />
+                </div>
+                <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#C8922A", background: "rgba(200, 146, 42, 0.08)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(200, 146, 42, 0.2)" }}>
+                  VATA Cap 349 Sec 28
+                </span>
+              </div>
+              <div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 6 }}>
+                  VAT &amp; eFRIS Input Reconciler
+                </h3>
+                <p style={{ fontSize: ".82rem", color: "var(--landing-muted)", lineHeight: 1.5 }}>
+                  Verifies standard 18% VAT calculations, input tax credit disallowance thresholds, and eFRIS fiscal receipt requirements.
+                </p>
+              </div>
+
+              {/* Mini Interactive Preview Element */}
+              <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 10, padding: "12px", fontSize: ".72rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ color: "var(--landing-muted)" }}>VAT Exclusive Rate:</span>
+                  <strong style={{ color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>18.00%</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--landing-muted)" }}>eFRIS Threshold:</span>
+                  <strong style={{ color: "#16A34A", fontFamily: "'JetBrains Mono', monospace" }}>&gt; UGX 5,000,000</strong>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => { if (onNavigate) onNavigate("calculators"); else onGetStarted(); }}
+                style={{ marginTop: "auto", background: "none", border: "none", color: "#1A7B6B", fontWeight: 700, fontSize: ".84rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, padding: 0 }}
+              >
+                <span>Launch VAT Calculator</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+
+
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          4. SEARCHABLE TAT PRECEDENT ENGINE PREVIEW
+      ══════════════════════════════════════════════════════════════ */}
+      <section id="precedents-section" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 40px" }}>
+            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#C8922A", letterSpacing: ".08em", textTransform: "uppercase" }}>
+              Case Precedents Archive
+            </span>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+              68+ Binding Tax Appeals Tribunal Precedents
+            </h2>
+            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
+              Never search through thousands of dense PDF pages again. Instantly cite authoritative legal holdings and statutory citations that win URA objections.
+            </p>
+          </div>
+
+          {/* Interactive Precedent Search Bar */}
+          <div style={{ maxWidth: 760, margin: "0 auto 32px" }}>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <Search size={18} style={{ position: "absolute", left: 16, color: "var(--landing-muted)" }} />
+              <input
+                type="text"
+                value={precedentSearch}
+                onChange={(e) => setPrecedentSearch(e.target.value)}
+                placeholder="Search precedents by keyword (e.g., eFRIS, VAT input credit, late appeal, transfer pricing)..."
+                style={{
+                  width: "100%",
+                  padding: "14px 16px 14px 48px",
+                  background: "var(--landing-bg)",
+                  border: "1.5px solid var(--landing-border)",
+                  borderRadius: 12,
+                  fontSize: ".88rem",
+                  color: "var(--landing-text)",
+                  fontFamily: "inherit",
+                  outline: "none",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
+                }}
+              />
+              {precedentSearch && (
+                <button
+                  type="button"
+                  onClick={() => setPrecedentSearch("")}
+                  style={{ position: "absolute", right: 14, background: "none", border: "none", color: "var(--landing-muted)", cursor: "pointer", fontSize: ".75rem", fontWeight: 700 }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
+            {/* Quick search chips */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12, alignItems: "center" }}>
+              <span style={{ fontSize: ".72rem", color: "var(--landing-muted)", fontWeight: 600 }}>Suggested Queries:</span>
+              {[
+                "eFRIS input tax credit",
+                "Late appeal jurisdiction Sec 14",
+                "Capital exploration deductions",
+                "WHT on management fees"
+              ].map(chip => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setPrecedentSearch(chip)}
+                  style={{
+                    background: precedentSearch === chip ? "rgba(26, 123, 107, 0.15)" : "var(--landing-bg)",
+                    border: precedentSearch === chip ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
+                    color: precedentSearch === chip ? "#1A7B6B" : "var(--landing-text)",
+                    padding: "4px 10px",
+                    borderRadius: 20,
+                    fontSize: ".7rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Precedents Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 540px), 1fr))", gap: 20 }}>
+            {filteredPrecedents.map((p) => (
+              <div 
+                key={p.id}
+                className="tw-card-interactive"
+                style={{
+                  background: "var(--landing-bg)",
+                  border: "1px solid var(--landing-border)",
+                  borderRadius: 14,
+                  padding: "22px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 240 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#1A7B6B", background: "rgba(26, 123, 107, 0.1)", padding: "2px 8px", borderRadius: 4 }}>
+                        {p.tag}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (typeof navigator !== "undefined" && navigator.clipboard) {
+                            navigator.clipboard.writeText(p.citation);
+                          }
+                          setCopiedCitation(p.id);
+                          setTimeout(() => setCopiedCitation(null), 2000);
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          background: copiedCitation === p.id ? "rgba(22, 163, 74, 0.12)" : "var(--landing-surface)",
+                          border: copiedCitation === p.id ? "1px solid #16A34A" : "1px solid var(--landing-border)",
+                          color: copiedCitation === p.id ? "#16A34A" : "var(--landing-muted)",
+                          fontSize: ".66rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          transition: "all 0.15s ease"
+                        }}
+                        title="Copy citation to clipboard"
+                      >
+                        {copiedCitation === p.id ? <Check size={11} style={{ color: "#16A34A" }} /> : <Copy size={11} />}
+                        <span>{copiedCitation === p.id ? "Citation Copied" : "Copy Citation"}</span>
+                      </button>
+                    </div>
+                    <h3 style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 6, lineHeight: 1.3 }}>
+                      {p.title}
+                    </h3>
+                    <div style={{ fontSize: ".72rem", color: "var(--landing-muted)", marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>
+                      {p.citation}
+                    </div>
                   </div>
+                  <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#16A34A", background: "rgba(22, 163, 74, 0.1)", border: "1px solid rgba(22, 163, 74, 0.25)", padding: "3px 8px", borderRadius: 4, whiteSpace: "nowrap" }}>
+                    {p.taxpayerWin}
+                  </span>
+                </div>
+
+                <p style={{ fontSize: ".82rem", color: "var(--landing-text)", lineHeight: 1.55, margin: 0 }}>
+                  {p.holding}
+                </p>
+
+                {/* Expandable Ratio Decidendi accordion */}
+                <button
+                  type="button"
+                  onClick={() => setExpandedPrecedentId(expandedPrecedentId === p.id ? null : p.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#1A7B6B",
+                    fontSize: ".74rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                    padding: 0,
+                    marginTop: 2
+                  }}
+                >
+                  <span>{expandedPrecedentId === p.id ? "Hide Legal Grounds" : "View Tribunal Grounds & Rationale"}</span>
+                  <ChevronDown size={13} style={{ transform: expandedPrecedentId === p.id ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                </button>
+
+                <AnimatePresence>
+                  {expandedPrecedentId === p.id && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: "hidden" }}
+                    >
+                      <div style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "12px", marginTop: 4, fontSize: ".75rem", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div>
+                          <span style={{ fontWeight: 800, color: "#1A7B6B", textTransform: "uppercase", fontSize: ".65rem", letterSpacing: ".05em", display: "block" }}>Ratio Decidendi:</span>
+                          <p style={{ margin: "2px 0 0", color: "var(--landing-text)", lineHeight: 1.45 }}>{p.legalRatio}</p>
+                        </div>
+                        <div style={{ borderTop: "1px dashed var(--landing-border)", paddingTop: 6 }}>
+                          <span style={{ fontWeight: 800, color: "#C8922A", textTransform: "uppercase", fontSize: ".65rem", letterSpacing: ".05em", display: "block" }}>Tactical Objection Application:</span>
+                          <p style={{ margin: "2px 0 0", color: "var(--landing-muted)", lineHeight: 1.45 }}>{p.tacticalAdvice}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--landing-border)", paddingTop: 10, marginTop: "auto", fontSize: ".72rem" }}>
+                  <span style={{ color: "#1A7B6B", fontWeight: 700 }}>
+                    {p.statute}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => { if (onNavigate) onNavigate("library"); else onGetStarted(); }}
+                    style={{ background: "none", border: "none", color: "var(--landing-text)", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}
+                  >
+                    <span>Read Full Ruling</span>
+                    <ArrowRight size={12} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 36 }}>
+            <button
+              type="button"
+              onClick={() => { if (onNavigate) onNavigate("library"); else onGetStarted(); }}
+              style={{
+                background: "#0F2044",
+                color: "white",
+                padding: "12px 28px",
+                borderRadius: 8,
+                fontSize: ".85rem",
+                fontWeight: 700,
+                border: "none",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                boxShadow: "0 4px 14px rgba(15, 32, 68, 0.2)"
+              }}
+            >
+              <span>Explore All 68+ Case Precedents in Library</span>
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          5. INTERACTIVE 3-STEP LEGAL & COMPLIANCE WORKFLOW
+      ══════════════════════════════════════════════════════════════ */}
+      <section id="workflow-section" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}>
+            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#1A7B6B", letterSpacing: ".08em", textTransform: "uppercase" }}>
+              Simplified Practitioner Workflow
+            </span>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+              From URA Assessment Notice to Winning Defense in 3 Steps
+            </h2>
+            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
+              How leading tax firms and corporate finance departments accelerate their tribunal preparation and dispute workflows.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: 24 }}>
+            {[
+              {
+                step: "01",
+                title: "Upload or Input Notice",
+                desc: "Paste tax assessment letters, URA audit queries, or commercial transactions. The system extracts relevant figures, tax types, and statutory reference years.",
+                icon: <FileText size={22} style={{ color: "#1A7B6B" }} />,
+                pill: "Instant Extraction"
+              },
+              {
+                step: "02",
+                title: "Statutory & Precedent Cross-Check",
+                desc: "TaxWise scans ITA Cap 340, VATA Cap 349, and 68+ binding Tax Appeals Tribunal rulings to identify winning legal precedents, deadline windows, and penalty exemptions.",
+                icon: <Cpu size={22} style={{ color: "#C8922A" }} />,
+                pill: "Statutory Intelligence"
+              },
+              {
+                step: "03",
+                title: "Generate Defense Brief & Computations",
+                desc: "Receive client-ready objection letters, recalculation schedules with exact tax formulas, and authoritative citations ready for submission to the URA Commissioner.",
+                icon: <Scale size={22} style={{ color: "#0F2044" }} />,
+                pill: "Tribunal-Grade Output"
+              }
+            ].map((s, idx) => (
+              <div 
+                key={s.step}
+                onClick={() => setActiveWorkflowStep(idx + 1)}
+                style={{
+                  background: "var(--landing-surface)",
+                  border: activeWorkflowStep === idx + 1 ? "1.5px solid #1A7B6B" : "1px solid var(--landing-border)",
+                  borderRadius: 16,
+                  padding: "32px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 14,
+                  cursor: "pointer",
+                  boxShadow: activeWorkflowStep === idx + 1 ? "0 8px 24px rgba(26, 123, 107, 0.08)" : "none",
+                  transition: "all 0.2s ease"
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--landing-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {s.icon}
+                  </div>
+                  <span style={{ fontSize: "1.2rem", fontWeight: 800, color: activeWorkflowStep === idx + 1 ? "#1A7B6B" : "var(--landing-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
+                    {s.step}
+                  </span>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#1A7B6B", textTransform: "uppercase" }}>
+                    {s.pill}
+                  </span>
+                  <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 4, marginBottom: 8 }}>
+                    {s.title}
+                  </h3>
+                  <p style={{ fontSize: ".835rem", color: "var(--landing-muted)", lineHeight: 1.55 }}>
+                    {s.desc}
+                  </p>
+                </div>
+
+                <div style={{ marginTop: "auto", borderTop: "1px solid var(--landing-border)", paddingTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: ".76rem", fontWeight: 700, color: activeWorkflowStep === idx + 1 ? "#1A7B6B" : "var(--landing-muted)" }}>
+                  <span>Step {idx + 1} Walkthrough</span>
+                  <ArrowRight size={13} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* INTERACTIVE WORKFLOW SIMULATOR CANVAS */}
+          <div style={{ marginTop: 36, background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 18, overflow: "hidden", boxShadow: "0 16px 36px -10px rgba(15, 32, 68, 0.08)" }}>
+            {/* Terminal Top Bar */}
+            <div style={{ background: "var(--landing-bg)", padding: "12px 20px", borderBottom: "1px solid var(--landing-border)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444", display: "inline-block" }} />
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B", display: "inline-block" }} />
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981", display: "inline-block" }} />
+                </div>
+                <span style={{ fontSize: ".76rem", fontWeight: 700, color: "var(--landing-text)" }}>
+                  TaxWise Intelligence Engine · Live Workflow Simulator
+                </span>
+                <span style={{ fontSize: ".68rem", color: "#1A7B6B", background: "rgba(26, 123, 107, 0.1)", padding: "2px 8px", borderRadius: 4, fontWeight: 700 }}>
+                  Active: Step 0{activeWorkflowStep}
+                </span>
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                {[1, 2, 3].map(stepNum => (
+                  <button
+                    key={stepNum}
+                    type="button"
+                    onClick={() => setActiveWorkflowStep(stepNum)}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: 6,
+                      border: activeWorkflowStep === stepNum ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
+                      background: activeWorkflowStep === stepNum ? "rgba(26, 123, 107, 0.12)" : "var(--landing-surface)",
+                      color: activeWorkflowStep === stepNum ? "#1A7B6B" : "var(--landing-muted)",
+                      fontSize: ".72rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    Step 0{stepNum}
+                  </button>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="tw-section" style={{ padding: "96px 5%", background: "#090D16", borderTop: "1px solid rgba(22, 44, 86, 0.4)", borderBottom: "1px solid rgba(22, 44, 86, 0.4)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <motion.div 
-            style={{ textAlign: "center", marginBottom: 64 }}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div style={{ fontSize: ".72rem", fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: ".15em", marginBottom: 12, display: "inline-flex", background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", padding: "4px 12px", borderRadius: 20 }}>User Workflow</div>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "#FFFFFF", fontWeight: 800, letterSpacing: "-0.02em" }}>Legal intelligence in three simple steps</h2>
-          </motion.div>
-          
-          <div className="tw-steps-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 40, overflow: "hidden" }}>
-            {[
-              { step: "01", icon: <FileText size={24} style={{ color: "#3B82F6" }} />, title: "Upload or paste your case", desc: "Upload a TAT ruling PDF, paste a URA assessment, or describe your scenario. We accept all text structures.", x: -50, y: 0 },
-              { step: "02", icon: <Cpu size={24} style={{ color: "#3B82F6" }} />, title: "Analyzes in 30 seconds", desc: "The engine references Uganda tax acts, TAT precedents, and URA practice notes to deliver an interactive report.", x: 0, y: 50 },
-              { step: "03", icon: <TrendingUp size={24} style={{ color: "#3B82F6" }} />, title: "Act on structured findings", desc: "Download a clean report detailing risk level, precedents, applicable rules, and next steps. Ready for clients.", x: 50, y: 0 },
-            ].map(s => (
-              <motion.div 
-                key={s.step} 
-                style={{ position: "relative", background: "rgba(10, 15, 28, 0.45)", border: "1px solid rgba(22, 44, 86, 0.5)", padding: "28px", borderRadius: 12 }}
-                initial={{ opacity: 0, x: s.x, y: s.y }}
-                whileInView={{ opacity: 1, x: 0, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-              >
-                <div style={{ fontSize: "3.2rem", fontFamily: "'Playfair Display', Georgia, serif", color: "#C8922A", fontWeight: 800, lineHeight: 1, marginBottom: 14 }}>{s.step}</div>
-                <div style={{ display: "flex", alignItems: "center", marginBottom: 14, width: 44, height: 44, background: "rgba(59, 130, 246, 0.08)", borderRadius: "50%", justifyContent: "center" }}>{s.icon}</div>
-                <h3 style={{ fontSize: "1.05rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 10 }}>{s.title}</h3>
-                <p style={{ fontSize: ".875rem", color: "rgba(255,255,255,0.65)", lineHeight: 1.65, fontWeight: 500 }}>{s.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS SECTION */}
-      <section className="tw-section" style={{ padding: "96px 5%", background: "#0E1424" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <motion.div 
-            style={{ textAlign: "center", marginBottom: 64 }}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div style={{ fontSize: ".72rem", fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: ".15em", marginBottom: 12, display: "inline-flex", background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", padding: "4px 12px", borderRadius: 20 }}>Practitioner Trust</div>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "#FFFFFF", fontWeight: 800, letterSpacing: "-0.02em" }}>Used by Uganda&apos;s tax community</h2>
-          </motion.div>
-          
-          <div className="tw-testi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
-            {testimonials.map((t, idx) => (
-              <motion.div 
-                key={t.name} 
-                className="tw-testi" 
-                style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.6)", borderRadius: 12, padding: 30, display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 10px 30px rgba(0,0,0,0.25)" }}
-                initial={{ opacity: 0, y: 45 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, delay: idx * 0.12 }}
-              >
-                <div>
-                  <div style={{ display: "flex", gap: 3, marginBottom: 16 }}>
-                    {[...Array(5)].map((_, idx) => (
-                      <Star key={idx} size={14} style={{ fill: "#C8922A", color: "#C8922A" }} />
-                    ))}
-                  </div>
-                  <blockquote style={{ fontSize: ".875rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.7, marginBottom: 24, fontStyle: "italic", fontWeight: 500 }}>&ldquo;{t.quote}&rdquo;</blockquote>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".8rem", fontWeight: 700, color: "white", flexShrink: 0 }}>{t.initials}</div>
-                  <div>
-                    <div style={{ fontSize: ".875rem", fontWeight: 700, color: "#FFFFFF" }}>{t.name}</div>
-                    <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>{t.role}</div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING SECTION */}
-      <section id="pricing" className="tw-section" style={{ padding: "96px 5%", background: "#090D16", position: "relative" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 0)", backgroundSize: "32px 32px" }} />
-        
-        <div style={{ maxWidth: 1100, margin: "0 auto", position: "relative", zIndex: 10 }}>
-          <motion.div 
-            style={{ textAlign: "center", marginBottom: 64 }}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <div style={{ fontSize: ".72rem", fontWeight: 700, color: "#2DD4BF", textTransform: "uppercase", letterSpacing: ".15em", marginBottom: 12, display: "inline-flex", background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", padding: "4px 12px", borderRadius: 20 }}>Transparent Subscriptions</div>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "#FFFFFF", marginBottom: 16, fontWeight: 800, letterSpacing: "-0.02em" }}>Choose the right plan for your firm</h2>
-            <p style={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.6, fontSize: ".95rem", maxWidth: 500, margin: "0 auto", fontWeight: 500 }}>Start free, upgrade as your client base scales. Billing in Uganda Shillings (UGX).</p>
-          </motion.div>
-          
-          <div className="tw-price-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24, alignItems: "stretch" }}>
-            {plans.map((plan, idx) => {
-              if (plan.comingSoon) {
-                return (
+            {/* Simulated Canvas Body with AnimatePresence */}
+            <div style={{ padding: "26px" }}>
+              <AnimatePresence mode="wait">
+                {activeWorkflowStep === 1 && (
                   <motion.div
-                    key={plan.name}
-                    style={{
-                      background: "rgba(10, 15, 28, 0.4)",
-                      border: "1px dashed rgba(22, 44, 86, 0.8)",
-                      borderRadius: 12,
-                      padding: "48px 28px",
-                      position: "relative",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      textAlign: "center",
-                      minHeight: "420px",
-                    }}
-                    initial={{ opacity: 0, y: 40 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ duration: 0.6, delay: idx * 0.12 }}
+                    key="step-1"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.25 }}
+                    style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 380px), 1fr))", gap: 24, alignItems: "stretch" }}
                   >
-                    <div style={{ position: "absolute", top: 14, left: "50%", transform: "translateX(-50%)", background: "#C8922A", color: "white", fontSize: ".68rem", fontWeight: 800, padding: "4px 14px", borderRadius: 4, whiteSpace: "nowrap", letterSpacing: "0.04em" }}>COMING SOON</div>
-                    <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 16 }}>{plan.name}</div>
-                    
-                    <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                      <div
-                        style={{
-                          width: 56,
-                          height: 56,
-                          borderRadius: "50%",
-                          background: "rgba(200, 146, 42, 0.05)",
-                          color: "#C8922A",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginBottom: 16,
-                        }}
-                      >
-                        <Clock size={24} style={{ color: "#C8922A" }} />
+                    {/* Simulated Assessment Notice */}
+                    <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 12, padding: "18px", fontSize: ".78rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--landing-border)", paddingBottom: 10, marginBottom: 12 }}>
+                        <div>
+                          <span style={{ fontSize: ".68rem", fontWeight: 800, color: "#1A7B6B", letterSpacing: ".05em", textTransform: "uppercase" }}>
+                            UGANDA REVENUE AUTHORITY (URA)
+                          </span>
+                          <div style={{ fontSize: ".82rem", fontWeight: 800, color: "var(--landing-text)" }}>
+                            Notice of Additional Assessment · FY 2024/25
+                          </div>
+                        </div>
+                        <span style={{ fontSize: ".66rem", color: "var(--landing-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
+                          Ref: URA/LTO/2026/0882
+                        </span>
                       </div>
-                      <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.6rem", fontWeight: 700, color: "#FFFFFF", marginBottom: 8 }}>
-                        Coming Soon
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12, fontSize: ".72rem" }}>
+                        <div><strong style={{ color: "var(--landing-muted)" }}>Taxpayer:</strong> <span style={{ color: "var(--landing-text)", fontWeight: 600 }}>Equatorial Logistics Ltd</span></div>
+                        <div><strong style={{ color: "var(--landing-muted)" }}>TIN:</strong> <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--landing-text)" }}>1003849102</span></div>
+                        <div><strong style={{ color: "var(--landing-muted)" }}>Division:</strong> Large Taxpayers Office</div>
+                        <div><strong style={{ color: "var(--landing-muted)" }}>Notice Date:</strong> 14 Jan 2026</div>
                       </div>
-                      <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.55)", maxWidth: "220px", lineHeight: "1.5", fontWeight: 500 }}>
-                        We are currently finalizing this tier to bring you advanced tax analysis tools.
-                      </p>
+                      <div style={{ background: "rgba(220, 38, 38, 0.06)", border: "1px solid rgba(220, 38, 38, 0.2)", borderRadius: 8, padding: "10px 12px", marginBottom: 8 }}>
+                        <span style={{ color: "#DC2626", fontWeight: 700, fontSize: ".72rem", display: "block" }}>1. Disallowed Input VAT (Section 28 VATA):</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
+                          <span style={{ color: "var(--landing-text)", fontSize: ".72rem" }}>Purchase invoice supplier fiscal device mismatch</span>
+                          <strong style={{ color: "#DC2626", fontFamily: "'JetBrains Mono', monospace", fontSize: ".82rem" }}>UGX 18,450,000</strong>
+                        </div>
+                      </div>
+                      <div style={{ background: "rgba(200, 146, 42, 0.08)", border: "1px solid rgba(200, 146, 42, 0.25)", borderRadius: 8, padding: "10px 12px" }}>
+                        <span style={{ color: "#C8922A", fontWeight: 700, fontSize: ".72rem", display: "block" }}>2. Disallowed Technical Recharges (Section 83 ITA):</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
+                          <span style={{ color: "var(--landing-text)", fontSize: ".72rem" }}>Cross-border management fee withholding tax</span>
+                          <strong style={{ color: "#C8922A", fontFamily: "'JetBrains Mono', monospace", fontSize: ".82rem" }}>UGX 6,200,000</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Extracted Facts & Actions Panel */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.25)", padding: "10px 14px", borderRadius: 10 }}>
+                        <FileCheck size={18} style={{ color: "#1A7B6B", flexShrink: 0 }} />
+                        <span style={{ fontSize: ".76rem", fontWeight: 700, color: "#1A7B6B" }}>
+                          Assessment PDF Extracted in 1.2 Seconds
+                        </span>
+                      </div>
+                      <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 10, padding: "14px", flex: 1, display: "flex", flexDirection: "column", gap: 8, fontSize: ".76rem" }}>
+                        <span style={{ fontWeight: 800, color: "var(--landing-text)", textTransform: "uppercase", fontSize: ".68rem", letterSpacing: ".05em" }}>Detected Discrepancies</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--landing-border)" }}>
+                          <span style={{ color: "var(--landing-muted)" }}>Total Assessment Claim:</span>
+                          <strong style={{ color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>UGX 24,650,000</strong>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", borderBottom: "1px solid var(--landing-border)" }}>
+                          <span style={{ color: "var(--landing-muted)" }}>Statutory Deadline:</span>
+                          <strong style={{ color: "#DC2626", fontWeight: 800 }}>18 Days Left (Sec 24 TAT)</strong>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0" }}>
+                          <span style={{ color: "var(--landing-muted)" }}>Jurisdiction Authority:</span>
+                          <span style={{ color: "var(--landing-text)", fontWeight: 700 }}>Tax Appeals Tribunal / LTO</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveWorkflowStep(2)}
+                          style={{ marginTop: "auto", background: "#1A7B6B", color: "white", padding: "10px", borderRadius: 8, border: "none", fontSize: ".78rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                        >
+                          <span>Proceed to Step 02: Statutory Cross-Check</span>
+                          <ArrowRight size={14} />
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
+                )}
+
+                {activeWorkflowStep === 2 && (
+                  <motion.div
+                    key="step-2"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.25 }}
+                    style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 380px), 1fr))", gap: 24, alignItems: "stretch" }}
+                  >
+                    {/* Real-time Precedent Matcher */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <span style={{ fontSize: ".7rem", fontWeight: 800, color: "#C8922A", letterSpacing: ".06em", textTransform: "uppercase" }}>
+                        Automated Statutory &amp; Precedent Rule Cross-Check
+                      </span>
+                      <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 10, padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: ".76rem", fontWeight: 800, color: "var(--landing-text)" }}>
+                            Binding Precedent: Uganda Clays v URA (TAT 012/2023)
+                          </span>
+                          <span style={{ fontSize: ".65rem", fontWeight: 800, color: "#16A34A", background: "rgba(22, 163, 74, 0.12)", padding: "2px 8px", borderRadius: 4 }}>
+                            94% Legal Match
+                          </span>
+                        </div>
+                        <p style={{ fontSize: ".72rem", color: "var(--landing-muted)", margin: 0, lineHeight: 1.45 }}>
+                          Holds that buyer cannot be denied input VAT credit where goods were supplied for taxable sales and payment was executed via banking channels, notwithstanding vendor eFRIS sync faults.
+                        </p>
+                        <span style={{ fontSize: ".66rem", color: "#1A7B6B", fontWeight: 700 }}>
+                          Direct Defense for UGX 18,450,000 Disallowance
+                        </span>
+                      </div>
+
+                      <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 10, padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: ".76rem", fontWeight: 800, color: "var(--landing-text)" }}>
+                            Treaty Precedence: Vivo Energy v CG (HCCA 018/2022)
+                          </span>
+                          <span style={{ fontSize: ".65rem", fontWeight: 800, color: "#16A34A", background: "rgba(22, 163, 74, 0.12)", padding: "2px 8px", borderRadius: 4 }}>
+                            91% Legal Match
+                          </span>
+                        </div>
+                        <p style={{ fontSize: ".72rem", color: "var(--landing-muted)", margin: 0, lineHeight: 1.45 }}>
+                          Section 88 ITA enforces treaty rates (10%) over domestic rate (15%), invalidating URA additional assessment on management recharges.
+                        </p>
+                        <span style={{ fontSize: ".66rem", color: "#C8922A", fontWeight: 700 }}>
+                          Direct Defense for UGX 6,200,000 Disallowance
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Probability Gauge */}
+                    <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 12, padding: "18px", display: "flex", flexDirection: "column", gap: 14 }}>
+                      <span style={{ fontSize: ".7rem", fontWeight: 800, color: "#1A7B6B", letterSpacing: ".06em", textTransform: "uppercase" }}>
+                        Taxpayer Defense Rating
+                      </span>
+                      <div style={{ textAlign: "center", padding: "10px 0" }}>
+                        <div style={{ fontSize: "2.6rem", fontWeight: 800, color: "#16A34A", fontFamily: "'JetBrains Mono', monospace", lineHeight: 1 }}>
+                          88%
+                        </div>
+                        <span style={{ fontSize: ".74rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 6, display: "block" }}>
+                          High Probability of Total Relief
+                        </span>
+                        <span style={{ fontSize: ".68rem", color: "var(--landing-muted)" }}>
+                          Backed by 2 binding TAT &amp; High Court decisions
+                        </span>
+                      </div>
+                      <div style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "10px", fontSize: ".7rem", color: "var(--landing-text)" }}>
+                        <strong>Strategic Conclusion:</strong> Lodge formal objection under Section 24 TAT Act. Do not pay without prejudice.
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveWorkflowStep(3)}
+                        style={{ marginTop: "auto", background: "#1A7B6B", color: "white", padding: "10px", borderRadius: 8, border: "none", fontSize: ".78rem", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                      >
+                        <span>Proceed to Step 03: Generate Defense Brief</span>
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {activeWorkflowStep === 3 && (
+                  <motion.div
+                    key="step-3"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.25 }}
+                    style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 380px), 1fr))", gap: 24, alignItems: "stretch" }}
+                  >
+                    {/* Generated Formal Objection Brief */}
+                    <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 12, padding: "18px", fontSize: ".74rem", display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ borderBottom: "1px solid var(--landing-border)", paddingBottom: 8, marginBottom: 4 }}>
+                        <span style={{ fontSize: ".65rem", fontWeight: 800, color: "#1A7B6B", textTransform: "uppercase" }}>TRIBUNAL-READY OBJECTION BRIEF</span>
+                        <div style={{ fontSize: ".82rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 2 }}>
+                          To: The Commissioner General, Uganda Revenue Authority
+                        </div>
+                        <span style={{ fontSize: ".68rem", color: "var(--landing-muted)" }}>
+                          Re: Objection to Additional Assessment Notice Ref URA/LTO/2026/0882
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, color: "var(--landing-text)", lineHeight: 1.5 }}>
+                        <strong>Ground 1:</strong> The Commissioner erred in law and fact in disallowing input tax credit of UGX 18,450,000 contrary to Sections 28 &amp; 31 of the VAT Act and the binding ratio in <em>Uganda Clays v URA (TAT 012/2023)</em>.
+                      </p>
+                      <p style={{ margin: 0, color: "var(--landing-text)", lineHeight: 1.5 }}>
+                        <strong>Ground 2:</strong> The assessment of withholding tax on technical management recharges violates Section 88 of the Income Tax Act and <em>Vivo Energy v CG (HCCA 018/2022)</em>.
+                      </p>
+                      <div style={{ background: "rgba(22, 163, 74, 0.08)", border: "1px solid rgba(22, 163, 74, 0.25)", borderRadius: 8, padding: "8px 12px", marginTop: 4 }}>
+                        <span style={{ color: "#16A34A", fontWeight: 800, fontSize: ".7rem" }}>Revised Statutory Schedule:</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                          <span style={{ color: "var(--landing-text)" }}>Original URA Assessment:</span>
+                          <strong style={{ color: "#DC2626", fontFamily: "'JetBrains Mono', monospace" }}>UGX 24,650,000</strong>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                          <span style={{ color: "var(--landing-text)" }}>Revised Assessment Payable:</span>
+                          <strong style={{ color: "#16A34A", fontFamily: "'JetBrains Mono', monospace" }}>UGX 0.00 (Fully Discharged)</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Export & Actions Panel */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 12, padding: "16px", flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
+                        <span style={{ fontSize: ".74rem", fontWeight: 800, color: "var(--landing-text)" }}>Client-Ready Export Actions</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (typeof navigator !== "undefined" && navigator.clipboard) {
+                              navigator.clipboard.writeText("Notice of Objection Under Section 24 of the Tax Appeals Tribunal Act & Section 99 ITA - Grounds 1 & 2 cited from Uganda Clays v URA (TAT 012/2023).");
+                            }
+                            setCopiedObjection(true);
+                            setTimeout(() => setCopiedObjection(false), 2200);
+                          }}
+                          style={{
+                            padding: "10px 14px",
+                            borderRadius: 8,
+                            border: copiedObjection ? "1px solid #16A34A" : "1px solid var(--landing-border)",
+                            background: copiedObjection ? "rgba(22, 163, 74, 0.12)" : "var(--landing-surface)",
+                            color: copiedObjection ? "#16A34A" : "var(--landing-text)",
+                            fontSize: ".76rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          {copiedObjection ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                          <span>{copiedObjection ? "Objection Text Copied!" : "Copy Full Objection Grounds"}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => { if (onNavigate) onNavigate("analyzer"); else onGetStarted(); }}
+                          style={{
+                            padding: "10px 14px",
+                            borderRadius: 8,
+                            border: "none",
+                            background: "#1A7B6B",
+                            color: "white",
+                            fontSize: ".76rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            boxShadow: "0 2px 8px rgba(26,123,107,0.25)"
+                          }}
+                        >
+                          <Scale size={16} />
+                          <span>Run Your Own Notice Analysis →</span>
+                        </button>
+
+                        <div style={{ marginTop: "auto", borderTop: "1px solid var(--landing-border)", paddingTop: 10, fontSize: ".68rem", color: "var(--landing-muted)" }}>
+                          TaxWise produces formal objection briefs formatted strictly in accordance with Section 24 of the Tax Appeals Tribunal Act and URA Practice Notes.
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+
+      {/* ══════════════════════════════════════════════════════════════
+          7. PRICING PLANS
+      ══════════════════════════════════════════════════════════════ */}
+      <section id="pricing-section" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}>
+            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#1A7B6B", letterSpacing: ".08em", textTransform: "uppercase" }}>
+              Transparent Pricing
+            </span>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+              Choose the Plan for Your Practice
+            </h2>
+            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
+              All plans include core statutory calculators and URA compliance reference tools. Upgrade as your caseload scales.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 24, alignItems: "stretch" }}>
+            {plans.map((p) => {
+              if (p.comingSoon) {
+                return (
+                  <div
+                    key={p.name}
+                    className="tw-card-interactive"
+                    style={{
+                      background: "var(--landing-surface)",
+                      border: "1.5px dashed var(--landing-border)",
+                      borderRadius: 18,
+                      padding: "32px 26px",
+                      display: "flex",
+                      flexDirection: "column",
+                      position: "relative",
+                      opacity: 0.85
+                    }}
+                  >
+                    {p.badge && (
+                      <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", background: "#C8922A", color: "white", fontSize: ".68rem", fontWeight: 800, padding: "4px 14px", borderRadius: 12, letterSpacing: ".06em", boxShadow: "0 2px 8px rgba(200,146,42,0.3)" }}>
+                        {p.badge}
+                      </div>
+                    )}
+
+                    <div style={{ marginBottom: 16 }}>
+                      <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--landing-text)" }}>{p.name}</h3>
+                      <p style={{ fontSize: ".76rem", color: "var(--landing-muted)", marginTop: 4, minHeight: 36 }}>{p.desc}</p>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--landing-border)" }}>
+                      <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "#C8922A" }}>Coming Soon</span>
+                      <span style={{ fontSize: ".78rem", color: "var(--landing-muted)" }}>{p.period}</span>
+                    </div>
+
+                    <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                      {p.features.map(f => (
+                        <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: ".82rem", color: "var(--landing-muted)" }}>
+                          <Check size={16} style={{ color: "var(--landing-muted)", marginTop: 2, flexShrink: 0 }} />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <button
+                      type="button"
+                      disabled
+                      style={{
+                        width: "100%",
+                        padding: "12px",
+                        borderRadius: 8,
+                        fontWeight: 700,
+                        fontSize: ".85rem",
+                        border: "1.5px solid var(--landing-border)",
+                        background: "var(--landing-bg)",
+                        color: "var(--landing-muted)",
+                        cursor: "not-allowed"
+                      }}
+                    >
+                      Coming Soon
+                    </button>
+                  </div>
                 );
               }
 
               return (
-                <motion.div 
-                  key={plan.name} 
-                  className={`tw-price-card ${plan.popular ? 'glow-border' : ''}`} 
-                  style={{ background: plan.popular ? "rgba(22, 44, 86, 0.6)" : "rgba(10, 15, 28, 0.75)", border: plan.popular ? "1px solid #3B82F6" : "1px solid rgba(22, 44, 86, 0.9)", borderRadius: 12, padding: "32px 28px", position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between", boxShadow: "0 10px 30px rgba(0,0,0,0.3)", backdropFilter: "blur(10px)" }}
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.6, delay: idx * 0.12 }}
+                <div
+                  key={p.name}
+                  className="tw-card-interactive"
+                  style={{
+                    background: "var(--landing-surface)",
+                    border: p.popular ? "2px solid #1A7B6B" : "1px solid var(--landing-border)",
+                    borderRadius: 18,
+                    padding: "32px 26px",
+                    display: "flex",
+                    flexDirection: "column",
+                    position: "relative",
+                    boxShadow: p.popular ? "0 12px 32px rgba(26, 123, 107, 0.12)" : "none"
+                  }}
                 >
-                  <div>
-                    {plan.popular && (
-                      <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", background: "#3B82F6", color: "white", fontSize: ".68rem", fontWeight: 800, padding: "4px 14px", borderRadius: 4, whiteSpace: "nowrap", letterSpacing: "0.04em", boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)" }}>MOST POPULAR</div>
-                    )}
-                    <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", color: plan.popular ? "#3B82F6" : "rgba(255,255,255,0.45)", marginBottom: 10 }}>{plan.name}</div>
-                    <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2.4rem", color: "#FFFFFF", fontWeight: 800 }}>{plan.price}</div>
-                    <div style={{ fontSize: ".8rem", color: "rgba(255,255,255,0.5)", marginBottom: 24, fontWeight: 500 }}>{plan.period}</div>
-                    <hr style={{ border: "none", borderTop: "1px solid rgba(22, 44, 86, 0.8)", margin: "20px 0" }} />
-                    
-                    <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
-                      {plan.features.map(f => (
-                        <li key={f} style={{ fontSize: ".85rem", color: "rgba(255,255,255,0.8)", display: "flex", gap: 8, alignItems: "flex-start", lineHeight: 1.4, fontWeight: 500 }}>
-                          <span style={{ color: "#3B82F6", flexShrink: 0, marginTop: 3 }}>
-                            <Check size={14} />
-                          </span>
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
+                  {p.badge && (
+                    <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", background: "#1A7B6B", color: "white", fontSize: ".68rem", fontWeight: 800, padding: "4px 14px", borderRadius: 12, letterSpacing: ".06em", boxShadow: "0 2px 8px rgba(26,123,107,0.3)" }}>
+                      {p.badge}
+                    </div>
+                  )}
+
+                  <div style={{ marginBottom: 16 }}>
+                    <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--landing-text)" }}>{p.name}</h3>
+                    <p style={{ fontSize: ".76rem", color: "var(--landing-muted)", marginTop: 4, minHeight: 36 }}>{p.desc}</p>
                   </div>
-                  
-                  <button onClick={onGetStarted} style={{ display: "block", width: "100%", textAlign: "center", padding: "12px", borderRadius: 6, fontWeight: 700, fontSize: ".88rem", cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)", border: plan.popular ? "none" : "1.5px solid rgba(59, 130, 246, 0.4)", color: "#FFFFFF", background: plan.popular ? "#3B82F6" : "transparent" }}
-                    onMouseOver={e => { 
-                      if (!plan.popular) {
-                        e.currentTarget.style.background = "rgba(59, 130, 246, 0.1)";
-                        e.currentTarget.style.borderColor = "#3B82F6";
-                      } else {
-                        e.currentTarget.style.background = "#2563EB";
-                        e.currentTarget.style.transform = "scale(1.02)";
-                      }
+
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--landing-border)" }}>
+                    <span style={{ fontSize: "1.85rem", fontWeight: 800, color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{p.price}</span>
+                    <span style={{ fontSize: ".78rem", color: "var(--landing-muted)" }}>{p.period}</span>
+                  </div>
+
+                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
+                    {p.features.map(f => (
+                      <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: ".82rem", color: "var(--landing-text)" }}>
+                        <Check size={16} style={{ color: "#16A34A", marginTop: 2, flexShrink: 0 }} />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    type="button"
+                    onClick={onGetStarted}
+                    style={{
+                      width: "100%",
+                      padding: "12px",
+                      borderRadius: 8,
+                      fontWeight: 700,
+                      fontSize: ".85rem",
+                      cursor: "pointer",
+                      border: p.popular ? "none" : "1.5px solid var(--landing-border)",
+                      background: p.popular ? "#1A7B6B" : "var(--landing-bg)",
+                      color: p.popular ? "white" : "var(--landing-text)",
+                      boxShadow: p.popular ? "0 4px 14px rgba(26,123,107,0.25)" : "none",
+                      transition: "all 0.2s"
                     }}
-                    onMouseOut={e => { 
-                      if (!plan.popular) {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.4)";
-                      } else {
-                        e.currentTarget.style.background = "#3B82F6";
-                        e.currentTarget.style.transform = "none";
-                      }
-                    }}>
-                    {plan.cta}
+                  >
+                    {p.cta}
                   </button>
-                </motion.div>
+                </div>
               );
             })}
           </div>
-          
-          <motion.div 
-            style={{ background: "rgba(10, 15, 28, 0.6)", border: "1px solid rgba(22, 44, 86, 0.8)", borderRadius: 12, padding: "18px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 32, flexWrap: "wrap", gap: 14 }}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            <span style={{ fontSize: ".82rem", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>Flexible Local Payments Integrated</span>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {["MTN Mobile Money", "Airtel Money", "Visa / Mastercard", "Electronic Bank Transfer"].map(m => (
-                <span key={m} style={{ background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: 6, padding: "6px 12px", fontSize: ".72rem", fontWeight: 700, color: "#FFFFFF" }}>{m}</span>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </section>
 
-      {/* CTA BANNER */}
-      <section className="tw-section" style={{ padding: "80px 5%", background: "#0E1424", borderTop: "1px solid rgba(22, 44, 86, 0.5)", borderBottom: "1px solid rgba(22, 44, 86, 0.5)", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(59, 130, 246, 0.04) 1.5px, transparent 0)", backgroundSize: "32px 32px", opacity: 0.8 }} />
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "450px", height: "450px", background: "radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)", borderRadius: "50%", filter: "blur(60px)", pointerEvents: "none" }} />
+      {/* ══════════════════════════════════════════════════════════════
+          8. CONVERSION CTA BANNER
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(26, 123, 107, 0.08) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
         
-        <motion.div 
-          style={{ maxWidth: 750, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "white", marginBottom: 18, fontWeight: 800 }}>Ready to upgrade your practice?</h2>
-          <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "1rem", lineHeight: 1.7, marginBottom: 36, fontWeight: 500 }}>Join leading tax firms and corporate finance departments saving hours every week. Try our full suite free.</p>
+        <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
+          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.9rem, 3.4vw, 2.7rem)", color: "var(--landing-text)", fontWeight: 800, marginBottom: 16 }}>
+            Ready to upgrade your Ugandan tax practice?
+          </h2>
+          <p style={{ color: "var(--landing-muted)", fontSize: "1rem", lineHeight: 1.65, marginBottom: 32 }}>
+            Join leading accounting firms and corporate finance teams saving hours every week on precedent research and tax computations.
+          </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             {dbUser ? (
-              <button onClick={() => { if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }} className="tw-btn-hover" style={{ background: "white", color: "#090D16", padding: "14px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".925rem", border: "none", cursor: "pointer", transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit" }}>
+              <button 
+                onClick={() => { if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }}
+                style={{ background: "#1A7B6B", color: "white", padding: "14px 30px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(26,123,107,0.3)" }}
+              >
                 Go to Dashboard →
               </button>
             ) : (
               <>
-                <button onClick={onGetStarted} className="tw-btn-hover" style={{ background: "#3B82F6", color: "white", padding: "14px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".925rem", border: "none", cursor: "pointer", transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)", fontFamily: "inherit" }}>Create Free Account →</button>
-                <button onClick={onSignIn} style={{ background: "transparent", color: "white", padding: "14px 30px", borderRadius: 6, fontWeight: 700, fontSize: ".925rem", border: "1px solid rgba(255,255,255,.2)", cursor: "pointer", fontFamily: "inherit" }}
-                  onMouseOver={e => (e.currentTarget.style.background = "rgba(255,255,255,.05)")}
-                  onMouseOut={e => (e.currentTarget.style.background = "transparent")}>
+                <button 
+                  onClick={onGetStarted}
+                  style={{ background: "#1A7B6B", color: "white", padding: "14px 30px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(26,123,107,0.3)" }}
+                >
+                  Create Free Account →
+                </button>
+                <button 
+                  onClick={onSignIn}
+                  style={{ background: "var(--landing-surface)", color: "var(--landing-text)", padding: "14px 28px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "1.5px solid var(--landing-border)", cursor: "pointer" }}
+                >
                   Sign In
                 </button>
               </>
             )}
           </div>
-        </motion.div>
+        </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="tw-footer" style={{ background: "#090D16", padding: "64px 5% 32px", borderTop: "1px solid rgba(22, 44, 86, 0.5)", position: "relative" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 10 }}>
-          <div className="tw-footer-grid" style={{ display: "grid", gridTemplateColumns: "1.8fr 1fr 1fr 1fr 1fr", gap: 40, marginBottom: 48 }}>
+      {/* ══════════════════════════════════════════════════════════════
+          9. COMPREHENSIVE FOOTER
+      ══════════════════════════════════════════════════════════════ */}
+      <footer style={{ background: "#F8FAFC", padding: "64px 5% 32px", borderTop: "1px solid #E2E8F0", color: "#334155" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <div className="tw-footer-grid" style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr 1fr 1fr 1fr", gap: 32, marginBottom: 48 }}>
             <div>
-              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "white", marginBottom: 12, fontWeight: 800 }}>Tax<span style={{ color: "#3B82F6" }}>Wise</span></div>
-              <p style={{ fontSize: ".8rem", color: "rgba(255,255,255,.5)", lineHeight: 1.6, maxWidth: 220, marginBottom: 16 }}>Uganda&apos;s professional tax intelligence engine. Designed for tax consultants, accountants, and customs brokers.</p>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(59, 130, 246, 0.08)", border: "1px solid rgba(59, 130, 246, 0.25)", padding: "5px 12px", borderRadius: 4, fontSize: ".68rem", color: "#FFFFFF", fontWeight: 600 }}>
-                <Building2 size={13} style={{ color: "#2DD4BF" }} />
-                <span>ICPAU CPD-Eligible</span>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "#0F172A", marginBottom: 12, fontWeight: 800 }}>
+                Tax<span style={{ color: "#1A7B6B" }}>Wise</span>
               </div>
+              <p style={{ fontSize: ".82rem", color: "#64748B", lineHeight: 1.6, maxWidth: 240, marginBottom: 16 }}>
+                Uganda&apos;s professional tax intelligence engine. Designed for tax consultants, certified accountants, and customs brokers.
+              </p>
             </div>
-            {[
-              { heading: "Products", links: ["Case Analyzer", "Compliance Check", "TAT Precedents", "Client Reports"] },
-              { heading: "Calculators", links: ["PAYE Calculator", "VAT Calculator", "WHT Rates Tool", "Import Duty"] },
-              { heading: "Company", links: ["Pricing Plans", "Legal Blog", "Contact Us"] },
-              { heading: "Support", links: ["Knowledge Base", "hello@taxwise.cloud", "Privacy Policy", "Terms of Use"] },
-            ].map(col => (
-              <div key={col.heading}>
-                <h5 style={{ fontSize: ".72rem", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", color: "rgba(255,255,255,.4)", marginBottom: 16 }}>{col.heading}</h5>
-                <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-                  {col.links.map(link => (
-                    <li key={link}>
-                      <button 
-                        onClick={() => handleFooterLinkClick(link)} 
-                        className="tw-footer-link" 
-                        style={{ color: "rgba(255,255,255,.6)", fontSize: ".82rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0, transition: "color .2s", textAlign: "left", fontWeight: 500 }}
-                      >
-                        {link}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+
+            <div>
+              <h5 style={{ fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#64748B", marginBottom: 16 }}>
+                Tools
+              </h5>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10, padding: 0, margin: 0 }}>
+                {["Case Analyzer", "PAYE Calculator", "VAT Calculator", "WHT Rates Tool"].map(link => (
+                  <li key={link}>
+                    <button 
+                      onClick={() => handleFooterLinkClick(link)} 
+                      style={{ color: "#334155", fontSize: ".82rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0, transition: "color .2s", textAlign: "left", fontWeight: 500 }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = "#1A7B6B"; }}
+                      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = "#334155"; }}
+                    >
+                      {link}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h5 style={{ fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#64748B", marginBottom: 16 }}>
+                Official Portals
+              </h5>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10, padding: 0, margin: 0 }}>
+                {[
+                  { label: "URA Portal", url: "https://www.ura.go.ug" },
+                  { label: "Tax Appeals Tribunal", url: "https://www.tat.go.ug" },
+                  { label: "ICPAU", url: "https://www.icpau.co.ug" },
+                  { label: "Ministry of Finance", url: "https://www.finance.go.ug" },
+                ].map(item => (
+                  <li key={item.label}>
+                    <a 
+                      href={item.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ color: "#334155", fontSize: ".82rem", textDecoration: "none", transition: "color .2s", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 4 }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = "#1A7B6B"; }}
+                      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = "#334155"; }}
+                    >
+                      <span>{item.label}</span>
+                      <span style={{ fontSize: ".65rem", opacity: 0.6 }}>↗</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h5 style={{ fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#64748B", marginBottom: 16 }}>
+                Legal & Compliance
+              </h5>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10, padding: 0, margin: 0 }}>
+                {["TAT Precedents", "Compliance Check", "Client Reports", "Legal Blog", "Terms of Use", "Privacy Policy"].map(link => (
+                  <li key={link}>
+                    <button 
+                      onClick={() => handleFooterLinkClick(link)} 
+                      style={{ color: "#334155", fontSize: ".82rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0, transition: "color .2s", textAlign: "left", fontWeight: 500 }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = "#1A7B6B"; }}
+                      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = "#334155"; }}
+                    >
+                      {link}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h5 style={{ fontSize: ".72rem", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", color: "#64748B", marginBottom: 16 }}>
+                Support & Contact
+              </h5>
+              <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10, padding: 0, margin: 0 }}>
+                {["Knowledge Base", "Pricing Plans", "Contact Us"].map(link => (
+                  <li key={link}>
+                    <button 
+                      onClick={() => handleFooterLinkClick(link)} 
+                      style={{ color: "#334155", fontSize: ".82rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", padding: 0, transition: "color .2s", textAlign: "left", fontWeight: 500 }}
+                      onMouseOver={e => { (e.currentTarget as HTMLElement).style.color = "#1A7B6B"; }}
+                      onMouseOut={e => { (e.currentTarget as HTMLElement).style.color = "#334155"; }}
+                    >
+                      {link}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          
-          <div style={{ borderTop: "1px solid rgba(22, 44, 86, 0.5)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: ".74rem", color: "rgba(255,255,255,.4)", flexWrap: "wrap", gap: 12, fontWeight: 500 }}>
+
+          <div style={{ borderTop: "1px solid #E2E8F0", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: ".74rem", color: "#64748B", flexWrap: "wrap", gap: 12, fontWeight: 500 }}>
             <span>© 2026 TaxWise Uganda. All rights reserved.</span>
             <span>Complying with URA, eFRIS, and VAT statutory regulations.</span>
           </div>
         </div>
       </footer>
+
+      {/* LEGAL PORTAL MODAL (Privacy, Terms, Legal Blog) */}
       <LegalPortal isOpen={legalOpen} onClose={() => setLegalOpen(false)} initialTab={legalTab} />
     </div>
   );

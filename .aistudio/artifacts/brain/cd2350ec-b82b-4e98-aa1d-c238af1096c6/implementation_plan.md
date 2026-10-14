@@ -1,24 +1,27 @@
-# Implementation Complete: Remove Withholding Tax and Motor Vehicle Calculators
+# Footer Section Refinement Plan
 
-The Withholding Tax and Vehicle Import Duty calculators have been successfully removed from the dashboard's Tax Calculators page (`CalculatorsPortal.tsx`), keeping PAYE, VAT, Corporate Tax, and Rental Tax calculators intact.
+Refine the application footer section to align with user preferences: clean light neutral background matching the page theme, multi-column layout with official government & regulatory links, tax calculators & quick tools, copyright, and legal information.
 
----
+## User Review & Critical Decisions
 
-## Completed Changes
+> [!IMPORTANT]
+> - **Confirmed Choices**: Light neutral background matching page theme, Official Government & Regulatory Links (URA, Tax Appeals Tribunal, ICPAU, Ministry of Finance), Tax Calculators and Quick Tools.
+> - **Layout**: Clean multi-column layout with structured sections for quick navigation, tools, and regulatory resources.
 
-### 1. `src/components/CalculatorsPortal.tsx`
-- **Removed Calculator Tabs**: Deleted `wht` (Withholding Tax) and `import` (Vehicle Import Duty) tab definitions from `calculatorTabs`.
-- **Cleaned Up Rate State**: Removed `wht` and `import` defaults and queries (`calc_wht_rate`, `calc_import_rate`).
-- **Removed Calculations & Formula Previews**: Removed `case "wht":` and `case "import":` from calculation logic and cleaned up the quick formula display.
-- **Updated Page Copy**: Subtitle now states: *"Switch between practical calculators for payroll, VAT, corporate planning, and rental income tax."*
+## 1. Overview & Core Concept
+- **What It Does**: Replaces/refines the footer section to provide quick access to key tax calculators, official regulatory bodies (URA, ICPAU, TAT, Ministry of Finance), legal resources, and copyright info with a light neutral background matching the platform aesthetic.
+- **Key Value**: Professional finish with reliable statutory links and quick tools right at the bottom of the page.
 
-### 2. `src/components/AdminPortal.tsx`
-- Removed obsolete inputs for `calc_wht_rate` and `calc_import_rate` from the Calculator Rates settings card.
-- Updated description to: *"Update the country tax rates used by the PAYE, VAT, and corporate tax calculators."*
+## 2. User Experience & Visual Design
+- **Visual Theme**: Light neutral background (`bg-slate-50` or `bg-gray-50` with subtle border-t `border-slate-200`), dark slate text for high legibility (`text-slate-900`, `text-slate-600`), and clean hover underlines.
+- **Columns Structure**:
+  1. **Brand & Mission**: TaxWise Uganda branding and brief professional tagline.
+  2. **Official Regulatory Links**: URA Portal, ICPAU, Tax Appeals Tribunal, Ministry of Finance.
+  3. **Tax Tools & Calculators**: PAYE Calculator, VAT Calculator, Withholding Tax Estimator, Tax Calendar.
+  4. **Legal & Compliance**: Terms of Service, Privacy Policy, Security & Compliance.
 
----
-
-## Verification
-- `compile_applet`: Succeeded without errors.
-- `lint_applet`: Completed with 0 errors.
-- Dev server verified and returning HTTP 200 OK.
+## 3. Key Technical Architecture & Implementation Steps
+- Locate `src/components/LandingPage.tsx` where the footer component is defined.
+- Update the footer JSX to use a light neutral background (`bg-slate-50 border-t border-slate-200`) and the requested link groups.
+- Ensure all links have active click handlers or working external URLs.
+- Verify build and lint.

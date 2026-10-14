@@ -125,7 +125,7 @@ export const IntelligencePortal: React.FC = () => {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
                 <motion.div 
                   layoutId="focusBadge"
-                  style={{ background: activeContent.accent, color: C.white, borderRadius: 16, padding: "14px 18px", boxShadow: "0 12px 28px rgba(15,32,68,0.08)" }}
+                  style={{ background: activeContent.accent, color: C.textWhite, borderRadius: 16, padding: "14px 18px", boxShadow: "0 12px 28px rgba(15,32,68,0.08)" }}
                 >
                   <div style={{ fontSize: "0.78rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>Focus area</div>
                   <div style={{ fontSize: "1.1rem", fontWeight: 800, marginTop: 8 }}>{activeContent.title}</div>

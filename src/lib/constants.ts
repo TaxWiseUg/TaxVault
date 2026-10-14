@@ -8,6 +8,7 @@ export const C = {
   gold: "var(--color-gold)", 
   goldLight: "var(--color-gold-light)",
   white: "var(--color-white)", 
+  textWhite: "#FFFFFF",
   offwhite: "var(--color-offwhite)",
   border: "var(--color-border)", 
   muted: "var(--color-muted)", 

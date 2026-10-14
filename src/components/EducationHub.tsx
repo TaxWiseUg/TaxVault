@@ -415,7 +415,7 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
               {aiAnswer && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14, maxHeight: 220, overflowY: "auto", padding: "4px" }}>
                   {/* User question bubble */}
-                  <div style={{ alignSelf: "flex-end", background: C.navy, color: C.white, borderRadius: "12px 12px 0 12px", padding: "10px 14px", fontSize: "0.82rem", maxWidth: "85%", fontWeight: 500 }}>
+                  <div style={{ alignSelf: "flex-end", background: C.navy, color: C.textWhite, borderRadius: "12px 12px 0 12px", padding: "10px 14px", fontSize: "0.82rem", maxWidth: "85%", fontWeight: 500 }}>
                     {aiQ}
                   </div>
                   {/* Response bubble */}

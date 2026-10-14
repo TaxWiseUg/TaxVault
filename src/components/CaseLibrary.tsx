@@ -209,7 +209,11 @@ export const CaseLibrary: React.FC = () => {
                   >
                     {c.outcome}
                   </Badge>
-                  <Badge color={C.navy} bg="var(--color-badge-bg)" style={{ fontWeight: 800 }}>
+                  <Badge
+                    color={c.tax_type.toLowerCase().includes("vat") ? "#065F46" : c.tax_type.toLowerCase().includes("income") ? "#1E3A8A" : c.tax_type.toLowerCase().includes("customs") ? "#78350F" : "#4C1D95"}
+                    bg={c.tax_type.toLowerCase().includes("vat") ? "#D1FAE5" : c.tax_type.toLowerCase().includes("income") ? "#DBEAFE" : c.tax_type.toLowerCase().includes("customs") ? "#FEF3C7" : "#EDE9FE"}
+                    style={{ fontWeight: 800 }}
+                  >
                     {c.tax_type}
                   </Badge>
                 </div>
@@ -245,7 +249,11 @@ export const CaseLibrary: React.FC = () => {
                 >
                   {selected.outcome}
                 </Badge>
-                <Badge color={C.navy} bg="var(--color-badge-bg)" style={{ fontWeight: 800 }}>
+                <Badge
+                  color={selected.tax_type.toLowerCase().includes("vat") ? "#065F46" : selected.tax_type.toLowerCase().includes("income") ? "#1E3A8A" : selected.tax_type.toLowerCase().includes("customs") ? "#78350F" : "#4C1D95"}
+                  bg={selected.tax_type.toLowerCase().includes("vat") ? "#D1FAE5" : selected.tax_type.toLowerCase().includes("income") ? "#DBEAFE" : selected.tax_type.toLowerCase().includes("customs") ? "#FEF3C7" : "#EDE9FE"}
+                  style={{ fontWeight: 800 }}
+                >
                   {selected.tax_type}
                 </Badge>
                 <Badge color={C.muted} bg={C.offwhite} style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: 4 }}>

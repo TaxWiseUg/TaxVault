@@ -75,7 +75,7 @@ export const Button: React.FC<ButtonProps> = ({
   const variants = {
     primary: {
       background: hovered ? `linear-gradient(135deg, ${C.tealDark} 0%, ${C.teal} 100%)` : `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)`,
-      color: C.white,
+      color: C.textWhite,
       padding: small ? "8px 16px" : "11px 24px",
       fontSize: small ? "0.8rem" : "0.9rem",
     },
@@ -95,13 +95,13 @@ export const Button: React.FC<ButtonProps> = ({
     },
     danger: {
       background: hovered ? "#c22222" : C.red,
-      color: C.white,
+      color: C.textWhite,
       padding: "9px 20px",
       fontSize: "0.875rem",
     },
     gold: {
       background: hovered ? "#b08022" : C.gold,
-      color: C.white,
+      color: C.textWhite,
       padding: small ? "8px 16px" : "11px 24px",
       fontSize: small ? "0.8rem" : "0.9rem",
     },
@@ -238,14 +238,14 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, wi
           maxHeight: "90vh",
           overflow: "auto",
           boxShadow: "0 24px 64px rgba(15, 32, 68, 0.24)",
-          border: "1px solid rgba(255, 255, 255, 0.6)",
+          border: `1px solid ${C.border}`,
         }}
         onClick={(e) => e.stopPropagation()}
       >
         <div
           style={{
             padding: "20px 28px",
-            borderBottom: `1px solid rgba(15, 32, 68, 0.05)`,
+            borderBottom: `1px solid ${C.border}`,
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -255,8 +255,8 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, wi
           <button
             onClick={onClose}
             style={{
-              background: "rgba(15, 32, 68, 0.04)",
-              border: "none",
+              background: C.offwhite,
+              border: `1px solid ${C.border}`,
               width: 32,
               height: 32,
               borderRadius: "50%",
@@ -268,11 +268,11 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, wi
               transition: "all 0.15s",
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(15, 32, 68, 0.08)";
-              e.currentTarget.style.color = C.navy;
+              e.currentTarget.style.background = C.tealLight;
+              e.currentTarget.style.color = C.teal;
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+              e.currentTarget.style.background = C.offwhite;
               e.currentTarget.style.color = C.muted;
             }}
           >

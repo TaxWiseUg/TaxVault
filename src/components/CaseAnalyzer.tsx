@@ -10,7 +10,8 @@ import {
   SUPPORTED_DOCUMENT_ACCEPT,
 } from "../lib/documentTypes";
 import { Badge, Button, Card } from "./UI";
-import { BookOpen, X, Search, FolderOpen, Calendar, Scale, FileText, Paperclip, Sparkles, AlertTriangle, BarChart2, Download, RefreshCw } from "lucide-react";
+import { BookOpen, X, Search, FolderOpen, Calendar, Scale, FileText, Paperclip, Sparkles, AlertTriangle, BarChart2, Download, RefreshCw, BookmarkCheck, ArrowUpRight } from "lucide-react";
+import { CitationViewerModal, TATPrecedentSearchModal, resolveCitationItem, CitationItem } from "./TATCitationModal";
 
 interface CaseAnalyzerProps {
   user: {
@@ -19,7 +20,23 @@ interface CaseAnalyzerProps {
   };
 }
 
-interface AnalysisResult {
+export interface DetailedPrecedentCitation {
+  caseNumber: string;
+  title: string;
+  year: number;
+  outcome: string;
+  ratio: string;
+  howToDistinguishOrApply: string;
+}
+
+export interface StatutoryReference {
+  act: string;
+  section: string;
+  title: string;
+  relevance: string;
+}
+
+export interface AnalysisResult {
   summary: string;
   keyIssues: string[];
   verdict: string;
@@ -27,7 +44,12 @@ interface AnalysisResult {
   riskNote: string;
   advice: string;
   applicableLaw?: string[];
+  statutoryDetails?: StatutoryReference[];
+  matchedPrecedents?: DetailedPrecedentCitation[];
+  proceduralSteps?: string[];
+  winProbabilityEstimate?: string;
   tags?: string[];
+  aiProvider?: string;
   error?: boolean;
 }
 
@@ -255,7 +277,7 @@ const LibraryPicker: React.FC<LibraryPickerProps> = ({ open, onClose, onSelect }
               display: "flex",
               flexDirection: "column",
               boxShadow: "0 32px 80px rgba(15, 32, 68, 0.28)",
-              border: "1px solid rgba(255,255,255,0.5)",
+              border: `1px solid ${C.border}`,
               overflow: "hidden",
             }}
             onClick={e => e.stopPropagation()}
@@ -263,7 +285,7 @@ const LibraryPicker: React.FC<LibraryPickerProps> = ({ open, onClose, onSelect }
         {/* Header */}
         <div style={{
           padding: "20px 28px",
-          borderBottom: `1px solid rgba(15,32,68,0.06)`,
+          borderBottom: `1px solid ${C.border}`,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -281,8 +303,8 @@ const LibraryPicker: React.FC<LibraryPickerProps> = ({ open, onClose, onSelect }
           <button
             onClick={onClose}
             style={{
-              background: "rgba(15,32,68,0.04)",
-              border: "none",
+              background: C.offwhite,
+              border: `1px solid ${C.border}`,
               width: 32,
               height: 32,
               borderRadius: "50%",
@@ -293,8 +315,8 @@ const LibraryPicker: React.FC<LibraryPickerProps> = ({ open, onClose, onSelect }
               justifyContent: "center",
               transition: "all 0.15s",
             }}
-            onMouseOver={e => { e.currentTarget.style.background = "rgba(15,32,68,0.08)"; e.currentTarget.style.color = C.navy; }}
-            onMouseOut={e => { e.currentTarget.style.background = "rgba(15,32,68,0.04)"; e.currentTarget.style.color = C.muted; }}
+            onMouseOver={e => { e.currentTarget.style.background = C.tealLight; e.currentTarget.style.color = C.teal; }}
+            onMouseOut={e => { e.currentTarget.style.background = C.offwhite; e.currentTarget.style.color = C.muted; }}
           >
             <X size={15} />
           </button>
@@ -640,22 +662,47 @@ async function downloadResultAsPDF(result: AnalysisResult, caseType: string) {
       <ul class="issues-list">${issuesList}</ul>
     </div>
 
-    <!-- 3. Verdict -->
+    <!-- 3. Verdict & Win Probability -->
     <div class="section">
-      <div class="section-title">3. Tribunal Verdict / Decision</div>
+      <div class="section-title">3. Tribunal Verdict &amp; Assessment</div>
       <div class="verdict-box">${result.verdict ?? ""}</div>
+      ${result.winProbabilityEstimate ? `<div style="margin-top: 8px; font-weight: 700; color: #1A7B6B; font-size: 9.5pt;"><strong>Win Probability Forecast:</strong> ${result.winProbabilityEstimate}</div>` : ""}
       ${result.riskNote ? `<div class="risk-note">ℹ ${result.riskNote}</div>` : ""}
     </div>
 
-    <!-- 4. Advice -->
+    <!-- 4. Matched TAT Precedents -->
+    ${result.matchedPrecedents && result.matchedPrecedents.length > 0 ? `
     <div class="section">
-      <div class="section-title">4. Professional Advice &amp; Next Steps</div>
+      <div class="section-title">4. Matched Tax Appeals Tribunal (TAT) Precedents</div>
+      <div>
+        ${result.matchedPrecedents.map(p => `
+          <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 10px 14px; margin-bottom: 8px;">
+            <div style="font-weight: 700; color: #0F2044; font-size: 9.5pt;">${p.caseNumber} - ${p.title} (${p.year}) [${p.outcome}]</div>
+            <div style="font-size: 8.8pt; color: #334155; margin-top: 4px;"><strong>Ratio:</strong> ${p.ratio}</div>
+            <div style="font-size: 8.4pt; color: #1A7B6B; margin-top: 3px;"><strong>Application:</strong> ${p.howToDistinguishOrApply}</div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+    ` : ""}
+
+    <!-- 5. Advice & Procedural Timelines -->
+    <div class="section">
+      <div class="section-title">5. Professional Advice &amp; Procedural Steps</div>
       <div class="section-body">${result.advice ?? ""}</div>
+      ${result.proceduralSteps && result.proceduralSteps.length > 0 ? `
+        <div style="margin-top: 10px;">
+          <strong>Key Statutory Timelines:</strong>
+          <ul style="margin: 6px 0 0 18px; font-size: 9pt; color: #334155;">
+            ${result.proceduralSteps.map(step => `<li>${step}</li>`).join("")}
+          </ul>
+        </div>
+      ` : ""}
     </div>
 
-    <!-- 5. Law & Tags -->
+    <!-- 6. Law & Tags -->
     <div class="section">
-      <div class="section-title">5. Applicable Law &amp; References</div>
+      <div class="section-title">6. Applicable Law &amp; Statutory References</div>
       <div class="badges">${lawBadges}</div>
       ${tagBadges ? `<div class="badges" style="margin-top:10px">${tagBadges}</div>` : ""}
     </div>
@@ -698,18 +745,33 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
   const [reports, setReports] = useState<CaseRecord[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [tatSearchOpen, setTatSearchOpen] = useState(false);
+  const [citationModalOpen, setCitationModalOpen] = useState(false);
+  const [activeCitation, setActiveCitation] = useState<CitationItem | null>(null);
 
   // Accordion state
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     summary: true,
     issues: true,
     verdict: true,
+    precedents: true,
     advice: true,
+    procedure: true,
     law: true
   });
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const openCitationForText = (rawCitation: string) => {
+    const item = resolveCitationItem(rawCitation);
+    setActiveCitation(item);
+    setCitationModalOpen(true);
+  };
+
+  const handleInsertCitation = (citationText: string) => {
+    setText(prev => (prev ? `${prev}\n\n${citationText}` : citationText));
   };
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -972,8 +1034,38 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
             </div>
           </div>
 
-          {/* Browse Library Button */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          {/* Precedent Search & Browse Library Buttons */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+            <button
+              onClick={() => setTatSearchOpen(true)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: "rgba(26,123,107,0.08)",
+                border: `1.5px solid ${C.teal}`,
+                borderRadius: 8,
+                padding: "8px 16px",
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                color: C.teal,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                transition: "all 0.2s",
+              }}
+              onMouseOver={e => {
+                e.currentTarget.style.background = C.teal;
+                e.currentTarget.style.color = C.white;
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.background = "rgba(26,123,107,0.08)";
+                e.currentTarget.style.color = C.teal;
+              }}
+            >
+              <Scale size={14} />
+              <span>Search TAT Precedents</span>
+            </button>
+
             <button
               onClick={() => setLibraryOpen(true)}
               style={{
@@ -983,7 +1075,7 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
                 background: "transparent",
                 border: `1.5px solid ${C.navy}22`,
                 borderRadius: 8,
-                padding: "8px 18px",
+                padding: "8px 16px",
                 fontSize: "0.8rem",
                 fontWeight: 700,
                 color: C.navy,
@@ -1133,18 +1225,20 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
           {result && !result.error && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
 
-              {/* Risk Level Badge Row */}
+              {/* Risk Level & Win Probability Row */}
               <div style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
                 background: C.offwhite,
-                padding: "12px 16px",
+                padding: "14px 18px",
                 borderRadius: 12,
-                border: "1px solid rgba(15,32,68,0.04)"
+                border: "1px solid rgba(15,32,68,0.06)",
+                flexWrap: "wrap",
+                gap: 12
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: "0.78rem", fontWeight: 800, color: C.navy }}>EXPOSURE LEVEL:</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 800, color: C.navy }}>EXPOSURE:</span>
                   <Badge
                     color={riskColors[result.risk]?.[0] || C.muted}
                     bg={riskColors[result.risk]?.[1] || C.offwhite}
@@ -1152,6 +1246,12 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
                   >
                     {result.risk?.toUpperCase()}
                   </Badge>
+                  {result.winProbabilityEstimate && (
+                    <Badge color={C.teal} bg={C.tealLight} style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: 4 }}>
+                      <BookmarkCheck size={12} />
+                      <span>{result.winProbabilityEstimate}</span>
+                    </Badge>
+                  )}
                 </div>
                 <RiskGauge level={result.risk} />
               </div>
@@ -1187,11 +1287,11 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
                 {openSections.verdict && (
                   <div style={{ padding: "12px 14px 4px" }}>
                     <div style={{ borderLeft: `3.5px solid ${C.gold}`, background: C.goldLight, padding: "12px 16px", borderRadius: "0 8px 8px 0" }}>
-                      <div style={{ fontSize: "0.875rem", color: C.text, lineHeight: 1.6, fontWeight: 500 }}>
+                      <div style={{ fontSize: "0.875rem", color: C.text, lineHeight: 1.6, fontWeight: 600 }}>
                         {result.verdict}
                       </div>
                       {result.riskNote && (
-                        <div style={{ fontSize: "0.75rem", color: C.muted, marginTop: 8, fontStyle: "italic" }}>
+                        <div style={{ fontSize: "0.78rem", color: C.muted, marginTop: 8, fontStyle: "italic" }}>
                           ℹ {result.riskNote}
                         </div>
                       )}
@@ -1200,35 +1300,203 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
                 )}
               </div>
 
-              {/* Accordion Advice */}
+              {/* Accordion Matched TAT Precedents */}
               <div>
-                <AccordionHeader title="4. Professional Advice & Next Steps" isOpen={openSections.advice} onClick={() => toggleSection("advice")} />
-                {openSections.advice && (
-                  <div style={{ padding: "12px 14px 4px", fontSize: "0.875rem", color: C.text, lineHeight: 1.7 }}>
-                    {result.advice}
+                <AccordionHeader
+                  title={`4. Matched TAT Precedents (${result.matchedPrecedents?.length || 0})`}
+                  isOpen={openSections.precedents}
+                  onClick={() => toggleSection("precedents")}
+                />
+                {openSections.precedents && (
+                  <div style={{ padding: "12px 14px 4px", display: "flex", flexDirection: "column", gap: 10 }}>
+                    {result.matchedPrecedents && result.matchedPrecedents.length > 0 ? (
+                      result.matchedPrecedents.map((p, idx) => (
+                        <div
+                          key={idx}
+                          style={{
+                            background: C.offwhite,
+                            border: `1px solid ${C.border}`,
+                            borderRadius: 10,
+                            padding: "12px 14px",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 6
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                            <div>
+                              <div style={{ fontSize: "0.85rem", fontWeight: 800, color: C.navy }}>{p.title}</div>
+                              <div style={{ fontSize: "0.74rem", color: C.muted, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ color: C.teal, fontWeight: 700 }}>{p.caseNumber}</span>
+                                <span>·</span>
+                                <span>{p.year}</span>
+                              </div>
+                            </div>
+                            <Badge
+                              color={p.outcome === "Allowed" ? C.green : p.outcome === "Dismissed" ? C.red : C.gold}
+                              bg={p.outcome === "Allowed" ? "#DCFCE7" : p.outcome === "Dismissed" ? "#FEE2E2" : "#FEF3CD"}
+                              style={{ fontWeight: 800, fontSize: "0.68rem" }}
+                            >
+                              {p.outcome}
+                            </Badge>
+                          </div>
+
+                          <div style={{ fontSize: "0.8rem", color: C.text, lineHeight: 1.5, marginTop: 2 }}>
+                            <strong style={{ color: C.navy }}>Ratio Decidendi:</strong> {p.ratio}
+                          </div>
+
+                          {p.howToDistinguishOrApply && (
+                            <div style={{ fontSize: "0.77rem", color: C.teal, fontWeight: 500, lineHeight: 1.45 }}>
+                              <strong style={{ color: C.teal }}>Litigation Application:</strong> {p.howToDistinguishOrApply}
+                            </div>
+                          )}
+
+                          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4 }}>
+                            <button
+                              onClick={() => openCitationForText(`${p.caseNumber} ${p.title}`)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 4,
+                                background: C.white,
+                                border: `1px solid ${C.border}`,
+                                borderRadius: 6,
+                                padding: "4px 9px",
+                                fontSize: "0.73rem",
+                                fontWeight: 700,
+                                color: C.navy,
+                                cursor: "pointer",
+                              }}
+                            >
+                              <span>View Citation & Details</span>
+                              <ArrowUpRight size={12} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ fontSize: "0.82rem", color: C.muted, fontStyle: "italic", padding: "6px 0" }}>
+                        Click &ldquo;Search TAT Precedents&rdquo; on the left to manually browse and link precedents.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
-              {/* Accordion Law & Tags */}
+              {/* Accordion Advice & Procedural Timelines */}
               <div>
-                <AccordionHeader title="5. Applicable Law & References" isOpen={openSections.law} onClick={() => toggleSection("law")} />
-                {openSections.law && (
-                  <div style={{ padding: "12px 14px 4px", display: "flex", flexDirection: "column", gap: 12 }}>
-                    {result.applicableLaw && result.applicableLaw.length > 0 && (
-                      <div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                          {result.applicableLaw.map((l) => (
-                            <Badge key={l} color={C.navy} bg="#E8EDF5" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <Scale size={11} />
-                              <span>{l}</span>
-                            </Badge>
+                <AccordionHeader title="5. Professional Advice & Statutory Timelines" isOpen={openSections.advice} onClick={() => toggleSection("advice")} />
+                {openSections.advice && (
+                  <div style={{ padding: "12px 14px 4px", fontSize: "0.875rem", color: C.text, lineHeight: 1.7 }}>
+                    <p style={{ margin: "0 0 10px" }}>{result.advice}</p>
+
+                    {result.proceduralSteps && result.proceduralSteps.length > 0 && (
+                      <div style={{ marginTop: 12, background: "rgba(26,123,107,0.04)", border: "1px solid rgba(26,123,107,0.15)", borderRadius: 8, padding: "12px 14px" }}>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 800, color: C.navy, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
+                          Key Statutory Procedures & Deadlines:
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {result.proceduralSteps.map((step, idx) => (
+                            <div key={idx} style={{ fontSize: "0.82rem", color: C.navy, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                              <span style={{ color: C.teal, fontWeight: 800 }}>✓</span>
+                              <span>{step}</span>
+                            </div>
                           ))}
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+
+              {/* Accordion Law & Interactive Citation Badges */}
+              <div>
+                <AccordionHeader title="6. Applicable Law & Statutory Citations" isOpen={openSections.law} onClick={() => toggleSection("law")} />
+                {openSections.law && (
+                  <div style={{ padding: "12px 14px 4px", display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ fontSize: "0.78rem", color: C.muted, fontWeight: 500 }}>
+                      Click any provision below to open the interactive Citation Viewer with judicial notes and statutory rules:
+                    </div>
+
+                    {result.applicableLaw && result.applicableLaw.length > 0 && (
+                      <div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {result.applicableLaw.map((l) => (
+                            <button
+                              key={l}
+                              onClick={() => openCitationForText(l)}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 5,
+                                background: "#E8EDF5",
+                                border: `1px solid rgba(15,32,68,0.12)`,
+                                borderRadius: 14,
+                                padding: "4px 10px",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                color: C.navy,
+                                cursor: "pointer",
+                                transition: "all 0.15s ease",
+                              }}
+                              onMouseOver={(e) => {
+                                e.currentTarget.style.background = C.tealLight;
+                                e.currentTarget.style.borderColor = C.teal;
+                                e.currentTarget.style.color = C.teal;
+                              }}
+                              onMouseOut={(e) => {
+                                e.currentTarget.style.background = "#E8EDF5";
+                                e.currentTarget.style.borderColor = "rgba(15,32,68,0.12)";
+                                e.currentTarget.style.color = C.navy;
+                              }}
+                            >
+                              <Scale size={11} />
+                              <span>{l}</span>
+                              <ArrowUpRight size={10} style={{ opacity: 0.6 }} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {result.statutoryDetails && result.statutoryDetails.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                        {result.statutoryDetails.map((s, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => openCitationForText(`${s.section} ${s.act}`)}
+                            style={{
+                              background: C.offwhite,
+                              border: `1px solid ${C.border}`,
+                              borderRadius: 8,
+                              padding: "10px 12px",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                            }}
+                            onMouseOver={(e) => {
+                              e.currentTarget.style.borderColor = C.teal;
+                              e.currentTarget.style.background = "rgba(26,123,107,0.03)";
+                            }}
+                            onMouseOut={(e) => {
+                              e.currentTarget.style.borderColor = C.border;
+                              e.currentTarget.style.background = C.offwhite;
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span style={{ fontSize: "0.82rem", fontWeight: 800, color: C.navy }}>
+                                {s.section} · {s.act}
+                              </span>
+                              <span style={{ fontSize: "0.7rem", color: C.teal, fontWeight: 700 }}>View Statute Details →</span>
+                            </div>
+                            <div style={{ fontSize: "0.76rem", color: C.muted, marginTop: 2 }}>{s.title}</div>
+                            <div style={{ fontSize: "0.78rem", color: C.text, marginTop: 4, lineHeight: 1.45 }}>{s.relevance}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {result.tags && result.tags.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, borderTop: "1px solid rgba(15,32,68,0.03)", paddingTop: 8 }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, borderTop: "1px solid rgba(15,32,68,0.04)", paddingTop: 10 }}>
                         {result.tags.map((t) => (
                           <Badge key={t} color={C.teal} bg={C.tealLight}>
                             #{t}
@@ -1289,6 +1557,25 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
       open={libraryOpen}
       onClose={() => setLibraryOpen(false)}
       onSelect={handleLibrarySelect}
+    />
+
+    {/* Dedicated TAT Precedent Search Modal */}
+    <TATPrecedentSearchModal
+      open={tatSearchOpen}
+      onClose={() => setTatSearchOpen(false)}
+      onSelectCase={handleLibrarySelect}
+      onViewCitation={(item) => {
+        setActiveCitation(item);
+        setCitationModalOpen(true);
+      }}
+    />
+
+    {/* Interactive Citation Viewer Modal */}
+    <CitationViewerModal
+      open={citationModalOpen}
+      citation={activeCitation}
+      onClose={() => setCitationModalOpen(false)}
+      onInsertToDispute={handleInsertCitation}
     />
   </motion.div>
 );

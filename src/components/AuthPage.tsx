@@ -1269,16 +1269,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                 </div>
 
                 {/* Tab Switcher */}
-                <div style={{ display: "flex", marginBottom: 22, background: "#060a10", borderRadius: 10, padding: 4 }}>
+                <div style={{ display: "flex", marginBottom: 22, background: "var(--color-offwhite)", border: "1px solid var(--color-border)", borderRadius: 10, padding: 4 }}>
                   {(["login", "signup"] as const).map((m) => (
                     <button
                       key={m}
                       onClick={() => switchMode(m)}
                       className="auth-tab-btn"
                       style={{
-                        background: mode === m ? C.white : "transparent",
-                        color: mode === m ? C.navy : C.muted,
-                        boxShadow: mode === m ? "0 2px 8px rgba(15,32,68,.06)" : "none",
+                        background: mode === m ? "var(--color-white)" : "transparent",
+                        color: mode === m ? "var(--color-navy)" : "var(--color-muted)",
+                        fontWeight: mode === m ? 700 : 600,
+                        boxShadow: mode === m ? "0 2px 6px rgba(15,32,68,.08), 0 1px 2px rgba(15,32,68,.04)" : "none",
                       }}
                     >
                       {m === "login" ? "Sign In" : "Register"}

@@ -5,7 +5,8 @@ import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { Card, Button } from "./UI";
-import { AlertTriangle, User, Lock, Key, CreditCard, Trash2, Check, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, User, Lock, Key, CreditCard, Trash2, Check, CheckCircle2, Monitor, Sun, Moon } from "lucide-react";
+import { getInitialTheme, applyTheme, ThemeMode } from "../lib/theme";
 
 interface DbProfile {
   id: string;
@@ -44,6 +45,14 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [deleteStep, setDeleteStep] = useState<"confirm" | "deleting" | "done">("confirm");
+
+  // Theme Mode State
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => getInitialTheme());
+
+  const handleThemeSelect = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    applyTheme(mode);
+  };
 
   React.useEffect(() => {
     if (showDeleteModal) {
@@ -375,6 +384,60 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                 {profileLoading ? "Saving Changes..." : "Save Details"}
               </Button>
             </form>
+          </Card>
+
+          {/* Theme & Appearance Card */}
+          <Card style={{ padding: 28, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#FEF3CD", color: C.gold, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Monitor size={18} />
+              </div>
+              <div>
+                <h2 style={{ fontSize: "1.1rem", fontWeight: 800, color: C.navy, margin: 0 }}>Theme &amp; Appearance</h2>
+                <span style={{ fontSize: "0.75rem", color: C.muted, fontWeight: 500 }}>Choose system auto-theming or manual light/dark mode</span>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 4 }}>
+              {[
+                { id: "light", label: "Light (Default)", icon: <Sun size={16} /> },
+                { id: "dark", label: "Dark", icon: <Moon size={16} /> },
+                { id: "system", label: "System Auto", icon: <Monitor size={16} /> },
+              ].map((t) => {
+                const isActive = themeMode === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => handleThemeSelect(t.id as ThemeMode)}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                      padding: "16px 12px",
+                      borderRadius: 12,
+                      border: `2px solid ${isActive ? C.teal : C.border}`,
+                      background: isActive ? `${C.teal}12` : C.white,
+                      color: isActive ? C.tealDark : C.navy,
+                      fontWeight: isActive ? 700 : 600,
+                      fontSize: "0.82rem",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      transition: "all 0.2s ease",
+                      boxShadow: isActive ? "0 4px 12px rgba(26,123,107,0.15)" : "none",
+                    }}
+                  >
+                    {t.icon}
+                    <span>{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: "0.78rem", color: C.muted, lineHeight: 1.5, margin: "4px 0 0" }}>
+              Light mode is active by default across all pages and side navigation. You can also switch to Dark or System Auto.
+            </p>
           </Card>
 
           {/* Right Side: Security & Password */}

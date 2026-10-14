@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
+import { getInitialTheme, applyTheme } from "../lib/theme";
 import { AuthPage } from "../components/AuthPage";
 import { LandingPage } from "../components/LandingPage";
 import { Dashboard } from "../components/Dashboard";
@@ -97,7 +98,7 @@ const SidebarNavItem = ({
         background: isActive 
           ? `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)` 
           : "transparent",
-        color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.75)",
+        color: isActive ? "#FFFFFF" : "var(--sidebar-muted)",
         fontWeight: isActive ? 700 : 500,
         fontSize: "0.875rem",
         cursor: "pointer",
@@ -110,14 +111,14 @@ const SidebarNavItem = ({
       title={showCollapsed ? item.label : undefined}
       onMouseOver={(e) => {
         if (!isActive) {
-          e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-          e.currentTarget.style.color = "#FFFFFF";
+          e.currentTarget.style.background = "var(--sidebar-hover-bg)";
+          e.currentTarget.style.color = "var(--sidebar-text)";
         }
       }}
       onMouseOut={(e) => {
         if (!isActive) {
           e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "rgba(255,255,255,0.75)";
+          e.currentTarget.style.color = "var(--sidebar-muted)";
         }
       }}
     >
@@ -171,10 +172,10 @@ export default function TaxWiseSaaS() {
 
   const refreshUser = async () => {
     try {
-      // Race getSession with a 1500ms timeout so it never hangs in iframe or offline contexts
+      // Race getSession with a 5000ms timeout so it never hangs in iframe or offline contexts
       const sessionPromise = supabase.auth.getSession();
       const sessionTimeout = new Promise<{ data: { session: null }; error: null }>((resolve) =>
-        setTimeout(() => resolve({ data: { session: null }, error: null }), 1500)
+        setTimeout(() => resolve({ data: { session: null }, error: null }), 5000)
       );
       const { data: { session } } = await Promise.race([sessionPromise, sessionTimeout]);
       
@@ -189,11 +190,11 @@ export default function TaxWiseSaaS() {
             .eq("id", session.user.id)
             .single();
           const profileTimeout = new Promise<{ data: null; error: unknown }>((resolve) =>
-            setTimeout(() => resolve({ data: null, error: new Error("Profile timeout") }), 1500)
+            setTimeout(() => resolve({ data: null, error: new Error("Profile timeout") }), 5000)
           );
           const { data, error } = await Promise.race([profilePromise, profileTimeout]);
 
-          if (error) {
+          if (error && (error as Error)?.message !== "Profile timeout") {
             console.warn("Could not load database profile, falling back to auth metadata:", error);
           }
 
@@ -239,6 +240,8 @@ export default function TaxWiseSaaS() {
   };
 
   useEffect(() => {
+    applyTheme(getInitialTheme());
+
     // Failsafe timer: loading state MUST clear within 1200ms so the UI is immediately responsive
     const failsafeTimer = setTimeout(() => {
       setLoading(false);
@@ -522,24 +525,24 @@ export default function TaxWiseSaaS() {
 
         <div style={{ 
           padding: isCollapsed && !isMobile ? "20px 0" : "26px 24px 20px", 
-          borderBottom: "1px solid rgba(255,255,255,.05)",
+          borderBottom: "1px solid var(--sidebar-border)",
           display: "flex",
           flexDirection: isCollapsed && !isMobile ? "column" : "row",
           alignItems: "center",
           justifyContent: isCollapsed && !isMobile ? "center" : "space-between"
         }}>
           {isCollapsed && !isMobile ? (
-            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "#FFFFFF", fontWeight: 800 }}>
-              T<span style={{ color: "#4DD9C0" }}>W</span>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "var(--sidebar-text)", fontWeight: 800 }}>
+              T<span style={{ color: "var(--color-teal)" }}>W</span>
             </div>
           ) : (
             <>
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "#FFFFFF", fontWeight: 800, letterSpacing: "-0.01em" }}>
-                  Tax<span style={{ color: "#4DD9C0" }}>Wise</span>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "var(--sidebar-text)", fontWeight: 800, letterSpacing: "-0.01em" }}>
+                  Tax<span style={{ color: "var(--color-teal)" }}>Wise</span>
                 </div>
                 {!isMobile && (
-                  <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,.35)", marginTop: 4, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  <div style={{ fontSize: "0.7rem", color: "var(--sidebar-subtext)", marginTop: 4, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>
                     Uganda Tax Platform
                   </div>
                 )}
@@ -551,7 +554,7 @@ export default function TaxWiseSaaS() {
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
-                    color: "rgba(255,255,255,0.7)",
+                    color: "var(--sidebar-muted)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -584,8 +587,8 @@ export default function TaxWiseSaaS() {
         {/* PROFILE SECTION */}
         <div style={{ 
           padding: isCollapsed && !isMobile ? "18px 10px" : "18px 20px", 
-          borderTop: "1px solid rgba(255,255,255,.05)", 
-          background: "rgba(15, 32, 68, 0.2)",
+          borderTop: "1px solid var(--sidebar-border)", 
+          background: "var(--sidebar-hover-bg)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center"
@@ -608,7 +611,7 @@ export default function TaxWiseSaaS() {
               transition: "background 0.2s ease, transform 0.15s ease",
               width: isCollapsed && !isMobile ? "auto" : "100%",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--sidebar-hover-bg)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             title={isCollapsed && !isMobile ? activeUser.full_name : undefined}
           >
@@ -632,13 +635,13 @@ export default function TaxWiseSaaS() {
             </div>
             {!(isCollapsed && !isMobile) && (
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--sidebar-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {activeUser.full_name}
                 </div>
-                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,.4)", display: "flex", alignItems: "center", gap: 4 }}>
+                <div style={{ fontSize: "0.72rem", color: "var(--sidebar-subtext)", display: "flex", alignItems: "center", gap: 4 }}>
                   <span>{activeUser.role}</span>
                   <span>•</span>
-                  <span style={{ color: "#4DD9C0", fontWeight: 700 }}>{activeUser.plan?.toUpperCase()}</span>
+                  <span style={{ color: C.teal, fontWeight: 700 }}>{activeUser.plan?.toUpperCase()}</span>
                 </div>
               </div>
             )}
@@ -649,12 +652,12 @@ export default function TaxWiseSaaS() {
               display: "flex",
               alignItems: "center",
               gap: isCollapsed && !isMobile ? 0 : 8,
-              fontSize: "0.9rem",
-              fontWeight: 700,
-              color: "#FFFFFF",
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              borderRadius: 14,
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              color: "var(--sidebar-text)",
+              background: "var(--sidebar-hover-bg)",
+              border: "1px solid var(--sidebar-border)",
+              borderRadius: 12,
               cursor: "pointer",
               fontFamily: "inherit",
               padding: isCollapsed && !isMobile ? "10px" : "10px 16px",
@@ -664,12 +667,14 @@ export default function TaxWiseSaaS() {
             }}
             title={isCollapsed && !isMobile ? "Sign Out" : undefined}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.18)";
-              e.currentTarget.style.color = C.red;
+              e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
+              e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+              e.currentTarget.style.color = "#EF4444";
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.color = "#FFFFFF";
+              e.currentTarget.style.background = "var(--sidebar-hover-bg)";
+              e.currentTarget.style.borderColor = "var(--sidebar-border)";
+              e.currentTarget.style.color = "var(--sidebar-text)";
             }}
           >
             <LogOut size={15} />
