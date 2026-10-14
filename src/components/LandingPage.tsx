@@ -448,7 +448,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   ];
 
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "var(--landing-bg)", color: "var(--landing-text)", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", background: "var(--landing-bg)", color: "var(--landing-text)", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
 
       {/* DYNAMIC SCROLL PROGRESS BAR */}
       <div style={{ position: "fixed", top: 0, left: 0, height: "3.5px", background: "#1A7B6B", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out", pointerEvents: "none" }} />
@@ -820,12 +820,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               {/* Main Headline */}
               <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(2.2rem, 3.8vw, 3.4rem)", fontWeight: 800, color: "var(--landing-text)", lineHeight: 1.15, letterSpacing: "-0.025em" }}>
-                Statutory Tax Defense &amp; Precision Calculators for Uganda.
+                Professional Legal &amp; Tax Intelligence for Uganda
               </h1>
 
               {/* Subheadline */}
               <p style={{ fontSize: "1.05rem", color: "var(--landing-muted)", lineHeight: 1.68, maxWidth: 560 }}>
-                Instant PAYE, VAT, and vehicle customs valuations backed by 68+ binding Tax Appeals Tribunal (TAT) rulings, ITA Cap 340, and VATA Cap 349 statutory provisions.
+                AI case analysis, TAT precedent research, live tax &amp; import calculators, and compliance checking tools - purpose-built for Uganda&apos;s tax ecosystem.
               </p>
 
               {/* CTA Row */}
