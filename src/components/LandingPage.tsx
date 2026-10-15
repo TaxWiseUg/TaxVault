@@ -145,11 +145,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [legalTab, setLegalTab] = useState<"privacy" | "terms" | "blog">("privacy");
 
   // Hero interactive calculator mode
-  const [heroCalcTab, setHeroCalcTab] = useState<"paye" | "vat" | "customs">("paye");
+  const [heroCalcTab, setHeroCalcTab] = useState<"paye" | "rental">("paye");
 
   // Hero PAYE Calculator state
   const [grossPaye, setGrossPaye] = useState<number>(3500000);
   const NSSF_RATE = 0.05;
+
+  // Hero Rental Tax Calculator state
+  const [annualRental, setAnnualRental] = useState<number>(18000000); // 18M UGX annual rental income
+  const RENTAL_THRESHOLD = 2820000;
+  const RENTAL_RATE = 0.12;
+
+  const rentalChargeable = Math.max(0, annualRental - RENTAL_THRESHOLD);
+  const rentalTaxPayable = Math.round(rentalChargeable * RENTAL_RATE);
+  const rentalEffectiveRate = annualRental > 0 ? ((rentalTaxPayable / annualRental) * 100).toFixed(1) + "%" : "0%";
 
   function calcPaye(income: number): number {
     let tax = 0;
@@ -1031,8 +1040,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div style={{ display: "flex", gap: 4, background: "var(--landing-surface)", padding: "3px", borderRadius: 8, border: "1px solid var(--landing-border)" }}>
                   {[
                     { id: "paye", label: "PAYE", icon: <Calculator size={12} /> },
-                    { id: "vat", label: "VAT 18%", icon: <Receipt size={12} /> },
-                    { id: "customs", label: "Customs", icon: <Car size={12} /> },
+                    { id: "rental", label: "Rental Tax", icon: <Building2 size={12} /> },
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -1204,16 +1212,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     </div>
                   )}
 
-                  {/* TAB 2 - LIVE VAT & WHT */}
-                  {heroCalcTab === "vat" && (
+                  {/* TAB 2 - LIVE RENTAL TAX */}
+                  {heroCalcTab === "rental" && (
                     <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
                       <div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                          <label htmlFor="hero-vat" style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)" }}>
-                            Commercial Invoice Value
+                          <label htmlFor="hero-rental" style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)" }}>
+                            Gross Annual Rental Income
                           </label>
                           <span style={{ fontSize: ".82rem", fontWeight: 800, color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>
-                            {money(vatAmount)}
+                            {money(annualRental)}
                           </span>
                         </div>
                         <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
@@ -1221,12 +1229,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                             UGX
                           </span>
                           <input
-                            id="hero-vat"
+                            id="hero-rental"
                             type="number"
                             min="0"
                             step="500000"
-                            value={vatAmount}
-                            onChange={(e) => setVatAmount(Math.max(0, Number(e.target.value) || 0))}
+                            value={annualRental}
+                            onChange={(e) => setAnnualRental(Math.max(0, Number(e.target.value) || 0))}
                             style={{
                               width: "100%",
                               padding: "10px 14px 10px 50px",
@@ -1243,164 +1251,97 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         </div>
                       </div>
 
-                      {/* Mode switch: Exclusive vs Inclusive */}
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <button
-                          type="button"
-                          onClick={() => setVatMode("exclusive")}
+                      {/* Range Slider for Rental */}
+                      <div>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".68rem", color: "var(--landing-muted)", marginBottom: 6 }}>
+                          <span>Slide Annual Rental Income</span>
+                          <span style={{ color: "#1A7B6B", fontWeight: 700 }}>0 to 100,000,000+</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100000000"
+                          step="500000"
+                          value={annualRental}
+                          onChange={(e) => setAnnualRental(Math.max(0, Number(e.target.value) || 0))}
+                          className="tw-slider"
                           style={{
-                            flex: 1,
-                            padding: "7px 10px",
-                            borderRadius: 6,
-                            fontSize: ".74rem",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            background: vatMode === "exclusive" ? "rgba(26, 123, 107, 0.12)" : "var(--landing-bg)",
-                            border: vatMode === "exclusive" ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
-                            color: vatMode === "exclusive" ? "#1A7B6B" : "var(--landing-text)",
-                            transition: "all 0.15s ease"
+                            width: "100%",
+                            background: `linear-gradient(to right, #1A7B6B ${Math.min(100, (annualRental / 100000000) * 100)}%, var(--landing-border) ${Math.min(100, (annualRental / 100000000) * 100)}%)`
                           }}
-                        >
-                          VAT Exclusive (+18%)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setVatMode("inclusive")}
-                          style={{
-                            flex: 1,
-                            padding: "7px 10px",
-                            borderRadius: 6,
-                            fontSize: ".74rem",
-                            fontWeight: 700,
-                            cursor: "pointer",
-                            background: vatMode === "inclusive" ? "rgba(26, 123, 107, 0.12)" : "var(--landing-bg)",
-                            border: vatMode === "inclusive" ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
-                            color: vatMode === "inclusive" ? "#1A7B6B" : "var(--landing-text)",
-                            transition: "all 0.15s ease"
-                          }}
-                        >
-                          VAT Inclusive (18/118)
-                        </button>
-                      </div>
-
-                      {/* VAT & WHT Result Cards */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <div style={{ background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.25)", borderRadius: 10, padding: "12px" }}>
-                          <span style={{ fontSize: ".7rem", color: "#1A7B6B", fontWeight: 700, textTransform: "uppercase" }}>Standard VAT (18%)</span>
-                          <strong style={{ fontSize: "1.1rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
-                            {money(vatCalculated)}
-                          </strong>
-                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)" }}>Input credit reclaimable</span>
-                        </div>
-                        <div style={{ background: "rgba(200, 146, 42, 0.08)", border: "1px solid rgba(200, 146, 42, 0.25)", borderRadius: 10, padding: "12px" }}>
-                          <span style={{ fontSize: ".7rem", color: "#C8922A", fontWeight: 700, textTransform: "uppercase" }}>Withholding Tax (6%)</span>
-                          <strong style={{ fontSize: "1.1rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
-                            {money(whtCalculated)}
-                          </strong>
-                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)" }}>URA Form DT-104 deposit</span>
+                        />
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".65rem", color: "var(--landing-muted)", marginTop: 4 }}>
+                          <span>0</span>
+                          <span>2.82M (Threshold)</span>
+                          <span>50M</span>
+                          <span>100M</span>
                         </div>
                       </div>
 
-                      {/* eFRIS Compliance Banner */}
-                      <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "10px 12px", fontSize: ".72rem", display: "flex", alignItems: "center", gap: 8 }}>
-                        <ShieldCheck size={16} style={{ color: "#16A34A", flexShrink: 0 }} />
-                        <span style={{ color: "var(--landing-text)" }}>
-                          Under URA eFRIS guidelines, transactions exceeding UGX 5,000,000 require fiscal receipt reconciliation for input VAT eligibility.
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* TAB 3 - LIVE CUSTOMS */}
-                  {heroCalcTab === "customs" && (
-                    <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 10 }}>
-                        <div>
-                          <label htmlFor="hero-cif" style={{ fontSize: ".74rem", fontWeight: 700, color: "var(--landing-text)", display: "block", marginBottom: 4 }}>
-                            CIF Value (USD)
-                          </label>
-                          <input
-                            id="hero-cif"
-                            type="number"
-                            min="1000"
-                            step="500"
-                            value={cifUsd}
-                            onChange={(e) => setCifUsd(Math.max(0, Number(e.target.value) || 0))}
+                      {/* Preset Quick Chips for Rental */}
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {[
+                          { label: "5M", val: 5000000 },
+                          { label: "15M", val: 15000000 },
+                          { label: "35M", val: 35000000 },
+                          { label: "80M", val: 80000000 },
+                        ].map(p => (
+                          <button
+                            key={p.label}
+                            type="button"
+                            onClick={() => setAnnualRental(p.val)}
                             style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              background: "var(--landing-bg)",
-                              border: "1.5px solid var(--landing-border)",
-                              borderRadius: 8,
-                              fontSize: ".85rem",
-                              fontWeight: 700,
-                              color: "var(--landing-text)",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              outline: "none"
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <label htmlFor="hero-year" style={{ fontSize: ".74rem", fontWeight: 700, color: "var(--landing-text)", display: "block", marginBottom: 4 }}>
-                            Manufacture Year
-                          </label>
-                          <select
-                            id="hero-year"
-                            value={vehicleYear}
-                            onChange={(e) => setVehicleYear(Number(e.target.value))}
-                            style={{
-                              width: "100%",
-                              padding: "8px 10px",
-                              background: "var(--landing-bg)",
-                              border: "1.5px solid var(--landing-border)",
-                              borderRadius: 8,
-                              fontSize: ".85rem",
-                              fontWeight: 700,
-                              color: "var(--landing-text)",
-                              fontFamily: "inherit",
-                              outline: "none"
+                              padding: "5px 11px",
+                              borderRadius: 6,
+                              fontSize: ".7rem",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              background: annualRental === p.val ? "rgba(26, 123, 107, 0.15)" : "var(--landing-bg)",
+                              border: annualRental === p.val ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
+                              color: annualRental === p.val ? "#1A7B6B" : "var(--landing-text)",
+                              transition: "all 0.15s ease",
+                              boxShadow: annualRental === p.val ? "0 2px 6px rgba(26, 123, 107, 0.15)" : "none"
                             }}
                           >
-                            {[2024, 2022, 2020, 2018, 2017, 2016, 2015, 2014, 2012, 2010].map(y => (
-                              <option key={y} value={y}>{y} ({2026 - y} yrs old)</option>
-                            ))}
-                          </select>
-                        </div>
+                            UGX {p.label}
+                          </button>
+                        ))}
                       </div>
 
-                      {/* Total Estimated Taxes */}
-                      <div style={{ background: "rgba(26, 123, 107, 0.08)", border: "1.5px solid rgba(26, 123, 107, 0.25)", borderRadius: 12, padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      {/* Rental Tax Highlight Card */}
+                      <div style={{ background: "rgba(26, 123, 107, 0.08)", border: "1.5px solid rgba(26, 123, 107, 0.25)", borderRadius: 12, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
-                          <span style={{ fontSize: ".7rem", color: "#1A7B6B", fontWeight: 700, textTransform: "uppercase" }}>Total URA Customs Taxes</span>
-                          <strong style={{ fontSize: "1.25rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
-                            {money(totalCustomsTax)}
+                          <span style={{ fontSize: ".7rem", color: "#1A7B6B", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>
+                            Rental Tax Payable (Annual)
+                          </span>
+                          <strong style={{ fontSize: "1.3rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: 2 }}>
+                            {money(rentalTaxPayable)}
                           </strong>
+                          <span style={{ fontSize: ".68rem", color: "var(--landing-muted)" }}>
+                            12% on annual rental income exceeding UGX 2.82M threshold
+                          </span>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)", display: "block" }}>CIF Base</span>
-                          <span style={{ fontSize: ".85rem", fontWeight: 700, color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>
-                            {money(cifUgx)}
+                          <span style={{ fontSize: ".65rem", color: "var(--landing-muted)", display: "block" }}>Effective Rate</span>
+                          <span style={{ fontSize: "1rem", fontWeight: 800, color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {rentalEffectiveRate}
                           </span>
                         </div>
                       </div>
 
-                      {/* Customs Tax Line Breakdown */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: ".72rem" }}>
-                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
-                          <span style={{ color: "var(--landing-muted)" }}>Import Duty (25%):</span>
-                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(importDuty)}</strong>
+                      {/* Breakdown Metrics */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "10px 12px" }}>
+                          <span style={{ fontSize: ".68rem", color: "#1A7B6B", fontWeight: 700, display: "block" }}>Exemption Threshold</span>
+                          <strong style={{ fontSize: ".92rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {money(2820000)}
+                          </strong>
                         </div>
-                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
-                          <span style={{ color: "var(--landing-muted)" }}>Env. Levy ({Math.round(envLevyRate * 100)}%):</span>
-                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(envLevy)}</strong>
-                        </div>
-                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
-                          <span style={{ color: "var(--landing-muted)" }}>Import VAT (18%):</span>
-                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(vatCustoms)}</strong>
-                        </div>
-                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, padding: "6px 10px" }}>
-                          <span style={{ color: "var(--landing-muted)" }}>Withholding (6%):</span>
-                          <strong style={{ display: "block", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{money(whtCustoms)}</strong>
+                        <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "10px 12px" }}>
+                          <span style={{ fontSize: ".68rem", color: "#C8922A", fontWeight: 700, display: "block" }}>Chargeable Income</span>
+                          <strong style={{ fontSize: ".92rem", color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>
+                            {money(rentalChargeable)}
+                          </strong>
                         </div>
                       </div>
                     </div>

@@ -119,36 +119,50 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0, isLate: false });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0, isLate: false, isCountUp: false });
 
-  // Timer interval for URA statutory deadline countdown to 15th of every month (midnight)
+  // Timer interval for URA statutory deadline countdown / count-up overdue until end of month
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth(); // 0-11
       
-      // Target is 15th of current month at 23:59:59 (11:59 PM)
-      let targetDate = new Date(currentYear, currentMonth, 15, 23, 59, 59);
-      
-      // If we are past the 15th of this month at 11:59 PM, target is the 15th of next month at 11:59 PM
-      if (now.getTime() > targetDate.getTime()) {
-        targetDate = new Date(currentYear, currentMonth + 1, 15, 23, 59, 59);
+      // Target deadline for September returns: October 15, 2026 at 23:59:59
+      const deadline = new Date(2026, 9, 15, 23, 59, 59);
+      // End of October 2026: October 31, 2026 at 23:59:59
+      const endOfMonth = new Date(2026, 9, 31, 23, 59, 59);
+
+      if (isSeptemberFiled) {
+        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0, isLate: false, isCountUp: false });
+        return;
       }
 
-      // Check if late (past 11:59 PM of the 15th of October 2026 for September returns)
-      const septDeadline = new Date(2026, 9, 15, 23, 59, 59);
-      const isLate = !isSeptemberFiled && now.getTime() > septDeadline.getTime();
-
-      const diff = targetDate.getTime() - now.getTime();
-      if (diff <= 0) {
-        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0, isLate });
-      } else {
+      if (now.getTime() <= deadline.getTime()) {
+        // Countdown to deadline
+        const diff = deadline.getTime() - now.getTime();
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
         const mins = Math.floor((diff / 1000 / 60) % 60);
         const secs = Math.floor((diff / 1000) % 60);
-        setTimeLeft({ days, hours, mins, secs, isLate });
+        setTimeLeft({ days, hours, mins, secs, isLate: false, isCountUp: false });
+      } else if (now.getTime() > deadline.getTime() && now.getTime() <= endOfMonth.getTime()) {
+        // Count up overdue time from deadline until end of month
+        const diff = now.getTime() - deadline.getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+        setTimeLeft({ days, hours, mins, secs, isLate: true, isCountUp: true });
+      } else {
+        // After month ends, reset to start countdown for next month (October returns due Nov 15)
+        const nextDeadline = new Date(2026, 10, 15, 23, 59, 59);
+        const diff = nextDeadline.getTime() - now.getTime();
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+        setTimeLeft({ days: Math.max(0, days), hours: Math.max(0, hours), mins: Math.max(0, mins), secs: Math.max(0, secs), isLate: false, isCountUp: false });
       }
     };
 
@@ -552,12 +566,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              flexWrap: "wrap",
-              gap: 20,
+              flexWrap: "nowrap",
+              gap: 24,
               transition: "all 0.25s ease",
               width: "100%"
             }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 18 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 18, flex: 1, minWidth: 0 }}>
                 {/* Date Badge */}
                 <div style={{ 
                   background: badgeGrad, 
@@ -577,7 +591,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   </div>
                 </div>
 
-                <div>
+                <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: "0.72rem", fontWeight: 800, color: labelColor, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>
                     {isSeptemberFiled ? "Statutory Obligation Completed" : "URA Statutory Filing Obligation"}
                   </div>
@@ -589,7 +603,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: "0.82rem", color: "#64748B", margin: 0, lineHeight: 1.4, maxWidth: 620 }}>
+                  <p style={{ fontSize: "0.82rem", color: "#64748B", margin: 0, lineHeight: 1.4, maxWidth: "100%" }}>
                     {isSeptemberFiled 
                       ? "September 2026 PAYE, withholding tax and VAT returns recorded as successfully filed with URA."
                       : "File and pay PAYE, withholding tax and VAT before Thursday 15 October 2026 at 11:59 PM to avoid penalties & interest."}
@@ -597,10 +611,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0, flexWrap: "nowrap" }}>
                 {!isSeptemberFiled ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FFFFFF", padding: "10px 16px", borderRadius: 12, border: timerBorder, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>
-                    {timeLeft.isLate ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FFFFFF", padding: "10px 16px", borderRadius: 12, border: timerBorder, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", flexShrink: 0 }}>
+                    {timeLeft.isCountUp ? (
+                      <span style={{ color: "#DC2626", fontWeight: 800, fontSize: "0.92rem", fontFamily: "monospace" }}>
+                        +{timeLeft.days > 0 ? `${timeLeft.days}d ` : ""}{String(timeLeft.hours).padStart(2, '0')}h {String(timeLeft.mins).padStart(2, '0')}m {String(timeLeft.secs).padStart(2, '0')}s OVERDUE
+                      </span>
+                    ) : timeLeft.isLate ? (
                       <span style={{ color: "#DC2626", fontWeight: 800, fontSize: "0.9rem" }}>
                         ⚠️ LATE / OVERDUE (Past 11:59 PM 15th)
                       </span>
@@ -632,7 +650,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                     )}
                   </div>
                 ) : (
-                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#15803D", background: "rgba(22,163,74,0.15)", padding: "10px 16px", borderRadius: 10 }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#15803D", background: "rgba(22,163,74,0.15)", padding: "10px 16px", borderRadius: 10, flexShrink: 0 }}>
                     ✓ Zero outstanding exposure
                   </span>
                 )}
