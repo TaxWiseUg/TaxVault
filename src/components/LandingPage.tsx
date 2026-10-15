@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
   Car, Calculator, ShieldCheck, Mail, Check, Copy, CheckCircle2,
   FileText, Cpu, TrendingUp, Building2, Globe, Sparkles, 
-  Menu, X, ArrowRight, Receipt, FileCheck, Home
+  Menu, X, ArrowRight, Receipt, FileCheck, Home, Clock
 } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 
@@ -402,58 +402,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     );
   });
 
-  const plans = [
+  const plans: Array<{
+    name: string;
+    price?: string;
+    period?: string;
+    features?: string[];
+    cta?: string;
+    popular?: boolean;
+    comingSoon: boolean;
+  }> = [
     { 
       name: "Starter", 
-      price: "Free", 
-      period: "Forever", 
-      desc: "Essential tools for students, independent accountants, and quick checks.",
+      price: "50K", 
+      period: "/ month", 
       features: [
-        "5 Case analyses per month", 
-        "Basic TAT library precedent search", 
-        "Live PAYE, VAT & WHT calculators", 
-        "Vehicle customs duty estimator", 
-        "Community email support"
+        "10 case analyses/month", 
+        "Basic case summaries", 
+        "Learning Hub access", 
+        "PDF report export", 
+        "Email support"
       ], 
-      cta: "Get Started Free", 
+      cta: "Start Starter Plan", 
       popular: false,
       comingSoon: false
     },
     { 
       name: "Professional", 
-      price: "Coming Soon", 
-      period: "/ month", 
-      desc: "Designed for active tax consultants, auditors, and finance managers.",
-      features: [
-        "Unlimited case law & notice analyses", 
-        "Full TAT 68+ precedent archive with holdings", 
-        "All 6 statutory tax & import calculators", 
-        "eFRIS, VAT & PAYE statutory compliance checklists", 
-        "Downloadable PDF advisory defense briefs", 
-        "Priority live support"
-      ], 
-      cta: "Coming Soon", 
-      popular: false,
+      price: "150K",
+      period: "/ month",
+      popular: true,
       comingSoon: true,
-      badge: "COMING SOON"
     },
     { 
-      name: "Firm & Enterprise", 
-      price: "Coming Soon", 
-      period: "/ month", 
-      desc: "Complete statutory intelligence engine for multi-partner accounting & legal practices.",
-      features: [
-        "Everything in Professional", 
-        "Up to 8 team member seats", 
-        "Practice-wide precedent sharing & notes", 
-        "Dedicated firm account onboarding", 
-        "ICPAU CPD-eligible certificates", 
-        "Custom API & integration support"
-      ], 
-      cta: "Coming Soon", 
+      name: "Firm", 
+      price: "400K",
+      period: "/ month",
       popular: false,
       comingSoon: true,
-      badge: "COMING SOON"
     },
   ];
 
@@ -999,19 +984,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>ITA Cap 340 · VATA Cap 349</span>
                 </span>
               </div>
-
-              {/* Mini Client Testimonial Pill */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, background: "var(--landing-surface)", border: "1px solid var(--landing-border)", padding: "10px 14px", borderRadius: 12, marginTop: 4 }}>
-                <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#1A7B6B", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".75rem", fontWeight: 700, flexShrink: 0 }}>
-                  SN
-                </div>
-                <div style={{ fontSize: ".76rem", color: "var(--landing-text)", lineHeight: 1.4 }}>
-                  <span style={{ fontStyle: "italic" }}>&ldquo;TaxWise retrieved a vital TAT precedent in 4 seconds during our URA objection.&rdquo;</span>
-                  <div style={{ fontWeight: 700, color: "var(--landing-muted)", fontSize: ".7rem", marginTop: 2 }}>
-                    Sarah Nakato — Senior Tax Consultant, Kampala
-                  </div>
-                </div>
-              </div>
             </motion.div>
 
             {/* RIGHT COLUMN: Interactive Live Calculator Card */}
@@ -1388,56 +1360,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ══════════════════════════════════════════════════════════════
           2. IMPACT & STAT BAND
       ══════════════════════════════════════════════════════════════ */}
-      <section style={{ background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)", padding: "40px 5%" }}>
+      <section style={{ background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)", padding: "36px 5%" }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <div className="tw-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24, textAlign: "center" }}>
-            <div style={{ padding: "8px 12px" }}>
-              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>
-                <CountingNumber value={dynamicStats.cases} />
+          <div className="tw-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 20, textAlign: "center" }}>
+            {[
+              { val: dynamicStats.cases, label: "Cases Analyzed", desc: "Audit objections & tribunal rulings", color: "#1A7B6B" },
+              { val: dynamicStats.timeSaved, label: "Research Time Saved", desc: "Compared to manual PDF searches", color: "#C8922A" },
+              { val: dynamicStats.practitioners, label: "Active Practitioners", desc: "Ugandan tax advisors & accountants", color: "#0F2044" },
+              { val: dynamicStats.calculators, label: "Statutory Calculators", desc: "PAYE, VAT, Corporate, Customs & Rental", color: "#16A34A" },
+            ].map((stat) => (
+              <div 
+                key={stat.label}
+                className="tw-card-interactive" 
+                style={{ 
+                  background: "var(--landing-bg)", 
+                  border: "1px solid var(--landing-border)", 
+                  borderRadius: 14, 
+                  padding: "18px 16px",
+                  boxShadow: "0 2px 10px rgba(15, 32, 68, 0.03)",
+                  position: "relative",
+                  overflow: "hidden"
+                }}
+              >
+                <div style={{ position: "absolute", top: 0, left: "20%", right: "20%", height: 2, background: stat.color, borderRadius: "0 0 2px 2px", opacity: 0.8 }} />
+                <div style={{ fontSize: "2rem", fontWeight: 800, color: stat.color, fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.1 }}>
+                  <CountingNumber value={stat.val} />
+                </div>
+                <div style={{ fontSize: ".8rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 6, letterSpacing: "-0.01em" }}>
+                  {stat.label}
+                </div>
+                <div style={{ fontSize: ".71rem", color: "var(--landing-muted)", marginTop: 2, lineHeight: 1.35 }}>
+                  {stat.desc}
+                </div>
               </div>
-              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
-                Cases Analyzed
-              </div>
-              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
-                Audit objections &amp; tribunal rulings
-              </div>
-            </div>
-
-            <div style={{ padding: "8px 12px" }}>
-              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#C8922A", fontFamily: "'JetBrains Mono', monospace" }}>
-                <CountingNumber value={dynamicStats.timeSaved} />
-              </div>
-              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
-                Research Time Saved
-              </div>
-              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
-                Compared to manual PDF searches
-              </div>
-            </div>
-
-            <div style={{ padding: "8px 12px" }}>
-              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#0F2044", fontFamily: "'JetBrains Mono', monospace" }}>
-                <CountingNumber value={dynamicStats.practitioners} />
-              </div>
-              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
-                Active Practitioners
-              </div>
-              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
-                Ugandan tax advisors &amp; accountants
-              </div>
-            </div>
-
-            <div style={{ padding: "8px 12px" }}>
-              <div style={{ fontSize: "2rem", fontWeight: 800, color: "#16A34A", fontFamily: "'JetBrains Mono', monospace" }}>
-                <CountingNumber value={dynamicStats.calculators} />
-              </div>
-              <div style={{ fontSize: ".78rem", fontWeight: 700, color: "var(--landing-text)", marginTop: 4 }}>
-                Statutory Calculators
-              </div>
-              <div style={{ fontSize: ".7rem", color: "var(--landing-muted)", marginTop: 2 }}>
-                PAYE, VAT, Corporate, Customs &amp; Rental
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -1445,106 +1401,182 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ══════════════════════════════════════════════════════════════
           3. INTERACTIVE LIVE CALCULATOR SUITE SHOWCASE
       ══════════════════════════════════════════════════════════════ */}
-      <section id="calculators-showcase" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
+      <section id="calculators-showcase" className="tw-section" style={{ padding: "64px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}>
-            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#1A7B6B", letterSpacing: ".08em", textTransform: "uppercase" }}>
-              Live Calculation Suite
-            </span>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+          <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 40px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 20, background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.2)", color: "#1A7B6B", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 12 }}>
+              <Sparkles size={13} style={{ color: "#1A7B6B" }} />
+              <span>Live Statutory Calculation Suite</span>
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.85rem, 3.2vw, 2.5rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 4, marginBottom: 12, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
               Every Statutory Tax Tool Uganda Experts Require
             </h2>
-            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
+            <p style={{ fontSize: ".92rem", color: "var(--landing-muted)", lineHeight: 1.6, maxWidth: 660, margin: "0 auto" }}>
               Built according to the Income Tax (Amendment) Act 2026, Value Added Tax Act Cap 349, and East African Community Customs Management Act.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))", gap: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 420px), 1fr))", gap: 24, alignItems: "stretch" }}>
             
             {/* CARD 1: PAYE Payroll & Bracket Breakdown */}
-            <div className="tw-card-interactive" style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 16, padding: "28px", display: "flex", flexDirection: "column", gap: 18 }}>
+            <div 
+              className="tw-card-interactive" 
+              style={{ 
+                background: "var(--landing-surface)", 
+                border: "1.5px solid var(--landing-border)", 
+                borderRadius: 18, 
+                padding: "28px", 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: 18,
+                boxShadow: "0 4px 18px rgba(15, 32, 68, 0.04)"
+              }}
+            >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(26, 123, 107, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#1A7B6B" }}>
-                  <Calculator size={22} />
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, rgba(26, 123, 107, 0.14) 0%, rgba(26, 123, 107, 0.05) 100%)", border: "1px solid rgba(26, 123, 107, 0.22)", display: "flex", alignItems: "center", justifyContent: "center", color: "#1A7B6B", boxShadow: "0 2px 8px rgba(26, 123, 107, 0.08)" }}>
+                  <Calculator size={24} />
                 </div>
-                <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#1A7B6B", background: "rgba(26, 123, 107, 0.08)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(26, 123, 107, 0.2)" }}>
+                <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#1A7B6B", background: "rgba(26, 123, 107, 0.08)", padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(26, 123, 107, 0.22)", letterSpacing: "0.02em" }}>
                   ITA Cap 340 4th Sched
                 </span>
               </div>
+
               <div>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 6 }}>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 8, letterSpacing: "-0.01em" }}>
                   PAYE &amp; Employee Payroll Engine
                 </h3>
-                <p style={{ fontSize: ".82rem", color: "var(--landing-muted)", lineHeight: 1.5 }}>
+                <p style={{ fontSize: ".84rem", color: "var(--landing-muted)", lineHeight: 1.55, minHeight: 40 }}>
                   Calculates graduated statutory tax bands, the 10% high-earner surcharge exceeding UGX 10M, and mandatory 5% employee NSSF deductions.
                 </p>
               </div>
 
               {/* Mini Interactive Preview Element */}
-              <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 10, padding: "12px", fontSize: ".72rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontWeight: 700 }}>
+              <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 12, padding: "14px 16px", fontSize: ".74rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontWeight: 700 }}>
                   <span style={{ color: "var(--landing-muted)" }}>Benchmark UGX 4.5M Salary:</span>
-                  <span style={{ color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace" }}>UGX 3,025,000 Net</span>
+                  <span style={{ color: "#1A7B6B", fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, fontSize: ".85rem" }}>UGX 3,025,000 Net</span>
                 </div>
-                <div style={{ height: 6, background: "var(--landing-surface)", borderRadius: 3, display: "flex", overflow: "hidden", border: "1px solid var(--landing-border)" }}>
-                  <div style={{ width: "67%", background: "#16A34A" }} />
-                  <div style={{ width: "28%", background: "#1A7B6B" }} />
-                  <div style={{ width: "5%", background: "#C8922A" }} />
+                <div style={{ height: 7, background: "var(--landing-surface)", borderRadius: 4, display: "flex", overflow: "hidden", border: "1px solid var(--landing-border)" }}>
+                  <div style={{ width: "67%", background: "#16A34A" }} title="Net Take-Home Pay (67%)" />
+                  <div style={{ width: "28%", background: "#1A7B6B" }} title="PAYE Statutory Tax (28%)" />
+                  <div style={{ width: "5%", background: "#C8922A" }} title="Employee NSSF (5%)" />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, fontSize: ".66rem", color: "var(--landing-muted)" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16A34A" }} />
+                    <span>Take-Home (67%)</span>
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1A7B6B" }} />
+                    <span>PAYE (28%)</span>
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#C8922A" }} />
+                    <span>NSSF (5%)</span>
+                  </span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => { if (onNavigate) onNavigate("calculators"); else onGetStarted(); }}
-                style={{ marginTop: "auto", background: "none", border: "none", color: "#1A7B6B", fontWeight: 700, fontSize: ".84rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, padding: 0 }}
+                style={{ 
+                  marginTop: "auto", 
+                  background: "none", 
+                  border: "none", 
+                  color: "#1A7B6B", 
+                  fontWeight: 700, 
+                  fontSize: ".86rem", 
+                  cursor: "pointer", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: 6, 
+                  padding: "4px 0" 
+                }}
               >
                 <span>Launch PAYE Calculator</span>
-                <ArrowRight size={14} />
+                <ArrowRight size={15} />
               </button>
             </div>
 
-            {/* CARD 2: VAT & eFRIS Reconciliation */}
-            <div className="tw-card-interactive" style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 16, padding: "28px", display: "flex", flexDirection: "column", gap: 18 }}>
+            {/* CARD 2: Rental Income Tax Engine */}
+            <div 
+              className="tw-card-interactive" 
+              style={{ 
+                background: "var(--landing-surface)", 
+                border: "1.5px solid var(--landing-border)", 
+                borderRadius: 18, 
+                padding: "28px", 
+                display: "flex", 
+                flexDirection: "column", 
+                gap: 18,
+                boxShadow: "0 4px 18px rgba(15, 32, 68, 0.04)"
+              }}
+            >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: "rgba(200, 146, 42, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C8922A" }}>
-                  <Receipt size={22} />
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: "linear-gradient(135deg, rgba(200, 146, 42, 0.16) 0%, rgba(200, 146, 42, 0.05) 100%)", border: "1px solid rgba(200, 146, 42, 0.24)", display: "flex", alignItems: "center", justifyContent: "center", color: "#C8922A", boxShadow: "0 2px 8px rgba(200, 146, 42, 0.08)" }}>
+                  <Building2 size={24} />
                 </div>
-                <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#C8922A", background: "rgba(200, 146, 42, 0.08)", padding: "3px 8px", borderRadius: 4, border: "1px solid rgba(200, 146, 42, 0.2)" }}>
-                  VATA Cap 349 Sec 28
+                <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#C8922A", background: "rgba(200, 146, 42, 0.08)", padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(200, 146, 42, 0.22)", letterSpacing: "0.02em" }}>
+                  ITA Cap 340 Sec 5
                 </span>
               </div>
+
               <div>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 6 }}>
-                  VAT &amp; eFRIS Input Reconciler
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 8, letterSpacing: "-0.01em" }}>
+                  Rental Income Tax Engine
                 </h3>
-                <p style={{ fontSize: ".82rem", color: "var(--landing-muted)", lineHeight: 1.5 }}>
-                  Verifies standard 18% VAT calculations, input tax credit disallowance thresholds, and eFRIS fiscal receipt requirements.
+                <p style={{ fontSize: ".84rem", color: "var(--landing-muted)", lineHeight: 1.55, minHeight: 40 }}>
+                  Calculates 12% statutory rental tax on gross rent exceeding UGX 2,820,000 threshold for individuals, plus corporate 30% rental income assessment.
                 </p>
               </div>
 
               {/* Mini Interactive Preview Element */}
-              <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 10, padding: "12px", fontSize: ".72rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ color: "var(--landing-muted)" }}>VAT Exclusive Rate:</span>
-                  <strong style={{ color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>18.00%</strong>
+              <div style={{ background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 12, padding: "14px 16px", fontSize: ".74rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, fontWeight: 700 }}>
+                  <span style={{ color: "var(--landing-muted)" }}>Benchmark UGX 24M Annual Rent:</span>
+                  <span style={{ color: "#C8922A", fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, fontSize: ".85rem" }}>UGX 21,458,400 Net</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ color: "var(--landing-muted)" }}>eFRIS Threshold:</span>
-                  <strong style={{ color: "#16A34A", fontFamily: "'JetBrains Mono', monospace" }}>&gt; UGX 5,000,000</strong>
+                <div style={{ height: 7, background: "var(--landing-surface)", borderRadius: 4, display: "flex", overflow: "hidden", border: "1px solid var(--landing-border)" }}>
+                  <div style={{ width: "89.4%", background: "#16A34A" }} title="Net Rental Yield (89.4%)" />
+                  <div style={{ width: "10.6%", background: "#C8922A" }} title="Statutory Rental Tax (10.6%)" />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8, fontSize: ".66rem", color: "var(--landing-muted)" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16A34A" }} />
+                    <span>Net Yield (89.4%)</span>
+                  </span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#C8922A" }} />
+                    <span>12% Tax (&gt;2.82M)</span>
+                  </span>
+                  <span style={{ color: "#1A7B6B", fontWeight: 700 }}>
+                    Corporate: 30% Net
+                  </span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => { if (onNavigate) onNavigate("calculators"); else onGetStarted(); }}
-                style={{ marginTop: "auto", background: "none", border: "none", color: "#1A7B6B", fontWeight: 700, fontSize: ".84rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6, padding: 0 }}
+                style={{ 
+                  marginTop: "auto", 
+                  background: "none", 
+                  border: "none", 
+                  color: "#1A7B6B", 
+                  fontWeight: 700, 
+                  fontSize: ".86rem", 
+                  cursor: "pointer", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: 6, 
+                  padding: "4px 0" 
+                }}
               >
-                <span>Launch VAT Calculator</span>
-                <ArrowRight size={14} />
+                <span>Launch Rental Calculator</span>
+                <ArrowRight size={15} />
               </button>
             </div>
-
-
 
           </div>
         </div>
@@ -1553,16 +1585,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ══════════════════════════════════════════════════════════════
           4. SEARCHABLE TAT PRECEDENT ENGINE PREVIEW
       ══════════════════════════════════════════════════════════════ */}
-      <section id="precedents-section" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)" }}>
+      <section id="precedents-section" className="tw-section" style={{ padding: "64px 5%", background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)" }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 40px" }}>
-            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#C8922A", letterSpacing: ".08em", textTransform: "uppercase" }}>
-              Case Precedents Archive
-            </span>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+          <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 40px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 20, background: "rgba(200, 146, 42, 0.08)", border: "1px solid rgba(200, 146, 42, 0.22)", color: "#C8922A", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 12 }}>
+              <Scale size={13} style={{ color: "#C8922A" }} />
+              <span>Case Precedents Archive</span>
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.85rem, 3.2vw, 2.5rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 4, marginBottom: 12, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
               68+ Binding Tax Appeals Tribunal Precedents
             </h2>
-            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
+            <p style={{ fontSize: ".92rem", color: "var(--landing-muted)", lineHeight: 1.6, maxWidth: 660, margin: "0 auto" }}>
               Never search through thousands of dense PDF pages again. Instantly cite authoritative legal holdings and statutory citations that win URA objections.
             </p>
           </div>
@@ -1581,12 +1614,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   padding: "14px 16px 14px 48px",
                   background: "var(--landing-bg)",
                   border: "1.5px solid var(--landing-border)",
-                  borderRadius: 12,
+                  borderRadius: 14,
                   fontSize: ".88rem",
                   color: "var(--landing-text)",
                   fontFamily: "inherit",
                   outline: "none",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.03)"
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)"
                 }}
               />
               {precedentSearch && (
@@ -1617,7 +1650,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     background: precedentSearch === chip ? "rgba(26, 123, 107, 0.15)" : "var(--landing-bg)",
                     border: precedentSearch === chip ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
                     color: precedentSearch === chip ? "#1A7B6B" : "var(--landing-text)",
-                    padding: "4px 10px",
+                    padding: "4px 11px",
                     borderRadius: 20,
                     fontSize: ".7rem",
                     fontWeight: 600,
@@ -1639,18 +1672,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 className="tw-card-interactive"
                 style={{
                   background: "var(--landing-bg)",
-                  border: "1px solid var(--landing-border)",
-                  borderRadius: 14,
-                  padding: "22px",
+                  border: "1.5px solid var(--landing-border)",
+                  borderRadius: 18,
+                  padding: "26px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 12
+                  gap: 14,
+                  boxShadow: "0 4px 18px rgba(15, 32, 68, 0.04)"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 240 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#1A7B6B", background: "rgba(26, 123, 107, 0.1)", padding: "2px 8px", borderRadius: 4 }}>
+                      <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#1A7B6B", background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.22)", padding: "3px 10px", borderRadius: 6 }}>
                         {p.tag}
                       </span>
                       <button
@@ -1667,12 +1701,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 4,
-                          padding: "2px 8px",
-                          borderRadius: 4,
+                          padding: "3px 10px",
+                          borderRadius: 6,
                           background: copiedCitation === p.id ? "rgba(22, 163, 74, 0.12)" : "var(--landing-surface)",
                           border: copiedCitation === p.id ? "1px solid #16A34A" : "1px solid var(--landing-border)",
                           color: copiedCitation === p.id ? "#16A34A" : "var(--landing-muted)",
-                          fontSize: ".66rem",
+                          fontSize: ".68rem",
                           fontWeight: 700,
                           cursor: "pointer",
                           transition: "all 0.15s ease"
@@ -1683,19 +1717,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                         <span>{copiedCitation === p.id ? "Citation Copied" : "Copy Citation"}</span>
                       </button>
                     </div>
-                    <h3 style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 6, lineHeight: 1.3 }}>
+                    <h3 style={{ fontSize: "1.06rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 8, lineHeight: 1.35, letterSpacing: "-0.01em" }}>
                       {p.title}
                     </h3>
-                    <div style={{ fontSize: ".72rem", color: "var(--landing-muted)", marginTop: 2, fontFamily: "'JetBrains Mono', monospace" }}>
+                    <div style={{ fontSize: ".74rem", color: "var(--landing-muted)", marginTop: 3, fontFamily: "'JetBrains Mono', monospace" }}>
                       {p.citation}
                     </div>
                   </div>
-                  <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#16A34A", background: "rgba(22, 163, 74, 0.1)", border: "1px solid rgba(22, 163, 74, 0.25)", padding: "3px 8px", borderRadius: 4, whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#16A34A", background: "rgba(22, 163, 74, 0.08)", border: "1px solid rgba(22, 163, 74, 0.25)", padding: "4px 10px", borderRadius: 6, whiteSpace: "nowrap" }}>
                     {p.taxpayerWin}
                   </span>
                 </div>
 
-                <p style={{ fontSize: ".82rem", color: "var(--landing-text)", lineHeight: 1.55, margin: 0 }}>
+                <p style={{ fontSize: ".84rem", color: "var(--landing-text)", lineHeight: 1.55, margin: 0 }}>
                   {p.holding}
                 </p>
 
@@ -1707,7 +1741,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     background: "none",
                     border: "none",
                     color: "#1A7B6B",
-                    fontSize: ".74rem",
+                    fontSize: ".75rem",
                     fontWeight: 700,
                     cursor: "pointer",
                     display: "flex",
@@ -1730,31 +1764,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       transition={{ duration: 0.2 }}
                       style={{ overflow: "hidden" }}
                     >
-                      <div style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 8, padding: "12px", marginTop: 4, fontSize: ".75rem", display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ background: "var(--landing-surface)", border: "1px solid var(--landing-border)", borderRadius: 12, padding: "14px 16px", marginTop: 4, fontSize: ".76rem", display: "flex", flexDirection: "column", gap: 10 }}>
                         <div>
-                          <span style={{ fontWeight: 800, color: "#1A7B6B", textTransform: "uppercase", fontSize: ".65rem", letterSpacing: ".05em", display: "block" }}>Ratio Decidendi:</span>
-                          <p style={{ margin: "2px 0 0", color: "var(--landing-text)", lineHeight: 1.45 }}>{p.legalRatio}</p>
+                          <span style={{ fontWeight: 800, color: "#1A7B6B", textTransform: "uppercase", fontSize: ".66rem", letterSpacing: ".05em", display: "block" }}>Ratio Decidendi:</span>
+                          <p style={{ margin: "3px 0 0", color: "var(--landing-text)", lineHeight: 1.5 }}>{p.legalRatio}</p>
                         </div>
-                        <div style={{ borderTop: "1px dashed var(--landing-border)", paddingTop: 6 }}>
-                          <span style={{ fontWeight: 800, color: "#C8922A", textTransform: "uppercase", fontSize: ".65rem", letterSpacing: ".05em", display: "block" }}>Tactical Objection Application:</span>
-                          <p style={{ margin: "2px 0 0", color: "var(--landing-muted)", lineHeight: 1.45 }}>{p.tacticalAdvice}</p>
+                        <div style={{ borderTop: "1px dashed var(--landing-border)", paddingTop: 8 }}>
+                          <span style={{ fontWeight: 800, color: "#C8922A", textTransform: "uppercase", fontSize: ".66rem", letterSpacing: ".05em", display: "block" }}>Tactical Objection Application:</span>
+                          <p style={{ margin: "3px 0 0", color: "var(--landing-muted)", lineHeight: 1.5 }}>{p.tacticalAdvice}</p>
                         </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--landing-border)", paddingTop: 10, marginTop: "auto", fontSize: ".72rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--landing-border)", paddingTop: 12, marginTop: "auto", fontSize: ".74rem" }}>
                   <span style={{ color: "#1A7B6B", fontWeight: 700 }}>
                     {p.statute}
                   </span>
                   <button
                     type="button"
                     onClick={() => { if (onNavigate) onNavigate("library"); else onGetStarted(); }}
-                    style={{ background: "none", border: "none", color: "var(--landing-text)", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, padding: 0 }}
+                    style={{ background: "none", border: "none", color: "var(--landing-text)", fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5, padding: 0 }}
                   >
                     <span>Read Full Ruling</span>
-                    <ArrowRight size={12} />
+                    <ArrowRight size={13} />
                   </button>
                 </div>
               </div>
@@ -1790,16 +1824,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ══════════════════════════════════════════════════════════════
           5. INTERACTIVE 3-STEP LEGAL & COMPLIANCE WORKFLOW
       ══════════════════════════════════════════════════════════════ */}
-      <section id="workflow-section" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
+      <section id="workflow-section" className="tw-section" style={{ padding: "64px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}>
-            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#1A7B6B", letterSpacing: ".08em", textTransform: "uppercase" }}>
-              Simplified Practitioner Workflow
-            </span>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+          <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 40px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 20, background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.2)", color: "#1A7B6B", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 12 }}>
+              <Cpu size={13} style={{ color: "#1A7B6B" }} />
+              <span>Simplified Practitioner Workflow</span>
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.85rem, 3.2vw, 2.5rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 4, marginBottom: 12, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
               From URA Assessment Notice to Winning Defense in 3 Steps
             </h2>
-            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
+            <p style={{ fontSize: ".92rem", color: "var(--landing-muted)", lineHeight: 1.6, maxWidth: 660, margin: "0 auto" }}>
               How leading tax firms and corporate finance departments accelerate their tribunal preparation and dispute workflows.
             </p>
           </div>
@@ -1810,64 +1845,74 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 step: "01",
                 title: "Upload or Input Notice",
                 desc: "Paste tax assessment letters, URA audit queries, or commercial transactions. The system extracts relevant figures, tax types, and statutory reference years.",
-                icon: <FileText size={22} style={{ color: "#1A7B6B" }} />,
-                pill: "Instant Extraction"
+                icon: <FileText size={24} style={{ color: "#1A7B6B" }} />,
+                pill: "Instant Extraction",
+                accentColor: "#1A7B6B",
+                gradientBg: "linear-gradient(135deg, rgba(26, 123, 107, 0.14) 0%, rgba(26, 123, 107, 0.05) 100%)",
+                borderAccent: "rgba(26, 123, 107, 0.22)"
               },
               {
                 step: "02",
                 title: "Statutory & Precedent Cross-Check",
                 desc: "TaxWise scans ITA Cap 340, VATA Cap 349, and 68+ binding Tax Appeals Tribunal rulings to identify winning legal precedents, deadline windows, and penalty exemptions.",
-                icon: <Cpu size={22} style={{ color: "#C8922A" }} />,
-                pill: "Statutory Intelligence"
+                icon: <Cpu size={24} style={{ color: "#C8922A" }} />,
+                pill: "Statutory Intelligence",
+                accentColor: "#C8922A",
+                gradientBg: "linear-gradient(135deg, rgba(200, 146, 42, 0.16) 0%, rgba(200, 146, 42, 0.05) 100%)",
+                borderAccent: "rgba(200, 146, 42, 0.24)"
               },
               {
                 step: "03",
                 title: "Generate Defense Brief & Computations",
                 desc: "Receive client-ready objection letters, recalculation schedules with exact tax formulas, and authoritative citations ready for submission to the URA Commissioner.",
-                icon: <Scale size={22} style={{ color: "#0F2044" }} />,
-                pill: "Tribunal-Grade Output"
+                icon: <Scale size={24} style={{ color: "#0F2044" }} />,
+                pill: "Tribunal-Grade Output",
+                accentColor: "#0F2044",
+                gradientBg: "linear-gradient(135deg, rgba(15, 32, 68, 0.14) 0%, rgba(15, 32, 68, 0.05) 100%)",
+                borderAccent: "rgba(15, 32, 68, 0.22)"
               }
             ].map((s, idx) => (
               <div 
                 key={s.step}
+                className="tw-card-interactive"
                 onClick={() => setActiveWorkflowStep(idx + 1)}
                 style={{
                   background: "var(--landing-surface)",
-                  border: activeWorkflowStep === idx + 1 ? "1.5px solid #1A7B6B" : "1px solid var(--landing-border)",
-                  borderRadius: 16,
-                  padding: "32px 24px",
+                  border: activeWorkflowStep === idx + 1 ? "2px solid #1A7B6B" : "1.5px solid var(--landing-border)",
+                  borderRadius: 18,
+                  padding: "30px 24px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 14,
+                  gap: 16,
                   cursor: "pointer",
-                  boxShadow: activeWorkflowStep === idx + 1 ? "0 8px 24px rgba(26, 123, 107, 0.08)" : "none",
-                  transition: "all 0.2s ease"
+                  boxShadow: activeWorkflowStep === idx + 1 ? "0 10px 28px rgba(26, 123, 107, 0.12)" : "0 4px 18px rgba(15, 32, 68, 0.04)",
+                  position: "relative"
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: "var(--landing-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: s.gradientBg, border: `1px solid ${s.borderAccent}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                     {s.icon}
                   </div>
-                  <span style={{ fontSize: "1.2rem", fontWeight: 800, color: activeWorkflowStep === idx + 1 ? "#1A7B6B" : "var(--landing-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
+                  <span style={{ fontSize: "1.25rem", fontWeight: 800, color: activeWorkflowStep === idx + 1 ? "#1A7B6B" : "var(--landing-muted)", fontFamily: "'JetBrains Mono', monospace" }}>
                     {s.step}
                   </span>
                 </div>
 
                 <div>
-                  <span style={{ fontSize: ".68rem", fontWeight: 700, color: "#1A7B6B", textTransform: "uppercase" }}>
+                  <span style={{ fontSize: ".7rem", fontWeight: 700, color: s.accentColor, background: `${s.accentColor}12`, border: `1px solid ${s.accentColor}30`, padding: "3px 10px", borderRadius: 6, letterSpacing: ".02em", display: "inline-block" }}>
                     {s.pill}
                   </span>
-                  <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 4, marginBottom: 8 }}>
+                  <h3 style={{ fontSize: "1.18rem", fontWeight: 800, color: "var(--landing-text)", marginTop: 8, marginBottom: 8, letterSpacing: "-0.01em" }}>
                     {s.title}
                   </h3>
-                  <p style={{ fontSize: ".835rem", color: "var(--landing-muted)", lineHeight: 1.55 }}>
+                  <p style={{ fontSize: ".84rem", color: "var(--landing-muted)", lineHeight: 1.55 }}>
                     {s.desc}
                   </p>
                 </div>
 
-                <div style={{ marginTop: "auto", borderTop: "1px solid var(--landing-border)", paddingTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: ".76rem", fontWeight: 700, color: activeWorkflowStep === idx + 1 ? "#1A7B6B" : "var(--landing-muted)" }}>
+                <div style={{ marginTop: "auto", borderTop: "1px solid var(--landing-border)", paddingTop: 14, display: "flex", alignItems: "center", gap: 6, fontSize: ".78rem", fontWeight: 700, color: activeWorkflowStep === idx + 1 ? "#1A7B6B" : "var(--landing-muted)" }}>
                   <span>Step {idx + 1} Walkthrough</span>
-                  <ArrowRight size={13} />
+                  <ArrowRight size={14} />
                 </div>
               </div>
             ))}
@@ -2189,21 +2234,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ══════════════════════════════════════════════════════════════
           7. PRICING PLANS
       ══════════════════════════════════════════════════════════════ */}
-      <section id="pricing-section" className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
+      <section id="pricing-section" className="tw-section" style={{ padding: "64px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 48px" }}>
-            <span style={{ fontSize: ".74rem", fontWeight: 700, color: "#1A7B6B", letterSpacing: ".08em", textTransform: "uppercase" }}>
-              Transparent Pricing
-            </span>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.8rem, 3.2vw, 2.6rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 8, marginBottom: 12 }}>
+          <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 40px" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 20, background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.2)", color: "#1A7B6B", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 12 }}>
+              <CheckCircle2 size={13} style={{ color: "#1A7B6B" }} />
+              <span>Transparent Subscription Tiers</span>
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.85rem, 3.2vw, 2.5rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 4, marginBottom: 12, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
               Choose the Plan for Your Practice
             </h2>
-            <p style={{ fontSize: ".95rem", color: "var(--landing-muted)", lineHeight: 1.6 }}>
-              All plans include core statutory calculators and URA compliance reference tools. Upgrade as your caseload scales.
+            <p style={{ fontSize: ".92rem", color: "var(--landing-muted)", lineHeight: 1.6, maxWidth: 660, margin: "0 auto" }}>
+              All subscriptions priced in Uganda Shillings. Upgrade or cancel your subscription at any time.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))", gap: 24, alignItems: "stretch" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 24, alignItems: "stretch" }}>
             {plans.map((p) => {
               if (p.comingSoon) {
                 return (
@@ -2211,58 +2257,77 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     key={p.name}
                     className="tw-card-interactive"
                     style={{
-                      background: "var(--landing-surface)",
+                      padding: "48px 28px",
+                      position: "relative",
                       border: "1.5px dashed var(--landing-border)",
-                      borderRadius: 18,
-                      padding: "32px 26px",
+                      background: "rgba(15,32,68,0.01)",
+                      borderRadius: 16,
                       display: "flex",
                       flexDirection: "column",
-                      position: "relative",
-                      opacity: 0.85
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textAlign: "center",
+                      minHeight: 420,
+                      opacity: 0.85,
+                      overflow: "visible",
                     }}
                   >
-                    {p.badge && (
-                      <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", background: "#C8922A", color: "white", fontSize: ".68rem", fontWeight: 800, padding: "4px 14px", borderRadius: 12, letterSpacing: ".06em", boxShadow: "0 2px 8px rgba(200,146,42,0.3)" }}>
-                        {p.badge}
-                      </div>
-                    )}
-
-                    <div style={{ marginBottom: 16 }}>
-                      <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--landing-text)" }}>{p.name}</h3>
-                      <p style={{ fontSize: ".76rem", color: "var(--landing-muted)", marginTop: 4, minHeight: 36 }}>{p.desc}</p>
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--landing-border)" }}>
-                      <span style={{ fontSize: "1.4rem", fontWeight: 800, color: "#C8922A" }}>Coming Soon</span>
-                      <span style={{ fontSize: ".78rem", color: "var(--landing-muted)" }}>{p.period}</span>
-                    </div>
-
-                    <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-                      {p.features.map(f => (
-                        <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: ".82rem", color: "var(--landing-muted)" }}>
-                          <Check size={16} style={{ color: "var(--landing-muted)", marginTop: 2, flexShrink: 0 }} />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <button
-                      type="button"
-                      disabled
+                    <div
                       style={{
-                        width: "100%",
-                        padding: "12px",
-                        borderRadius: 8,
-                        fontWeight: 700,
-                        fontSize: ".85rem",
-                        border: "1.5px solid var(--landing-border)",
-                        background: "var(--landing-bg)",
-                        color: "var(--landing-muted)",
-                        cursor: "not-allowed"
+                        position: "absolute",
+                        top: 14,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        background: "#C8922A",
+                        color: "#FFFFFF",
+                        fontSize: "0.68rem",
+                        fontWeight: 800,
+                        padding: "4px 16px",
+                        borderRadius: 50,
+                        whiteSpace: "nowrap",
+                        letterSpacing: "0.04em",
+                        boxShadow: "0 2px 6px rgba(200, 146, 42, 0.2)",
                       }}
                     >
-                      Coming Soon
-                    </button>
+                      COMING SOON
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 800,
+                        color: "#9ca3af",
+                        textTransform: "uppercase",
+                        letterSpacing: ".08em",
+                        marginBottom: 16,
+                      }}
+                    >
+                      {p.name}
+                    </div>
+
+                    <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+                      <div
+                        style={{
+                          width: 56,
+                          height: 56,
+                          borderRadius: "50%",
+                          background: "rgba(200, 146, 42, 0.1)",
+                          color: "#C8922A",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginBottom: 16,
+                        }}
+                      >
+                        <Clock size={20} />
+                      </div>
+                      <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.6rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 8 }}>
+                        Coming Soon
+                      </div>
+                      <p style={{ fontSize: "0.82rem", color: "var(--landing-muted)", maxWidth: 220, lineHeight: "1.5", fontWeight: 500 }}>
+                        We are currently finalizing this tier to bring you advanced tax analysis tools.
+                      </p>
+                    </div>
                   </div>
                 );
               }
@@ -2272,56 +2337,105 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   key={p.name}
                   className="tw-card-interactive"
                   style={{
+                    padding: "36px 28px 28px",
+                    position: "relative",
+                    borderRadius: 16,
+                    border: p.popular ? "2px solid #1A7B6B" : "1.5px solid var(--landing-border)",
                     background: "var(--landing-surface)",
-                    border: p.popular ? "2px solid #1A7B6B" : "1px solid var(--landing-border)",
-                    borderRadius: 18,
-                    padding: "32px 26px",
                     display: "flex",
                     flexDirection: "column",
-                    position: "relative",
-                    boxShadow: p.popular ? "0 12px 32px rgba(26, 123, 107, 0.12)" : "none"
+                    justifyContent: "space-between",
+                    minHeight: 420,
+                    transform: p.popular ? "scale(1.01)" : "none",
+                    boxShadow: p.popular ? "0 12px 36px rgba(26,123,107,0.08)" : "0 4px 16px rgba(15, 32, 68, 0.03)",
+                    overflow: "visible",
                   }}
                 >
-                  {p.badge && (
-                    <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", background: "#1A7B6B", color: "white", fontSize: ".68rem", fontWeight: 800, padding: "4px 14px", borderRadius: 12, letterSpacing: ".06em", boxShadow: "0 2px 8px rgba(26,123,107,0.3)" }}>
-                      {p.badge}
+                  <div>
+                    {p.popular && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: -13,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          background: "#1A7B6B",
+                          color: "#FFFFFF",
+                          fontSize: "0.68rem",
+                          fontWeight: 800,
+                          padding: "4px 16px",
+                          borderRadius: 50,
+                          whiteSpace: "nowrap",
+                          letterSpacing: "0.04em",
+                          boxShadow: "0 2px 6px rgba(26,123,107,0.2)",
+                        }}
+                      >
+                        RECOMMENDED
+                      </div>
+                    )}
+
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 800,
+                        color: "var(--landing-muted)",
+                        textTransform: "uppercase",
+                        letterSpacing: ".08em",
+                        marginBottom: 12,
+                      }}
+                    >
+                      {p.name}
                     </div>
-                  )}
 
-                  <div style={{ marginBottom: 16 }}>
-                    <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--landing-text)" }}>{p.name}</h3>
-                    <p style={{ fontSize: ".76rem", color: "var(--landing-muted)", marginTop: 4, minHeight: 36 }}>{p.desc}</p>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 24 }}>
+                      <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2.2rem", fontWeight: 800, color: "var(--landing-text)" }}>
+                        UGX {p.price}
+                      </span>
+                      <span style={{ fontSize: "0.85rem", color: "var(--landing-muted)", fontWeight: 500 }}>
+                        {p.period}
+                      </span>
+                    </div>
+
+                    <div style={{ borderTop: "1px solid var(--landing-border)", paddingTop: 20, marginBottom: 24 }}>
+                      {p.features?.map((f) => (
+                        <div key={f} style={{ fontSize: "0.85rem", color: "var(--landing-text)", marginBottom: 12, display: "flex", gap: 8, alignItems: "center", fontWeight: 500 }}>
+                          <Check size={14} style={{ color: "#1A7B6B" }} strokeWidth={3} />
+                          <span>{f}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--landing-border)" }}>
-                    <span style={{ fontSize: "1.85rem", fontWeight: 800, color: "var(--landing-text)", fontFamily: "'JetBrains Mono', monospace" }}>{p.price}</span>
-                    <span style={{ fontSize: ".78rem", color: "var(--landing-muted)" }}>{p.period}</span>
-                  </div>
-
-                  <ul style={{ listStyle: "none", padding: 0, margin: "0 0 28px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-                    {p.features.map(f => (
-                      <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: ".82rem", color: "var(--landing-text)" }}>
-                        <Check size={16} style={{ color: "#16A34A", marginTop: 2, flexShrink: 0 }} />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
 
                   <button
                     type="button"
                     onClick={onGetStarted}
                     style={{
                       width: "100%",
-                      padding: "12px",
+                      padding: "10px 22px",
                       borderRadius: 8,
                       fontWeight: 700,
-                      fontSize: ".85rem",
+                      fontSize: "0.9rem",
                       cursor: "pointer",
-                      border: p.popular ? "none" : "1.5px solid var(--landing-border)",
-                      background: p.popular ? "#1A7B6B" : "var(--landing-bg)",
-                      color: p.popular ? "white" : "var(--landing-text)",
-                      boxShadow: p.popular ? "0 4px 14px rgba(26,123,107,0.25)" : "none",
-                      transition: "all 0.2s"
+                      border: p.popular ? "none" : "2.5px solid #0F2044",
+                      background: p.popular ? "linear-gradient(135deg, #1A7B6B 0%, #135E52 100%)" : "transparent",
+                      color: p.popular ? "#FFFFFF" : "var(--landing-text)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      fontFamily: "inherit",
+                      transition: "all 0.25s ease",
+                      boxShadow: p.popular ? "0 4px 14px rgba(26,123,107,0.25)" : "0 2px 4px rgba(15, 32, 68, 0.04)",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!p.popular) {
+                        e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!p.popular) {
+                        e.currentTarget.style.background = "transparent";
+                      }
                     }}
                   >
                     {p.cta}
@@ -2336,35 +2450,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ══════════════════════════════════════════════════════════════
           8. CONVERSION CTA BANNER
       ══════════════════════════════════════════════════════════════ */}
-      <section className="tw-section" style={{ padding: "80px 5%", background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)", position: "relative", overflow: "hidden" }}>
+      <section className="tw-section" style={{ padding: "64px 5%", background: "var(--landing-surface)", borderBottom: "1px solid var(--landing-border)", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(26, 123, 107, 0.08) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
         
-        <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
-          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.9rem, 3.4vw, 2.7rem)", color: "var(--landing-text)", fontWeight: 800, marginBottom: 16 }}>
+        <div style={{ maxWidth: 760, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 10 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 20, background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.2)", color: "#1A7B6B", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 12 }}>
+            <Sparkles size={13} style={{ color: "#1A7B6B" }} />
+            <span>Accelerate Your Tax Practice</span>
+          </div>
+          <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.9rem, 3.4vw, 2.7rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 4, marginBottom: 16, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
             Ready to upgrade your Ugandan tax practice?
           </h2>
-          <p style={{ color: "var(--landing-muted)", fontSize: "1rem", lineHeight: 1.65, marginBottom: 32 }}>
+          <p style={{ color: "var(--landing-muted)", fontSize: ".95rem", lineHeight: 1.65, maxWidth: 620, margin: "0 auto 32px" }}>
             Join leading accounting firms and corporate finance teams saving hours every week on precedent research and tax computations.
           </p>
           <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
             {dbUser ? (
               <button 
                 onClick={() => { if (onNavigate) onNavigate("dashboard"); else onGetStarted(); }}
-                style={{ background: "#1A7B6B", color: "white", padding: "14px 30px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(26,123,107,0.3)" }}
+                style={{ background: "#1A7B6B", color: "white", padding: "14px 32px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(26,123,107,0.3)", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}
               >
-                Go to Dashboard →
+                <span>Go to Dashboard</span>
+                <ArrowRight size={16} />
               </button>
             ) : (
               <>
                 <button 
                   onClick={onGetStarted}
-                  style={{ background: "#1A7B6B", color: "white", padding: "14px 30px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", boxShadow: "0 4px 14px rgba(26,123,107,0.3)" }}
+                  style={{ background: "#1A7B6B", color: "white", padding: "14px 32px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(26,123,107,0.3)", display: "inline-flex", alignItems: "center", gap: 8, transition: "all 0.2s" }}
                 >
-                  Create Free Account →
+                  <span>Create Free Account</span>
+                  <ArrowRight size={16} />
                 </button>
                 <button 
                   onClick={onSignIn}
-                  style={{ background: "var(--landing-surface)", color: "var(--landing-text)", padding: "14px 28px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "1.5px solid var(--landing-border)", cursor: "pointer" }}
+                  style={{ background: "var(--landing-surface)", color: "var(--landing-text)", padding: "14px 28px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "1.5px solid var(--landing-border)", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", transition: "all 0.2s" }}
                 >
                   Sign In
                 </button>
