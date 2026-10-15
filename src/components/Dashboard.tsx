@@ -490,140 +490,217 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
         </div>
       </motion.div>
 
-      {/* 2. Urgent Statutory Filing Deadline Banner */}
+      {/* 2. Urgent Statutory Filing Deadline Banner (Prominent Standout Card with Dynamic Duration Colors) */}
       <motion.div variants={itemVariants}>
-        <div style={{ 
-          background: isSeptemberFiled ? "#F0FDF4" : "#FFFFFF", 
-          borderRadius: 12, 
-          padding: "20px 24px", 
-          border: `1px solid ${isSeptemberFiled ? "rgba(34, 197, 94, 0.4)" : "rgba(239, 68, 68, 0.25)"}`, 
-          boxShadow: "0 4px 16px rgba(15, 32, 68, 0.04)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 20,
-          transition: "all 0.25s ease"
-        }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 16 }}>
-            {/* Date Badge */}
+        {(() => {
+          const totalHoursLeft = (timeLeft.days * 24) + timeLeft.hours;
+          let bannerBg = "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)";
+          let bannerBorder = "#F59E0B";
+          let bannerShadow = "0 8px 30px rgba(245, 158, 11, 0.22)";
+          let badgeGrad = "linear-gradient(135deg, #D97706 0%, #B45309 100%)";
+          let labelColor = "#B45309";
+          let timerTextColor = "#92400E";
+          let timerBorder = "1.5px solid rgba(217, 119, 6, 0.4)";
+
+          if (isSeptemberFiled) {
+            bannerBg = "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)";
+            bannerBorder = "#22C55E";
+            bannerShadow = "0 8px 25px rgba(34, 197, 94, 0.15)";
+            badgeGrad = "#16A34A";
+            labelColor = "#16A34A";
+          } else if (timeLeft.isLate) {
+            bannerBg = "linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)";
+            bannerBorder = "#DC2626";
+            bannerShadow = "0 8px 30px rgba(220, 38, 38, 0.25)";
+            badgeGrad = "#DC2626";
+            labelColor = "#DC2626";
+            timerTextColor = "#B91C1C";
+            timerBorder = "1.5px solid rgba(220, 38, 38, 0.4)";
+          } else if (totalHoursLeft <= 24) {
+            bannerBg = "linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%)";
+            bannerBorder = "#E11D48";
+            bannerShadow = "0 8px 30px rgba(225, 29, 72, 0.28)";
+            badgeGrad = "linear-gradient(135deg, #E11D48 0%, #BE123C 100%)";
+            labelColor = "#BE123C";
+            timerTextColor = "#9F1239";
+            timerBorder = "1.5px solid rgba(225, 29, 72, 0.4)";
+          } else if (totalHoursLeft <= 72) {
+            bannerBg = "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)";
+            bannerBorder = "#F59E0B";
+            bannerShadow = "0 8px 30px rgba(245, 158, 11, 0.22)";
+            badgeGrad = "linear-gradient(135deg, #D97706 0%, #B45309 100%)";
+            labelColor = "#B45309";
+            timerTextColor = "#92400E";
+            timerBorder = "1.5px solid rgba(217, 119, 6, 0.4)";
+          } else {
+            bannerBg = "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)";
+            bannerBorder = "#10B981";
+            bannerShadow = "0 8px 30px rgba(16, 185, 129, 0.18)";
+            badgeGrad = "linear-gradient(135deg, #059669 0%, #047857 100%)";
+            labelColor = "#047857";
+            timerTextColor = "#065F46";
+            timerBorder = "1.5px solid rgba(16, 185, 129, 0.4)";
+          }
+
+          return (
             <div style={{ 
-              background: isSeptemberFiled ? "#16A34A" : "#C8922A", 
-              color: "#FFFFFF", 
-              borderRadius: 10, 
-              padding: "10px 12px", 
-              textAlign: "center",
-              minWidth: 54,
-              boxShadow: isSeptemberFiled ? "0 2px 8px rgba(22,163,74,0.25)" : "0 2px 8px rgba(200,146,42,0.25)",
-              flexShrink: 0
+              background: bannerBg, 
+              borderRadius: 16, 
+              padding: "24px 28px", 
+              border: `2px solid ${bannerBorder}`, 
+              boxShadow: bannerShadow,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 20,
+              transition: "all 0.25s ease",
+              width: "100%"
             }}>
-              <div style={{ fontSize: "0.62rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                {isSeptemberFiled ? "DONE" : "OCT"}
-              </div>
-              <div style={{ fontSize: "1.25rem", fontWeight: 800, lineHeight: 1, marginTop: 2 }}>
-                {isSeptemberFiled ? "✓" : "15"}
-              </div>
-            </div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 18 }}>
+                {/* Date Badge */}
+                <div style={{ 
+                  background: badgeGrad, 
+                  color: "#FFFFFF", 
+                  borderRadius: 12, 
+                  padding: "12px 14px", 
+                  textAlign: "center",
+                  minWidth: 62,
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                  flexShrink: 0
+                }}>
+                  <div style={{ fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                    {isSeptemberFiled ? "DONE" : "OCT"}
+                  </div>
+                  <div style={{ fontSize: "1.4rem", fontWeight: 900, lineHeight: 1, marginTop: 2 }}>
+                    {isSeptemberFiled ? "✓" : "15"}
+                  </div>
+                </div>
 
-            <div>
-              <div style={{ fontSize: "0.95rem", fontWeight: 800, color: C.navy, marginBottom: 4, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>Monthly returns — September 2026 — due Thursday 15 October</span>
-                {isSeptemberFiled && (
-                  <span style={{ fontSize: "0.7rem", background: "rgba(22,163,74,0.15)", color: "#16A34A", padding: "2px 8px", borderRadius: 99, fontWeight: 700 }}>
-                    Filed Successfully
+                <div>
+                  <div style={{ fontSize: "0.72rem", fontWeight: 800, color: labelColor, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>
+                    {isSeptemberFiled ? "Statutory Obligation Completed" : "URA Statutory Filing Obligation"}
+                  </div>
+                  <div style={{ fontSize: "1.05rem", fontWeight: 800, color: C.navy, marginBottom: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <span>Monthly returns — September 2026</span>
+                    {isSeptemberFiled && (
+                      <span style={{ fontSize: "0.7rem", background: "rgba(22,163,74,0.2)", color: "#15803D", padding: "2px 8px", borderRadius: 99, fontWeight: 800 }}>
+                        Filed Successfully
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: "0.82rem", color: "#64748B", margin: 0, lineHeight: 1.4, maxWidth: 620 }}>
+                    {isSeptemberFiled 
+                      ? "September 2026 PAYE, withholding tax and VAT returns recorded as successfully filed with URA."
+                      : "File and pay PAYE, withholding tax and VAT before Thursday 15 October 2026 at 11:59 PM to avoid penalties & interest."}
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+                {!isSeptemberFiled ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FFFFFF", padding: "10px 16px", borderRadius: 12, border: timerBorder, boxShadow: "0 4px 12px rgba(0,0,0,0.06)" }}>
+                    {timeLeft.isLate ? (
+                      <span style={{ color: "#DC2626", fontWeight: 800, fontSize: "0.9rem" }}>
+                        ⚠️ LATE / OVERDUE (Past 11:59 PM 15th)
+                      </span>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "monospace", fontWeight: 800, color: timerTextColor, fontSize: "1.1rem" }}>
+                        {timeLeft.days > 0 && (
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <span>{timeLeft.days}d</span>
+                            <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Days</span>
+                          </div>
+                        )}
+                        {timeLeft.days > 0 && <span>:</span>}
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <span>{String(timeLeft.hours).padStart(2, '0')}</span>
+                          <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Hours</span>
+                        </div>
+                        <span>:</span>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <span>{String(timeLeft.mins).padStart(2, '0')}</span>
+                          <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Mins</span>
+                        </div>
+                        <span>:</span>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                          <span>{String(timeLeft.secs).padStart(2, '0')}</span>
+                          <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Secs</span>
+                        </div>
+                        <span style={{ fontSize: "0.72rem", fontWeight: 700, color: labelColor, marginLeft: 4 }}>left</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#15803D", background: "rgba(22,163,74,0.15)", padding: "10px 16px", borderRadius: 10 }}>
+                    ✓ Zero outstanding exposure
                   </span>
                 )}
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDeadlineTitle("Monthly returns — September 2026 (PAYE, WHT, VAT)");
+                      setNewDeadlineDate("2026-10-15");
+                      setNewDeadlineTax("VAT");
+                      setIsAddDeadlineOpen(true);
+                    }}
+                    style={{
+                      background: "#FFFFFF",
+                      border: `1px solid ${C.border}`,
+                      color: C.navy,
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5
+                    }}
+                    title="Add to Filing Calendar"
+                  >
+                    <CalendarPlus size={14} style={{ color: C.teal }} />
+                    <span>Add to calendar</span>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setIsSeptemberFiled(!isSeptemberFiled)}
+                    style={{
+                      background: isSeptemberFiled ? "#FFFFFF" : C.navy,
+                      color: isSeptemberFiled ? "#DC2626" : "#FFFFFF",
+                      border: isSeptemberFiled ? "1px solid rgba(220,38,38,0.3)" : "none",
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      fontSize: "0.78rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5
+                    }}
+                  >
+                    {isSeptemberFiled ? (
+                      <>
+                        <X size={13} />
+                        <span>Undo</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check size={13} />
+                        <span>Mark as filed</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-              <p style={{ fontSize: "0.81rem", color: "#64748B", margin: 0, lineHeight: 1.4, maxWidth: 650 }}>
-                {isSeptemberFiled 
-                  ? "September 2026 PAYE, withholding tax and VAT returns recorded as filed with URA."
-                  : "File and pay PAYE, withholding tax and VAT for September 2026. Penalties and interest accrue after the due date."}
-              </p>
             </div>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            {!isSeptemberFiled ? (
-              <span style={{ fontSize: "0.95rem", fontWeight: 800, color: timeLeft.isLate ? "#DC2626" : "#D97706", fontFamily: "monospace" }}>
-                {timeLeft.isLate ? (
-                  <span style={{ color: "#DC2626", fontWeight: 800, background: "rgba(239,68,68,0.1)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>
-                    ⚠️ LATE / OVERDUE (Past midnight 15th)
-                  </span>
-                ) : (
-                  <>
-                    {timeLeft.days > 0 ? `${timeLeft.days}d ` : ""}
-                    {String(timeLeft.hours).padStart(2, '0')}h {String(timeLeft.mins).padStart(2, '0')}m {String(timeLeft.secs).padStart(2, '0')}s left
-                  </>
-                )}
-              </span>
-            ) : (
-              <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#16A34A" }}>
-                Zero outstanding exposure
-              </span>
-            )}
-
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setNewDeadlineTitle("Monthly returns — September 2026 (PAYE, WHT, VAT)");
-                  setNewDeadlineDate("2026-10-15");
-                  setNewDeadlineTax("VAT");
-                  setIsAddDeadlineOpen(true);
-                }}
-                style={{
-                  background: "#FFFFFF",
-                  border: `1px solid ${C.border}`,
-                  color: C.navy,
-                  padding: "7px 12px",
-                  borderRadius: 6,
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5
-                }}
-                title="Add to Filing Calendar"
-              >
-                <CalendarPlus size={14} style={{ color: C.teal }} />
-                <span>Add to calendar</span>
-              </button>
-              
-              <button
-                type="button"
-                onClick={() => setIsSeptemberFiled(!isSeptemberFiled)}
-                style={{
-                  background: isSeptemberFiled ? "#FFFFFF" : C.navy,
-                  color: isSeptemberFiled ? "#DC2626" : "#FFFFFF",
-                  border: isSeptemberFiled ? "1px solid rgba(220,38,38,0.3)" : "none",
-                  padding: "7px 14px",
-                  borderRadius: 6,
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5
-                }}
-              >
-                {isSeptemberFiled ? (
-                  <>
-                    <X size={13} />
-                    <span>Undo</span>
-                  </>
-                ) : (
-                  <>
-                    <Check size={13} />
-                    <span>Mark as filed</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
+          );
+        })()}
       </motion.div>
 
       {/* 3. 4 Interactive KPI Metric Cards */}
