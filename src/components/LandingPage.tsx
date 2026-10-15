@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
   Car, Calculator, ShieldCheck, Mail, Check, Copy, CheckCircle2,
   FileText, Cpu, TrendingUp, Building2, Globe, Sparkles, 
-  Menu, X, ArrowRight, Receipt, FileCheck
+  Menu, X, ArrowRight, Receipt, FileCheck, Home
 } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 
@@ -131,6 +131,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [taxToolsOpen, setTaxToolsOpen] = useState(false);
+  const [homeDropdownOpen, setHomeDropdownOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [settings, setSettings] = useState<SiteSettings>(DEFAULTS);
   const [dynamicStats, setDynamicStats] = useState({
@@ -497,6 +498,74 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Desktop Nav Links */}
           <div className="tw-nav-desktop" style={{ display: "flex", alignItems: "center", flex: 1, gap: 4, marginLeft: 8 }}>
+            {/* Dynamic Home ⇄ Dashboard Dropdown */}
+            <div className="tw-dd" style={{ position: "relative" }} onMouseLeave={() => setHomeDropdownOpen(false)}>
+              <button
+                type="button"
+                className="tw-nav-link"
+                onClick={() => setHomeDropdownOpen(prev => !prev)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "0 14px",
+                  height: 72,
+                  color: "#1A7B6B",
+                  fontSize: ".84rem",
+                  fontWeight: 700,
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "color .2s",
+                  whiteSpace: "nowrap"
+                }}
+              >
+                <Home size={15} style={{ color: "#1A7B6B" }} />
+                <span>Home</span>
+                <ChevronDown size={13} style={{ transform: homeDropdownOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+              </button>
+              <div 
+                className={`tw-dropdown ${homeDropdownOpen ? "force-open" : ""}`} 
+                style={{ 
+                  position: "absolute", 
+                  top: "100%", 
+                  left: 0, 
+                  background: "var(--landing-surface)", 
+                  borderRadius: "0 0 10px 10px", 
+                  boxShadow: "0 16px 36px rgba(0,0,0,0.12)", 
+                  minWidth: 260, 
+                  zIndex: 400, 
+                  border: "1px solid var(--landing-border)", 
+                  borderTop: "3px solid #1A7B6B", 
+                  padding: "8px",
+                  ...(homeDropdownOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0)", pointerEvents: "auto" } : {})
+                }}
+              >
+                <div style={{ padding: "6px 10px 8px", borderBottom: "1px solid var(--landing-border)", marginBottom: 4 }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--landing-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Currently Viewing</div>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--landing-text)" }}>TaxWise Public Portal</div>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setHomeDropdownOpen(false);
+                    if (onNavigate) onNavigate("dashboard");
+                    else onGetStarted();
+                  }} 
+                  style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
+                  onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
+                  onMouseOut={e => { e.currentTarget.style.background = "none"; }}
+                >
+                  <LayoutDashboard size={18} style={{ color: "#1A7B6B", marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>Dashboard</div>
+                    <div style={{ fontSize: ".71rem", color: "var(--landing-muted)", marginTop: 2, lineHeight: 1.3 }}>Enter executive workspace &amp; tax intelligence portal</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             {/* Grouped Tax Tools Menu */}
             <div className="tw-dd" style={{ position: "relative" }} onMouseLeave={() => setTaxToolsOpen(false)}>
               <button
@@ -745,6 +814,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--landing-text)" }}>{dbUser.full_name}</div>
             </div>
           )}
+          {/* Dynamic Home ⇄ Dashboard switcher on Mobile */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14, padding: "4px", background: "var(--landing-bg)", borderRadius: 10 }}>
+            <button
+              type="button"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "8px 10px",
+                borderRadius: 7,
+                border: "1px solid rgba(26,123,107,0.3)",
+                background: "var(--landing-surface)",
+                color: "#1A7B6B",
+                fontWeight: 700,
+                fontSize: "0.8rem",
+                cursor: "default"
+              }}
+            >
+              <Home size={15} style={{ color: "#1A7B6B" }} />
+              <span>Home</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                if (onNavigate) onNavigate("dashboard");
+                else onGetStarted();
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "8px 10px",
+                borderRadius: 7,
+                border: "1px solid transparent",
+                background: "transparent",
+                color: "var(--landing-text)",
+                fontWeight: 600,
+                fontSize: "0.8rem",
+                cursor: "pointer"
+              }}
+            >
+              <LayoutDashboard size={15} style={{ color: "#1A7B6B" }} />
+              <span>Dashboard</span>
+            </button>
+          </div>
+
           {[
             { label: "Case Analyzer", page: "analyzer" },
             { label: "TAT Case Precedents Library", page: "library" },

@@ -7,23 +7,24 @@ import {
   Scale, 
   BookOpen, 
   Calculator, 
-  Brain, 
   GraduationCap, 
-  CheckCircle, 
   CreditCard, 
   Shield, 
   LogOut, 
-  Home, 
-  Bell,
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
   Menu,
   X,
-  Calendar
+  Calendar,
+  User as UserIcon,
+  ShieldCheck,
+  Sun,
+  Moon,
+  Sparkles,
+  Home,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
-import { getInitialTheme, applyTheme } from "../lib/theme";
+import { getInitialTheme, applyTheme, ThemeMode } from "../lib/theme";
 import { AuthPage } from "../components/AuthPage";
 import { LandingPage } from "../components/LandingPage";
 import { Dashboard } from "../components/Dashboard";
@@ -53,79 +54,111 @@ export const SANDBOX_USER: DbProfile = {
   plan: "professional",
 };
 
-const getNavItemIcon = (id: string, size = 18) => {
+const getNavItemIcon = (id: string, size = 15) => {
   switch (id) {
     case "dashboard": return <LayoutDashboard size={size} />;
+    case "compliance": return <ShieldCheck size={size} />;
     case "analyzer": return <Scale size={size} />;
     case "library": return <BookOpen size={size} />;
     case "calculators": return <Calculator size={size} />;
-    case "intelligence": return <Brain size={size} />;
+    case "intelligence": return <Sparkles size={size} />;
     case "education": return <GraduationCap size={size} />;
-    case "compliance": return <CheckCircle size={size} />;
     case "pricing": return <CreditCard size={size} />;
     case "admin": return <Shield size={size} />;
     default: return <LayoutDashboard size={size} />;
   }
 };
 
-const SidebarNavItem = ({ 
+interface NavItemDef {
+  id: string;
+  label: string;
+  badge?: string;
+}
+
+const TopNavItem = ({ 
   item, 
   isActive, 
-  onClick,
-  isCollapsed,
-  isMobile
+  onClick 
 }: { 
-  item: { id: string; label: string }; 
+  item: NavItemDef; 
   isActive: boolean; 
-  onClick: () => void;
-  isCollapsed: boolean;
-  isMobile: boolean;
+  onClick: () => void; 
 }) => {
-  const showCollapsed = isCollapsed && !isMobile;
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        display: "flex",
+        display: "inline-flex",
         alignItems: "center",
-        justifyContent: showCollapsed ? "center" : "flex-start",
-        gap: showCollapsed ? 0 : 12,
-        width: "100%",
-        padding: showCollapsed ? "11px 0" : "11px 16px",
-        borderRadius: 12,
-        border: "none",
+        gap: 6,
+        padding: "6px 11px",
+        borderRadius: 7,
+        border: "1px solid",
+        borderColor: isActive ? "rgba(26, 123, 107, 0.28)" : "transparent",
         background: isActive 
-          ? `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)` 
+          ? "rgba(26, 123, 107, 0.08)" 
           : "transparent",
-        color: isActive ? "#FFFFFF" : "var(--sidebar-muted)",
+        color: isActive ? C.teal : "#4C5C68",
         fontWeight: isActive ? 700 : 500,
-        fontSize: "0.875rem",
+        fontSize: "0.82rem",
         cursor: "pointer",
-        marginBottom: 4,
-        textAlign: "left",
+        whiteSpace: "nowrap",
         fontFamily: "inherit",
-        boxShadow: isActive ? "0 4px 12px rgba(26,123,107,0.3)" : "none",
         transition: "all 0.15s ease",
+        position: "relative",
+        flexShrink: 0,
       }}
-      title={showCollapsed ? item.label : undefined}
-      onMouseOver={(e) => {
+      onMouseEnter={(e) => {
         if (!isActive) {
-          e.currentTarget.style.background = "var(--sidebar-hover-bg)";
-          e.currentTarget.style.color = "var(--sidebar-text)";
+          e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+          e.currentTarget.style.color = C.navy;
         }
       }}
-      onMouseOut={(e) => {
+      onMouseLeave={(e) => {
         if (!isActive) {
           e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "var(--sidebar-muted)";
+          e.currentTarget.style.color = "#4C5C68";
         }
       }}
     >
-      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
-        {getNavItemIcon(item.id, 16)}
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", color: isActive ? C.teal : "#7A889B" }}>
+        {getNavItemIcon(item.id, 15)}
       </span>
-      {!showCollapsed && <span>{item.label}</span>}
+      <span>{item.label}</span>
+      {item.badge && (
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1px 5px",
+            borderRadius: 999,
+            fontSize: "0.64rem",
+            fontWeight: 700,
+            background: isActive ? C.teal : "rgba(200, 146, 42, 0.15)",
+            color: isActive ? "#FFFFFF" : C.gold,
+            marginLeft: 2,
+            lineHeight: 1.2,
+          }}
+        >
+          {item.badge}
+        </span>
+      )}
+      {isActive && (
+        <span
+          style={{
+            position: "absolute",
+            bottom: -6,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 20,
+            height: 2.5,
+            borderRadius: 99,
+            background: C.teal,
+          }}
+        />
+      )}
     </button>
   );
 };
@@ -138,8 +171,10 @@ export default function TaxWiseSaaS() {
   const [view, setView] = useState<"landing" | "app" | "auth">("landing");
   const [isRecovering, setIsRecovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [openNavDropdown, setOpenNavDropdown] = useState<string | null>(null);
+  const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const intendedPageRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -240,7 +275,9 @@ export default function TaxWiseSaaS() {
   };
 
   useEffect(() => {
-    applyTheme(getInitialTheme());
+    const initial = getInitialTheme();
+    setThemeMode(initial);
+    applyTheme(initial);
 
     // Failsafe timer: loading state MUST clear within 1200ms so the UI is immediately responsive
     const failsafeTimer = setTimeout(() => {
@@ -267,6 +304,12 @@ export default function TaxWiseSaaS() {
       subscription.unsubscribe();
     };
   }, []);
+
+  const toggleTheme = () => {
+    const next: ThemeMode = themeMode === "dark" ? "light" : "dark";
+    setThemeMode(next);
+    applyTheme(next);
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -302,21 +345,54 @@ export default function TaxWiseSaaS() {
     setView("landing");
   };
 
-  const navItems = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "analyzer", label: "Case Analyzer" },
-    { id: "library", label: "Case Library" },
-    { id: "calculators", label: "Calculators" },
-    { id: "intelligence", label: "Intelligence" },
-    { id: "education", label: "Learning Hub" },
-    { id: "compliance", label: "Compliance" },
-    { id: "pricing", label: "Pricing" },
+  interface GroupedNavItem extends NavItemDef {
+    desc?: string;
+  }
+
+  const advisoryItems: GroupedNavItem[] = [
+    { id: "compliance", label: "Compliance Checker", badge: "2", desc: "URA audit exposure & statutory calendar" },
+    { id: "analyzer", label: "Case Analyzer", desc: "AI-assisted TAT objection briefs & ratio" },
+    { id: "calculators", label: "Tax Calculators", desc: "PAYE, VAT, WHT & Vehicle customs duties" },
   ];
 
-  // Include Admin navigation if the user is an Admin
+  const legalItems: GroupedNavItem[] = [
+    { id: "library", label: "TAT Case Library", desc: "Full-text TAT rulings & High Court precedents" },
+    { id: "intelligence", label: "Tax Intelligence", desc: "Gazette updates, URA circulars & treaty rates" },
+    { id: "education", label: "Learning Hub", desc: "Uganda tax academy & CPD modules" },
+  ];
+
   if (activeUser.role?.toLowerCase() === "admin") {
-    navItems.push({ id: "admin", label: "Admin Portal" });
+    legalItems.push({ id: "admin", label: "Admin Portal", desc: "User permissions & audit controls" });
   }
+
+  const primaryNavItems: NavItemDef[] = [
+    { id: "dashboard", label: "Dashboard" },
+    ...advisoryItems,
+    ...legalItems,
+  ];
+
+  const secondaryNavItems: NavItemDef[] = [
+    { id: "pricing", label: "Pricing & Plans" },
+  ];
+
+  const allNavItems: NavItemDef[] = [...primaryNavItems, ...secondaryNavItems];
+  const isAdvisoryActive = advisoryItems.some(i => i.id === page);
+  const isLegalActive = legalItems.some(i => i.id === page);
+  const isPricingActive = page === "pricing";
+  const isDashboardActive = page === "dashboard";
+
+  // Dynamic page title helper and document title effect
+  const getPageTitle = (targetPage: string) => {
+    if (targetPage === "settings") return "Profile & Settings";
+    const activeItem = allNavItems.find(n => n.id === targetPage);
+    return activeItem ? activeItem.label : "Dashboard";
+  };
+
+  useEffect(() => {
+    if (typeof document !== "undefined" && view === "app") {
+      document.title = `${getPageTitle(page)} — TaxWise Uganda`;
+    }
+  }, [page, view]);
 
   const renderActivePage = () => {
     switch (page) {
@@ -434,13 +510,6 @@ export default function TaxWiseSaaS() {
     );
   }
 
-  // Get dynamic page title for header
-  const getPageTitle = () => {
-    if (page === "settings") return "Profile & Settings";
-    const activeItem = navItems.find(n => n.id === page);
-    return activeItem ? activeItem.label : "Dashboard";
-  };
-
   // Get user initials for avatar
   const getInitials = (name: string) => {
     return name
@@ -453,256 +522,57 @@ export default function TaxWiseSaaS() {
 
   const formattedDate = new Date().toLocaleDateString("en-US", {
     weekday: "short",
-    year: "numeric",
+    day: "numeric",
     month: "short",
-    day: "numeric"
+    year: "numeric"
   });
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'Inter', -apple-system, sans-serif", background: C.offwhite }}>
-      {/* Mobile Backdrop Overlay */}
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif", background: C.offwhite }}>
+      {/* Mobile Drawer Backdrop */}
       {isMobile && isMobileMenuOpen && (
         <div 
           onClick={() => setIsMobileMenuOpen(false)}
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(10, 15, 30, 0.5)",
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
+            background: "rgba(10, 15, 30, 0.4)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
             zIndex: 90,
             animation: "fadeIn 0.2s ease-out"
           }}
         />
       )}
 
-      {/* SIDEBAR */}
-      <div 
-        className="glass-sidebar"
-        style={{ 
-          width: isMobile ? 240 : (isCollapsed ? 72 : 240), 
-          display: "flex", 
-          flexDirection: "column", 
-          position: isMobile ? "fixed" : "sticky", 
-          top: 0, 
-          bottom: isMobile ? 0 : undefined,
-          left: isMobile ? (isMobileMenuOpen ? 0 : -240) : 0,
-          height: "100vh", 
-          flexShrink: 0,
-          boxShadow: "4px 0 24px rgba(15, 32, 68, 0.08)",
+      {/* TOP STICKY NAVIGATION BAR */}
+      <header
+        style={{
+          position: "sticky",
+          top: 0,
           zIndex: 100,
-          transition: "width 0.3s cubic-bezier(0.16, 1, 0.3, 1), left 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+          background: "#FFFFFF",
+          borderBottom: "1px solid rgba(15, 32, 68, 0.08)",
+          boxShadow: "0 2px 10px rgba(15, 32, 68, 0.03)",
         }}
       >
-        {/* Floating Toggle Button (Floating at the right edge) */}
-        {!isMobile && (
-          <button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            style={{
-              position: "absolute",
-              top: 24,
-              right: -12,
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              background: C.white,
-              border: `1.5px solid ${C.border}`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              boxShadow: "0 2px 8px rgba(15, 32, 68, 0.1)",
-              zIndex: 110,
-              color: C.navy,
-              transition: "transform 0.2s ease"
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.1)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-          >
-            {isCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-          </button>
-        )}
-
-        <div style={{ 
-          padding: isCollapsed && !isMobile ? "20px 0" : "26px 24px 20px", 
-          borderBottom: "1px solid var(--sidebar-border)",
-          display: "flex",
-          flexDirection: isCollapsed && !isMobile ? "column" : "row",
-          alignItems: "center",
-          justifyContent: isCollapsed && !isMobile ? "center" : "space-between"
-        }}>
-          {isCollapsed && !isMobile ? (
-            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "var(--sidebar-text)", fontWeight: 800 }}>
-              T<span style={{ color: "var(--color-teal)" }}>W</span>
-            </div>
-          ) : (
-            <>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.45rem", color: "var(--sidebar-text)", fontWeight: 800, letterSpacing: "-0.01em" }}>
-                  Tax<span style={{ color: "var(--color-teal)" }}>Wise</span>
-                </div>
-                {!isMobile && (
-                  <div style={{ fontSize: "0.7rem", color: "var(--sidebar-subtext)", marginTop: 4, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                    Uganda Tax Platform
-                  </div>
-                )}
-              </div>
-              {isMobile && (
-                <button 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "var(--sidebar-muted)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: 4
-                  }}
-                >
-                  <X size={18} />
-                </button>
-              )}
-            </>
-          )}
-        </div>
-
-        <nav style={{ flex: 1, padding: isCollapsed && !isMobile ? "20px 8px" : "20px 14px", overflowY: "auto" }}>
-          {navItems.map((n) => (
-            <SidebarNavItem
-              key={n.id}
-              item={n}
-              isActive={page === n.id}
-              isCollapsed={isCollapsed}
-              isMobile={isMobile}
-              onClick={() => {
-                setPage(n.id);
-                if (isMobile) setIsMobileMenuOpen(false);
-              }}
-            />
-          ))}
-        </nav>
-
-        {/* PROFILE SECTION */}
-        <div style={{ 
-          padding: isCollapsed && !isMobile ? "18px 10px" : "18px 20px", 
-          borderTop: "1px solid var(--sidebar-border)", 
-          background: "var(--sidebar-hover-bg)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center"
-        }}>
-          <div 
-            onClick={() => {
-              setPage("settings");
-              if (isMobile) setIsMobileMenuOpen(false);
-            }}
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              justifyContent: isCollapsed && !isMobile ? "center" : "flex-start",
-              gap: isCollapsed && !isMobile ? 0 : 12, 
-              marginBottom: 12,
-              cursor: "pointer",
-              padding: "6px 8px",
-              borderRadius: "10px",
-              margin: isCollapsed && !isMobile ? "0" : "-6px -8px 6px",
-              transition: "background 0.2s ease, transform 0.15s ease",
-              width: isCollapsed && !isMobile ? "auto" : "100%",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--sidebar-hover-bg)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            title={isCollapsed && !isMobile ? activeUser.full_name : undefined}
-          >
-            <div 
-              style={{ 
-                width: 38, 
-                height: 38, 
-                borderRadius: "50%", 
-                background: `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)`, 
-                display: "flex", 
-                alignItems: "center", 
-                justifyContent: "center", 
-                color: "#FFFFFF", 
-                fontSize: "0.85rem", 
-                fontWeight: 700,
-                boxShadow: "0 2px 8px rgba(26,123,107,0.3)",
-                flexShrink: 0,
-              }}
-            >
-              {getInitials(activeUser.full_name)}
-            </div>
-            {!(isCollapsed && !isMobile) && (
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--sidebar-text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {activeUser.full_name}
-                </div>
-                <div style={{ fontSize: "0.72rem", color: "var(--sidebar-subtext)", display: "flex", alignItems: "center", gap: 4 }}>
-                  <span>{activeUser.role}</span>
-                  <span>•</span>
-                  <span style={{ color: C.teal, fontWeight: 700 }}>{activeUser.plan?.toUpperCase()}</span>
-                </div>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={handleSignOut}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: isCollapsed && !isMobile ? 0 : 8,
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              color: "var(--sidebar-text)",
-              background: "var(--sidebar-hover-bg)",
-              border: "1px solid var(--sidebar-border)",
-              borderRadius: 12,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              padding: isCollapsed && !isMobile ? "10px" : "10px 16px",
-              transition: "all 0.2s ease",
-              width: "100%",
-              justifyContent: "center",
-            }}
-            title={isCollapsed && !isMobile ? "Sign Out" : undefined}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)";
-              e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
-              e.currentTarget.style.color = "#EF4444";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = "var(--sidebar-hover-bg)";
-              e.currentTarget.style.borderColor = "var(--sidebar-border)";
-              e.currentTarget.style.color = "var(--sidebar-text)";
-            }}
-          >
-            <LogOut size={15} />
-            {!(isCollapsed && !isMobile) && <span>Sign Out</span>}
-          </button>
-        </div>
-      </div>
-
-      {/* MAIN CONTAINER */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
-        {/* HEADER BAR */}
-        <header 
-          style={{ 
-            height: 70, 
-            background: C.white, 
-            borderBottom: "1px solid rgba(15, 32, 68, 0.05)", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "space-between", 
-            padding: isMobile ? "0 16px" : "0 40px",
-            flexShrink: 0,
-            boxShadow: "0 2px 12px rgba(15, 32, 68, 0.01)"
+        <div
+          style={{
+            maxWidth: 1440,
+            margin: "0 auto",
+            padding: isMobile ? "0 14px" : "0 22px",
+            height: 60,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: "0.8rem", color: C.muted, fontWeight: 500 }}>
+          {/* LEFT: BRAND & WORKSPACE */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {isMobile && (
               <button
-                onClick={() => setIsMobileMenuOpen(true)}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 style={{
                   background: "transparent",
                   border: "none",
@@ -712,47 +582,492 @@ export default function TaxWiseSaaS() {
                   alignItems: "center",
                   justifyContent: "center",
                   padding: "6px",
-                  marginRight: "4px"
+                  borderRadius: 6,
                 }}
-                title="Open menu"
+                title="Toggle menu"
               >
-                <Menu size={20} />
+                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
             )}
-            <button
-              onClick={handleGoHome}
-              style={{
-                background: "transparent",
-                border: `1px solid ${C.border}`,
-                borderRadius: 999,
-                padding: "8px 14px",
-                cursor: "pointer",
-                fontSize: "0.82rem",
-                color: C.navy,
-                fontWeight: 700,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+
+            <div 
+              onClick={() => setPage("dashboard")}
+              style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}
+              title="TaxWise Platform — Go to Dashboard"
             >
-              <Home size={13} />
-              {!isMobile && <span>Home</span>}
-            </button>
-            <span>TaxWise</span>
-            <span style={{ fontSize: "0.6rem" }}>/</span>
-            <span style={{ color: C.navy, fontWeight: 700 }}>{getPageTitle()}</span>
+              <div 
+                style={{ 
+                  width: 32, 
+                  height: 32, 
+                  borderRadius: 8, 
+                  background: `linear-gradient(135deg, ${C.navy} 0%, ${C.teal} 100%)`, 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center", 
+                  color: "#FFFFFF", 
+                  fontWeight: 800, 
+                  fontSize: "0.85rem",
+                  boxShadow: "0 2px 8px rgba(26,123,107,0.25)",
+                  letterSpacing: "-0.02em",
+                  flexShrink: 0,
+                }}
+              >
+                TW
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.22rem", color: C.navy, fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1.1, whiteSpace: "nowrap" }}>
+                  Tax<span style={{ color: C.teal }}>Wise</span>
+                </div>
+                {!isMobile && (
+                  <div style={{ fontSize: "0.6rem", color: C.muted, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                    Uganda Tax Platform
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+
+          {/* CENTER: DROPDOWNS & NAVIGATION (DESKTOP) */}
+          {!isMobile && (
+            <nav 
+              style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: 6, 
+                flexShrink: 1,
+                minWidth: 0,
+              }}
+            >
+              {/* Dynamic Home ⇄ Dashboard Toggle Dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setOpenNavDropdown(openNavDropdown === "home-dashboard" ? null : "home-dashboard")}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 12px",
+                    borderRadius: 7,
+                    border: isDashboardActive 
+                      ? "1px solid rgba(26, 123, 107, 0.3)" 
+                      : (openNavDropdown === "home-dashboard" ? "1px solid rgba(15, 32, 68, 0.16)" : "1px solid rgba(15, 32, 68, 0.08)"),
+                    background: isDashboardActive 
+                      ? "rgba(26, 123, 107, 0.08)" 
+                      : (openNavDropdown === "home-dashboard" ? "rgba(15, 32, 68, 0.04)" : "#FFFFFF"),
+                    color: isDashboardActive ? C.teal : C.navy,
+                    fontWeight: isDashboardActive ? 700 : 600,
+                    fontSize: "0.82rem",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    fontFamily: "inherit",
+                    transition: "all 0.15s ease",
+                    boxShadow: "0 1px 2px rgba(15,32,68,0.03)",
+                  }}
+                >
+                  <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#7A889B" }} />
+                  <span>Dashboard</span>
+                  <ChevronDown 
+                    size={13} 
+                    style={{ 
+                      transform: openNavDropdown === "home-dashboard" ? "rotate(180deg)" : "none", 
+                      transition: "transform 0.2s",
+                      color: isDashboardActive ? C.teal : C.muted 
+                    }} 
+                  />
+                </button>
+
+                {openNavDropdown === "home-dashboard" && (
+                  <>
+                    <div 
+                      onClick={() => setOpenNavDropdown(null)} 
+                      style={{ position: "fixed", inset: 0, zIndex: 110 }} 
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        left: 0,
+                        width: 250,
+                        background: "#FFFFFF",
+                        borderRadius: 10,
+                        border: `1px solid ${C.border}`,
+                        boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
+                        padding: "8px",
+                        zIndex: 120,
+                        animation: "fadeInUp 0.15s ease-out",
+                      }}
+                    >
+                      <div style={{ padding: "6px 10px 8px", borderBottom: `1px solid ${C.border}`, marginBottom: 6 }}>
+                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Currently in App</div>
+                        <div style={{ fontSize: "0.78rem", fontWeight: 700, color: C.navy }}>TaxWise Workspace</div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpenNavDropdown(null);
+                          setView("landing");
+                        }}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 10,
+                          padding: "9px 10px",
+                          borderRadius: 7,
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontFamily: "inherit",
+                          transition: "all 0.15s",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(26,123,107,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                          <Home size={15} style={{ color: C.teal }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>Home</div>
+                          <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>Return to public landing page</div>
+                        </div>
+                      </button>
+
+                      {page !== "dashboard" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpenNavDropdown(null);
+                            setPage("dashboard");
+                          }}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: 10,
+                            padding: "9px 10px",
+                            borderRadius: 7,
+                            border: "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            textAlign: "left",
+                            fontFamily: "inherit",
+                            marginTop: 2,
+                            transition: "all 0.15s",
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                        >
+                          <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(15,32,68,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                            <LayoutDashboard size={15} style={{ color: C.navy }} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>Dashboard Overview</div>
+                            <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>Executive overview &amp; alerts</div>
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Advisory & Tools Dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setOpenNavDropdown(openNavDropdown === "advisory" ? null : "advisory")}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 11px",
+                    borderRadius: 7,
+                    border: isAdvisoryActive 
+                      ? "1px solid rgba(26, 123, 107, 0.28)" 
+                      : (openNavDropdown === "advisory" ? "1px solid rgba(15, 32, 68, 0.15)" : "1px solid transparent"),
+                    background: isAdvisoryActive 
+                      ? "rgba(26, 123, 107, 0.08)" 
+                      : (openNavDropdown === "advisory" ? "rgba(15, 32, 68, 0.04)" : "transparent"),
+                    color: isAdvisoryActive ? C.teal : "#4C5C68",
+                    fontWeight: isAdvisoryActive ? 700 : 500,
+                    fontSize: "0.82rem",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    fontFamily: "inherit",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isAdvisoryActive) {
+                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+                      e.currentTarget.style.color = C.navy;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isAdvisoryActive && openNavDropdown !== "advisory") {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = "#4C5C68";
+                    }
+                  }}
+                >
+                  <ShieldCheck size={14} style={{ color: isAdvisoryActive ? C.teal : "#7A889B" }} />
+                  <span>Advisory &amp; Tools</span>
+                  <ChevronDown 
+                    size={13} 
+                    style={{ 
+                      transform: openNavDropdown === "advisory" ? "rotate(180deg)" : "none", 
+                      transition: "transform 0.2s",
+                      color: isAdvisoryActive ? C.teal : C.muted
+                    }} 
+                  />
+                </button>
+
+                {openNavDropdown === "advisory" && (
+                  <>
+                    <div 
+                      onClick={() => setOpenNavDropdown(null)} 
+                      style={{ position: "fixed", inset: 0, zIndex: 110 }} 
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        left: 0,
+                        width: 290,
+                        background: "#FFFFFF",
+                        borderRadius: 10,
+                        border: `1px solid ${C.border}`,
+                        boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
+                        padding: "6px",
+                        zIndex: 120,
+                        animation: "fadeInUp 0.15s ease-out",
+                      }}
+                    >
+                      {advisoryItems.map((item) => {
+                        const isActive = page === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setPage(item.id);
+                              setOpenNavDropdown(null);
+                            }}
+                            style={{
+                              width: "100%",
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 10,
+                              padding: "9px 10px",
+                              borderRadius: 7,
+                              border: "none",
+                              background: isActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              fontFamily: "inherit",
+                              transition: "background 0.12s",
+                            }}
+                            onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = C.offwhite; }}
+                            onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                          >
+                            <span style={{ color: isActive ? C.teal : C.muted, marginTop: 2, flexShrink: 0 }}>
+                              {getNavItemIcon(item.id, 16)}
+                            </span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                                <span style={{ fontSize: "0.82rem", fontWeight: isActive ? 700 : 600, color: isActive ? C.teal : C.navy }}>
+                                  {item.label}
+                                </span>
+                                {item.badge && (
+                                  <span style={{ background: C.gold, color: "#FFFFFF", fontSize: "0.62rem", padding: "1px 5px", borderRadius: 99, fontWeight: 700 }}>
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </div>
+                              {item.desc && (
+                                <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>
+                                  {item.desc}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Legal & Insights Dropdown */}
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setOpenNavDropdown(openNavDropdown === "legal" ? null : "legal")}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 11px",
+                    borderRadius: 7,
+                    border: isLegalActive 
+                      ? "1px solid rgba(26, 123, 107, 0.28)" 
+                      : (openNavDropdown === "legal" ? "1px solid rgba(15, 32, 68, 0.15)" : "1px solid transparent"),
+                    background: isLegalActive 
+                      ? "rgba(26, 123, 107, 0.08)" 
+                      : (openNavDropdown === "legal" ? "rgba(15, 32, 68, 0.04)" : "transparent"),
+                    color: isLegalActive ? C.teal : "#4C5C68",
+                    fontWeight: isLegalActive ? 700 : 500,
+                    fontSize: "0.82rem",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    fontFamily: "inherit",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isLegalActive) {
+                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+                      e.currentTarget.style.color = C.navy;
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isLegalActive && openNavDropdown !== "legal") {
+                      e.currentTarget.style.background = "transparent";
+                      e.currentTarget.style.color = "#4C5C68";
+                    }
+                  }}
+                >
+                  <BookOpen size={14} style={{ color: isLegalActive ? C.teal : "#7A889B" }} />
+                  <span>Legal &amp; Insights</span>
+                  <ChevronDown 
+                    size={13} 
+                    style={{ 
+                      transform: openNavDropdown === "legal" ? "rotate(180deg)" : "none", 
+                      transition: "transform 0.2s",
+                      color: isLegalActive ? C.teal : C.muted
+                    }} 
+                  />
+                </button>
+
+                {openNavDropdown === "legal" && (
+                  <>
+                    <div 
+                      onClick={() => setOpenNavDropdown(null)} 
+                      style={{ position: "fixed", inset: 0, zIndex: 110 }} 
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        left: 0,
+                        width: 290,
+                        background: "#FFFFFF",
+                        borderRadius: 10,
+                        border: `1px solid ${C.border}`,
+                        boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
+                        padding: "6px",
+                        zIndex: 120,
+                        animation: "fadeInUp 0.15s ease-out",
+                      }}
+                    >
+                      {legalItems.map((item) => {
+                        const isActive = page === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              setPage(item.id);
+                              setOpenNavDropdown(null);
+                            }}
+                            style={{
+                              width: "100%",
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 10,
+                              padding: "9px 10px",
+                              borderRadius: 7,
+                              border: "none",
+                              background: isActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              fontFamily: "inherit",
+                              transition: "background 0.12s",
+                            }}
+                            onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = C.offwhite; }}
+                            onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                          >
+                            <span style={{ color: isActive ? C.teal : C.muted, marginTop: 2, flexShrink: 0 }}>
+                              {getNavItemIcon(item.id, 16)}
+                            </span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: "0.82rem", fontWeight: isActive ? 700 : 600, color: isActive ? C.teal : C.navy }}>
+                                {item.label}
+                              </div>
+                              {item.desc && (
+                                <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>
+                                  {item.desc}
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Pricing Direct Link */}
+              <button
+                type="button"
+                onClick={() => setPage("pricing")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "6px 11px",
+                  borderRadius: 7,
+                  border: isPricingActive ? "1px solid rgba(26, 123, 107, 0.28)" : "1px solid transparent",
+                  background: isPricingActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
+                  color: isPricingActive ? C.teal : "#4C5C68",
+                  fontWeight: isPricingActive ? 700 : 500,
+                  fontSize: "0.82rem",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  fontFamily: "inherit",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isPricingActive) {
+                    e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+                    e.currentTarget.style.color = C.navy;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isPricingActive) {
+                    e.currentTarget.style.background = "transparent";
+                    e.currentTarget.style.color = "#4C5C68";
+                  }
+                }}
+              >
+                <CreditCard size={14} style={{ color: isPricingActive ? C.teal : "#7A889B" }} />
+                <span>Pricing</span>
+              </button>
+            </nav>
+          )}
+
+          {/* RIGHT: DATE STATUS & USER PROFILE */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {!dbUser && (
               <button
                 onClick={() => setView("auth")}
                 style={{
                   background: C.white,
                   border: `1px solid ${C.border}`,
-                  padding: "5px 14px",
+                  padding: "5px 12px",
                   borderRadius: 6,
                   fontSize: "0.78rem",
                   color: C.navy,
@@ -764,25 +1079,497 @@ export default function TaxWiseSaaS() {
                 Sign In
               </button>
             )}
+
+            {/* Statutory Date & URA Online Beacon */}
             {!isMobile && (
-              <span style={{ fontSize: "0.82rem", color: C.muted, fontWeight: 500, display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <Calendar size={13} style={{ color: C.teal }} /> {formattedDate}
-              </span>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "4px 9px",
+                  borderRadius: 6,
+                  background: "rgba(15, 32, 68, 0.03)",
+                  border: "1px solid rgba(15, 32, 68, 0.07)",
+                  fontSize: "0.73rem",
+                  fontWeight: 600,
+                  color: "#4C5C68",
+                  whiteSpace: "nowrap",
+                  flexShrink: 0,
+                }}
+                title="URA eFRIS Services Online • System Clock Active"
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#10B981",
+                    boxShadow: "0 0 0 2px rgba(16, 185, 129, 0.25)",
+                    flexShrink: 0,
+                  }}
+                />
+                <Calendar size={12} style={{ color: C.teal, flexShrink: 0 }} />
+                <span style={{ whiteSpace: "nowrap" }}>{formattedDate}</span>
+              </div>
             )}
-            {!isMobile && <div style={{ width: 1, height: 20, background: C.border }} />}
-            <div style={{ position: "relative", display: "flex", alignItems: "center" }} title="Notifications">
-              <Bell size={16} style={{ cursor: "pointer", color: C.navy }} />
-              <span style={{ position: "absolute", top: -2, right: -2, width: 6, height: 6, borderRadius: "50%", background: C.red }} />
+
+            {/* Profile Dropdown Chip */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <button
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 7,
+                  padding: "3px 8px 3px 3px",
+                  borderRadius: 999,
+                  border: `1px solid ${isProfileMenuOpen ? C.teal : C.border}`,
+                  background: isProfileMenuOpen ? "rgba(26,123,107,0.05)" : C.white,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                  boxShadow: "0 1px 2px rgba(15,32,68,0.03)",
+                }}
+                title={activeUser.full_name}
+              >
+                <div 
+                  style={{ 
+                    width: 28, 
+                    height: 28, 
+                    borderRadius: "50%", 
+                    background: `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)`, 
+                    display: "flex", 
+                    alignItems: "center", 
+                    justifyContent: "center", 
+                    color: "#FFFFFF", 
+                    fontSize: "0.74rem", 
+                    fontWeight: 700,
+                    boxShadow: "0 2px 6px rgba(26,123,107,0.25)",
+                    flexShrink: 0,
+                  }}
+                >
+                  {getInitials(activeUser.full_name)}
+                </div>
+                {!isMobile && (
+                  <div style={{ textAlign: "left", marginRight: 2 }}>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: C.navy, lineHeight: 1.2, maxWidth: 95, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {activeUser.full_name}
+                    </div>
+                    <div style={{ fontSize: "0.6rem", color: C.teal, fontWeight: 700, textTransform: "uppercase" }}>
+                      {activeUser.plan}
+                    </div>
+                  </div>
+                )}
+                <ChevronDown size={12} style={{ color: C.muted, transform: isProfileMenuOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {isProfileMenuOpen && (
+                <>
+                  <div 
+                    onClick={() => setIsProfileMenuOpen(false)}
+                    style={{ position: "fixed", inset: 0, zIndex: 110 }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 8px)",
+                      right: 0,
+                      width: 230,
+                      background: "#FFFFFF",
+                      borderRadius: 12,
+                      border: `1px solid ${C.border}`,
+                      boxShadow: "0 10px 30px rgba(15, 32, 68, 0.12)",
+                      padding: "8px",
+                      zIndex: 120,
+                      animation: "fadeInUp 0.15s ease-out",
+                    }}
+                  >
+                    <div style={{ padding: "8px 10px 10px", borderBottom: `1px solid ${C.border}`, marginBottom: 6 }}>
+                      <div style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>{activeUser.full_name}</div>
+                      <div style={{ fontSize: "0.72rem", color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeUser.email}</div>
+                      <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 4, background: "rgba(26,123,107,0.1)", color: C.teal, fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" }}>
+                        {activeUser.role} • {activeUser.plan}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setPage("settings");
+                        setIsProfileMenuOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: page === "settings" ? "rgba(26,123,107,0.08)" : "transparent",
+                        color: C.navy,
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontFamily: "inherit",
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = page === "settings" ? "rgba(26,123,107,0.08)" : "transparent"; }}
+                    >
+                      <UserIcon size={14} style={{ color: C.teal }} />
+                      <span>Profile &amp; Settings</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setPage("pricing");
+                        setIsProfileMenuOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: page === "pricing" ? "rgba(26,123,107,0.08)" : "transparent",
+                        color: C.navy,
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontFamily: "inherit",
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = page === "pricing" ? "rgba(26,123,107,0.08)" : "transparent"; }}
+                    >
+                      <CreditCard size={14} style={{ color: C.gold }} />
+                      <span>Subscription &amp; Plans</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        toggleTheme();
+                        setIsProfileMenuOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: "transparent",
+                        color: C.navy,
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontFamily: "inherit",
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      {themeMode === "dark" ? <Sun size={14} style={{ color: "#F59E0B" }} /> : <Moon size={14} style={{ color: C.navy }} />}
+                      <span>{themeMode === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                    </button>
+
+                    <div style={{ height: 1, background: C.border, margin: "6px 0" }} />
+
+                    <button
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 10px",
+                        borderRadius: 8,
+                        border: "none",
+                        background: "transparent",
+                        color: "#EF4444",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        fontFamily: "inherit",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <LogOut size={14} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-        </header>
-
-        {/* PAGE CONTENT */}
-        <div ref={scrollContainerRef} className="main-scroll-container" style={{ flex: 1, padding: isMobile ? "20px 16px" : "36px 40px", overflowY: "auto" }}>
-          <main key={page} className="page-fade-in" style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 40 }}>
-            {renderActivePage()}
-          </main>
         </div>
+
+        {/* MOBILE SLIDE-DOWN DRAWER */}
+        {isMobile && isMobileMenuOpen && (
+          <div
+            style={{
+              borderTop: `1px solid ${C.border}`,
+              background: "#FFFFFF",
+              padding: "16px",
+              boxShadow: "0 12px 24px rgba(15, 32, 68, 0.08)",
+              animation: "fadeInDown 0.2s ease-out",
+            }}
+          >
+            {/* Dynamic Home ⇄ Dashboard Switcher in Mobile */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16, padding: "4px", background: "rgba(15, 32, 68, 0.04)", borderRadius: 10 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setPage("dashboard");
+                  setIsMobileMenuOpen(false);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  padding: "8px 10px",
+                  borderRadius: 7,
+                  border: isDashboardActive ? "1px solid rgba(26,123,107,0.3)" : "1px solid transparent",
+                  background: isDashboardActive ? "#FFFFFF" : "transparent",
+                  color: isDashboardActive ? C.teal : C.navy,
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                  boxShadow: isDashboardActive ? "0 2px 6px rgba(0,0,0,0.06)" : "none",
+                }}
+              >
+                <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#7A889B" }} />
+                <span>Dashboard</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setView("landing");
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  padding: "8px 10px",
+                  borderRadius: 7,
+                  border: "1px solid transparent",
+                  background: "transparent",
+                  color: C.navy,
+                  fontWeight: 600,
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                }}
+              >
+                <Home size={15} style={{ color: C.teal }} />
+                <span>Go to Home</span>
+              </button>
+            </div>
+
+            {/* Advisory & Tools Section */}
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+              Advisory &amp; Tools
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 5, marginBottom: 14 }}>
+              {advisoryItems.map((n) => {
+                const isActive = page === n.id;
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => {
+                      setPage(n.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "9px 12px",
+                      borderRadius: 8,
+                      border: isActive ? "1px solid rgba(26,123,107,0.3)" : `1px solid ${C.border}`,
+                      background: isActive ? "rgba(26, 123, 107, 0.08)" : C.white,
+                      color: isActive ? C.teal : C.navy,
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <span style={{ color: isActive ? C.teal : C.muted }}>
+                      {getNavItemIcon(n.id, 15)}
+                    </span>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {n.label}
+                    </span>
+                    {n.badge && (
+                      <span style={{ marginLeft: "auto", background: C.gold, color: "#FFF", fontSize: "0.62rem", padding: "1px 5px", borderRadius: 99, fontWeight: 700 }}>
+                        {n.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Legal & Insights Section */}
+            <div style={{ fontSize: "0.68rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+              Legal &amp; Insights
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 5, marginBottom: 14 }}>
+              {legalItems.map((n) => {
+                const isActive = page === n.id;
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => {
+                      setPage(n.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "9px 12px",
+                      borderRadius: 8,
+                      border: isActive ? "1px solid rgba(26,123,107,0.3)" : `1px solid ${C.border}`,
+                      background: isActive ? "rgba(26, 123, 107, 0.08)" : C.white,
+                      color: isActive ? C.teal : C.navy,
+                      fontWeight: isActive ? 700 : 500,
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <span style={{ color: isActive ? C.teal : C.muted }}>
+                      {getNavItemIcon(n.id, 15)}
+                    </span>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {n.label}
+                    </span>
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => {
+                  setPage("pricing");
+                  setIsMobileMenuOpen(false);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "9px 12px",
+                  borderRadius: 8,
+                  border: isPricingActive ? "1px solid rgba(26,123,107,0.3)" : `1px solid ${C.border}`,
+                  background: isPricingActive ? "rgba(26, 123, 107, 0.08)" : C.white,
+                  color: isPricingActive ? C.teal : C.navy,
+                  fontWeight: isPricingActive ? 700 : 500,
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  fontFamily: "inherit",
+                }}
+              >
+                <CreditCard size={15} style={{ color: isPricingActive ? C.teal : C.muted }} />
+                <span>Pricing &amp; Plans</span>
+              </button>
+            </div>
+
+            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.teal, display: "flex", alignItems: "center", justifyContent: "center", color: "#FFF", fontSize: "0.72rem", fontWeight: 700 }}>
+                  {getInitials(activeUser.full_name)}
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.78rem", fontWeight: 600, color: C.navy }}>{activeUser.full_name}</div>
+                  <div style={{ fontSize: "0.65rem", color: C.teal, fontWeight: 700 }}>{activeUser.plan.toUpperCase()}</div>
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <button
+                  onClick={toggleTheme}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: 6,
+                    border: `1px solid ${C.border}`,
+                    background: C.white,
+                    color: C.navy,
+                    fontSize: "0.74rem",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  {themeMode === "dark" ? <Sun size={12} style={{ color: "#F59E0B" }} /> : <Moon size={12} />}
+                  <span>{themeMode === "dark" ? "Light" : "Dark"}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleSignOut();
+                  }}
+                  style={{
+                    background: "rgba(239, 68, 68, 0.08)",
+                    border: "none",
+                    color: "#EF4444",
+                    fontSize: "0.74rem",
+                    fontWeight: 600,
+                    padding: "6px 10px",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  <LogOut size={12} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* MAIN CONTAINER */}
+      <div 
+        ref={scrollContainerRef} 
+        className="main-scroll-container" 
+        style={{ 
+          flex: 1, 
+          overflowY: "auto",
+          background: C.offwhite,
+        }}
+      >
+        <main 
+          key={page} 
+          className="page-fade-in" 
+          style={{ 
+            maxWidth: 1400, 
+            margin: "0 auto", 
+            padding: isMobile ? "20px 16px 48px" : "32px 32px 64px" 
+          }}
+        >
+          {renderActivePage()}
+        </main>
       </div>
     </div>
   );

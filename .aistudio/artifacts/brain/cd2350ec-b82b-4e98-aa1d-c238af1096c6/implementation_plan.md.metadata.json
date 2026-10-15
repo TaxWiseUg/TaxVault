@@ -1,6 +1,6 @@
 {
-  "summary": "Refining footer section in LandingPage.tsx with clean light neutral background, official government and regulatory links, tax calculators and quick tools, and structured columns.",
-  "updatedAt": "2026-10-14T09:01:38.644197065Z",
+  "summary": "Revised implementation plan incorporating the user's specific requirement for the dynamic Home/Dashboard toggle dropdown: when on the landing page, the button shows 'Home' with a 'Dashboard' option in its dropdown; when on the dashboard/workspace, it shows 'Dashboard' with a 'Home' option in its dropdown. Also details the removal of the Enterprise badge, removal of notification/theme/home icons, and grouping of tools into clean dropdowns.",
+  "updatedAt": "2026-10-15T10:26:19.751988924Z",
   "requestFeedback": true,
   "userFacing": true
 }
