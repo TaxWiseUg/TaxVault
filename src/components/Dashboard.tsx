@@ -76,7 +76,6 @@ const SEARCH_CATALOG = [
 export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [timeLeft, setTimeLeft] = useState({ hours: 10, mins: 6, secs: 45 });
   const [isComingUpExpanded, setIsComingUpExpanded] = useState(false);
   const [isSeptemberFiled, setIsSeptemberFiled] = useState(false);
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>(INITIAL_DEADLINES);
@@ -120,18 +119,43 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Timer interval for URA statutory deadline countdown
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0, isLate: false });
+
+  // Timer interval for URA statutory deadline countdown to 15th of every month (midnight)
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.secs > 0) return { ...prev, secs: prev.secs - 1 };
-        if (prev.mins > 0) return { ...prev, mins: prev.mins - 1, secs: 59 };
-        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, mins: 59, secs: 59 };
-        return { hours: 10, mins: 6, secs: 0 };
-      });
-    }, 1000);
+    const updateCountdown = () => {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth(); // 0-11
+      
+      // Target is 15th of current month at 23:59:59 (11:59 PM)
+      let targetDate = new Date(currentYear, currentMonth, 15, 23, 59, 59);
+      
+      // If we are past the 15th of this month at 11:59 PM, target is the 15th of next month at 11:59 PM
+      if (now.getTime() > targetDate.getTime()) {
+        targetDate = new Date(currentYear, currentMonth + 1, 15, 23, 59, 59);
+      }
+
+      // Check if late (past 11:59 PM of the 15th of October 2026 for September returns)
+      const septDeadline = new Date(2026, 9, 15, 23, 59, 59);
+      const isLate = !isSeptemberFiled && now.getTime() > septDeadline.getTime();
+
+      const diff = targetDate.getTime() - now.getTime();
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0, isLate });
+      } else {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const mins = Math.floor((diff / 1000 / 60) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+        setTimeLeft({ days, hours, mins, secs, isLate });
+      }
+    };
+
+    updateCountdown();
+    const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isSeptemberFiled]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -520,8 +544,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
             {!isSeptemberFiled ? (
-              <span style={{ fontSize: "0.95rem", fontWeight: 800, color: "#D97706", fontFamily: "monospace" }}>
-                {String(timeLeft.hours).padStart(2, '0')}h {String(timeLeft.mins).padStart(2, '0')}m {String(timeLeft.secs).padStart(2, '0')}s left
+              <span style={{ fontSize: "0.95rem", fontWeight: 800, color: timeLeft.isLate ? "#DC2626" : "#D97706", fontFamily: "monospace" }}>
+                {timeLeft.isLate ? (
+                  <span style={{ color: "#DC2626", fontWeight: 800, background: "rgba(239,68,68,0.1)", padding: "4px 10px", borderRadius: 6, display: "inline-block" }}>
+                    ⚠️ LATE / OVERDUE (Past midnight 15th)
+                  </span>
+                ) : (
+                  <>
+                    {timeLeft.days > 0 ? `${timeLeft.days}d ` : ""}
+                    {String(timeLeft.hours).padStart(2, '0')}h {String(timeLeft.mins).padStart(2, '0')}m {String(timeLeft.secs).padStart(2, '0')}s left
+                  </>
+                )}
               </span>
             ) : (
               <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#16A34A" }}>
