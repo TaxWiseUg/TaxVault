@@ -11,6 +11,9 @@ import {
   ArrowRight,
   Plus,
   Search,
+  Copy,
+  Check,
+  Filter,
 } from "lucide-react";
 
 export interface ClientScorecard {
@@ -319,13 +322,66 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
   const [showExampleData, setShowExampleData] = useState(true);
   const [selectedFinding, setSelectedFinding] = useState<StatutoryFinding | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [riskFilter, setRiskFilter] = useState<"all" | "act_now" | "watch" | "low" | "has_exposure">("all");
+  const [copiedCitation, setCopiedCitation] = useState(false);
 
-  const clients = REFERENCE_CLIENTS.filter(
+  const handleCopyCitation = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCitation(true);
+    setTimeout(() => setCopiedCitation(false), 2000);
+  };
+
+  const sourceClients = showExampleData ? REFERENCE_CLIENTS : [];
+  const sourceFindings = showExampleData ? REFERENCE_FINDINGS : [];
+
+  const clients = sourceClients.filter((c) => {
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      c.name.toLowerCase().includes(q) ||
+      c.tin.includes(q) ||
+      c.sector.toLowerCase().includes(q);
+    if (!matchesSearch) return false;
+    if (riskFilter === "act_now") {
+      return (
+        c.vatRisk === "act_now" ||
+        c.finalRisk === "act_now" ||
+        c.status.toLowerCase().includes("action") ||
+        c.status.toLowerCase().includes("critical")
+      );
+    }
+    if (riskFilter === "watch") {
+      return (
+        c.vatRisk === "watch" ||
+        c.finalRisk === "watch" ||
+        c.status.toLowerCase().includes("attention")
+      );
+    }
+    if (riskFilter === "low") {
+      return c.vatRisk === "low" && c.finalRisk === "low";
+    }
+    if (riskFilter === "has_exposure") {
+      return c.openExposureUgx > 0;
+    }
+    return true;
+  });
+
+  // Dynamically compute executive KPI figures
+  const avgScore =
+    sourceClients.length > 0
+      ? Math.round(
+          sourceClients.reduce((acc, c) => acc + (c.vatScore + c.finalScore) / 2, 0) /
+            sourceClients.length
+        )
+      : 0;
+  const totalExposure = sourceClients.reduce((acc, c) => acc + c.openExposureUgx, 0);
+  const highFindingsCount = sourceClients.reduce((acc, c) => acc + c.highFindingsCount, 0);
+  const clientsToActCount = sourceClients.filter(
     (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.tin.includes(searchQuery) ||
-      c.sector.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      c.vatRisk === "act_now" ||
+      c.finalRisk === "act_now" ||
+      c.highFindingsCount > 0
+  ).length;
 
   return (
     <div
@@ -404,6 +460,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
           <button
             type="button"
             onClick={() => setShowExampleData(!showExampleData)}
+            title="Toggle reference demo portfolio on or off"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -432,7 +489,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                   : "var(--cx-ink-faint, #8B98A0)",
               }}
             />
-            <span>Example data</span>
+            <span>Example data {showExampleData ? "(On)" : "(Off)"}</span>
           </button>
 
           <button
@@ -468,7 +525,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
         </div>
       </div>
 
-      {/* ── 4 Executive KPI Metric Cards ── */}
+      {/* ── 4 Executive KPI Metric Cards (Interactive Filters) ── */}
       <div
         style={{
           display: "grid",
@@ -479,15 +536,27 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
       >
         {/* Card 1: Average Compliance Score */}
         <div
+          onClick={() => setRiskFilter("all")}
+          title="Click to view all clients"
           style={{
             background: "var(--cx-surface, #FFFFFF)",
-            border: "1px solid var(--cx-line, #DADFD6)",
+            border: `1.5px solid ${riskFilter === "all" ? "var(--cx-emerald, #0E7C5A)" : "var(--cx-line, #DADFD6)"}`,
             borderRadius: 12,
             padding: "20px",
-            boxShadow: "0 2px 8px rgba(16, 30, 48, 0.03)",
+            boxShadow: riskFilter === "all" ? "0 4px 14px rgba(14, 124, 90, 0.12)" : "0 2px 8px rgba(16, 30, 48, 0.03)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 6px 16px rgba(16, 30, 48, 0.08)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = riskFilter === "all" ? "0 4px 14px rgba(14, 124, 90, 0.12)" : "0 2px 8px rgba(16, 30, 48, 0.03)";
           }}
         >
           <div>
@@ -499,9 +568,15 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: 8,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              Average Compliance Score
+              <span>Average Compliance Score</span>
+              {riskFilter === "all" && (
+                <span style={{ fontSize: "0.68rem", color: "var(--cx-emerald, #0E7C5A)", fontWeight: 800 }}>ACTIVE</span>
+              )}
             </div>
             <div
               style={{
@@ -519,7 +594,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                   fontFamily: "var(--font-mono, monospace)",
                 }}
               >
-                65
+                {avgScore}
               </span>
               <span
                 style={{
@@ -537,31 +612,43 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
               style={{
                 fontSize: "0.72rem",
                 fontWeight: 700,
-                color: "var(--cx-amber, #A96A0B)",
-                background: "var(--cx-amber-soft, #F6EBD8)",
+                color: avgScore >= 80 ? "var(--cx-emerald, #0E7C5A)" : "var(--cx-amber, #A96A0B)",
+                background: avgScore >= 80 ? "var(--cx-emerald-soft, #E4F1EA)" : "var(--cx-amber-soft, #F6EBD8)",
                 padding: "2px 7px",
                 borderRadius: 4,
               }}
             >
-              Needs attention
+              {avgScore >= 80 ? "Compliant range" : avgScore > 0 ? "Needs attention" : "No active clients"}
             </span>
             <span style={{ fontSize: "0.74rem", color: "var(--cx-ink-soft, #4C5C68)" }}>
-              Across 3 clients
+              Across {sourceClients.length} {sourceClients.length === 1 ? "client" : "clients"}
             </span>
           </div>
         </div>
 
         {/* Card 2: Open Tax Exposure */}
         <div
+          onClick={() => setRiskFilter(riskFilter === "has_exposure" ? "all" : "has_exposure")}
+          title="Click to filter clients with open tax exposure"
           style={{
             background: "var(--cx-surface, #FFFFFF)",
-            border: "1px solid var(--cx-line, #DADFD6)",
+            border: `1.5px solid ${riskFilter === "has_exposure" ? "var(--cx-brick, #A23F2C)" : "var(--cx-line, #DADFD6)"}`,
             borderRadius: 12,
             padding: "20px",
-            boxShadow: "0 2px 8px rgba(16, 30, 48, 0.03)",
+            boxShadow: riskFilter === "has_exposure" ? "0 4px 14px rgba(162, 63, 44, 0.12)" : "0 2px 8px rgba(16, 30, 48, 0.03)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 6px 16px rgba(16, 30, 48, 0.08)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = riskFilter === "has_exposure" ? "0 4px 14px rgba(162, 63, 44, 0.12)" : "0 2px 8px rgba(16, 30, 48, 0.03)";
           }}
         >
           <div>
@@ -573,21 +660,27 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: 8,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              Open Tax Exposure
+              <span>Open Tax Exposure</span>
+              {riskFilter === "has_exposure" && (
+                <span style={{ fontSize: "0.68rem", color: "var(--cx-brick, #A23F2C)", fontWeight: 800 }}>FILTERED</span>
+              )}
             </div>
             <div
               style={{
                 fontSize: "1.5rem",
                 fontWeight: 800,
-                color: "var(--cx-brick, #A23F2C)",
+                color: totalExposure > 0 ? "var(--cx-brick, #A23F2C)" : "var(--cx-emerald, #0E7C5A)",
                 fontFamily: "var(--font-mono, monospace)",
                 letterSpacing: "-0.01em",
                 marginBottom: 8,
               }}
             >
-              UGX 40,462,000
+              {fmtUGX(totalExposure)}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
@@ -604,13 +697,18 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
               Principal + Penalties
             </span>
             <span style={{ fontSize: "0.74rem", color: "var(--cx-ink-soft, #4C5C68)" }}>
-              2 unhedged entities
+              {sourceClients.filter(c => c.openExposureUgx > 0).length} unhedged entities
             </span>
           </div>
         </div>
 
         {/* Card 3: High-Severity Findings */}
         <div
+          onClick={() => {
+            const el = document.getElementById("largest-findings");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }}
+          title="Click to jump to Largest Open Findings"
           style={{
             background: "var(--cx-surface, #FFFFFF)",
             border: "1px solid var(--cx-line, #DADFD6)",
@@ -620,6 +718,18 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 6px 16px rgba(16, 30, 48, 0.08)";
+            e.currentTarget.style.borderColor = "var(--cx-brick, #A23F2C)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(16, 30, 48, 0.03)";
+            e.currentTarget.style.borderColor = "var(--cx-line, #DADFD6)";
           }}
         >
           <div>
@@ -631,9 +741,13 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: 8,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              High-Severity Findings
+              <span>High-Severity Findings</span>
+              <span style={{ fontSize: "0.68rem", color: "var(--cx-ink-faint, #8B98A0)" }}>VIEW ↓</span>
             </div>
             <div
               style={{
@@ -644,7 +758,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                 marginBottom: 8,
               }}
             >
-              6
+              {highFindingsCount}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
@@ -668,15 +782,27 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
 
         {/* Card 4: Clients to Act On */}
         <div
+          onClick={() => setRiskFilter(riskFilter === "act_now" ? "all" : "act_now")}
+          title="Click to filter clients requiring immediate action"
           style={{
             background: "var(--cx-surface, #FFFFFF)",
-            border: "1px solid var(--cx-line, #DADFD6)",
+            border: `1.5px solid ${riskFilter === "act_now" ? "var(--cx-amber, #A96A0B)" : "var(--cx-line, #DADFD6)"}`,
             borderRadius: 12,
             padding: "20px",
-            boxShadow: "0 2px 8px rgba(16, 30, 48, 0.03)",
+            boxShadow: riskFilter === "act_now" ? "0 4px 14px rgba(169, 106, 11, 0.12)" : "0 2px 8px rgba(16, 30, 48, 0.03)",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow = "0 6px 16px rgba(16, 30, 48, 0.08)";
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = riskFilter === "act_now" ? "0 4px 14px rgba(169, 106, 11, 0.12)" : "0 2px 8px rgba(16, 30, 48, 0.03)";
           }}
         >
           <div>
@@ -688,9 +814,15 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 marginBottom: 8,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              Clients to Act On
+              <span>Clients to Act On</span>
+              {riskFilter === "act_now" && (
+                <span style={{ fontSize: "0.68rem", color: "var(--cx-amber, #A96A0B)", fontWeight: 800 }}>FILTERED</span>
+              )}
             </div>
             <div
               style={{
@@ -701,7 +833,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                 marginBottom: 8,
               }}
             >
-              2
+              {clientsToActCount}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
@@ -769,7 +901,38 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
             </p>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            {/* Risk Filter Pills */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Filter size={13} style={{ color: "var(--cx-ink-soft, #4C5C68)" }} />
+              {([
+                { key: "all", label: "All", color: "var(--cx-ink, #101E30)" },
+                { key: "act_now", label: "Act now", color: "var(--cx-brick, #A23F2C)" },
+                { key: "watch", label: "Watch", color: "var(--cx-amber, #A96A0B)" },
+                { key: "low", label: "Low risk", color: "var(--cx-emerald, #0E7C5A)" },
+              ] as const).map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setRiskFilter(f.key)}
+                  style={{
+                    padding: "3px 9px",
+                    borderRadius: 6,
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    border: `1px solid ${riskFilter === f.key ? f.color : "var(--cx-line, #DADFD6)"}`,
+                    background: riskFilter === f.key ? `${f.color}15` : "transparent",
+                    color: riskFilter === f.key ? f.color : "var(--cx-ink-soft, #4C5C68)",
+                    transition: "all 0.12s ease",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
             <div
               style={{
                 display: "flex",
@@ -936,173 +1099,214 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {clients.map((client, idx) => (
-                <tr
-                  key={client.id}
-                  style={{
-                    borderBottom:
-                      idx === clients.length - 1
-                        ? "none"
-                        : "1px solid var(--cx-line, #DADFD6)",
-                    transition: "background 0.15s ease",
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = "var(--cx-bg, #F3F5F1)";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  {/* Client Info */}
-                  <td style={{ padding: "16px 24px" }}>
-                    <div style={{ fontWeight: 700, color: "var(--cx-ink, #101E30)", fontSize: "0.9rem" }}>
-                      {client.name}
+              {clients.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: "40px 24px", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.8rem", marginBottom: 8 }}>🔍</div>
+                    <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--cx-ink, #101E30)", marginBottom: 4 }}>
+                      {showExampleData ? "No clients match the current filter" : "No client data loaded"}
                     </div>
-                    <div
-                      style={{
-                        fontSize: "0.74rem",
-                        color: "var(--cx-ink-faint, #8B98A0)",
-                        fontFamily: "var(--font-mono, monospace)",
-                        marginTop: 2,
-                      }}
-                    >
-                      TIN {client.tin} • {client.sector}
+                    <div style={{ fontSize: "0.8rem", color: "var(--cx-ink-soft, #4C5C68)" }}>
+                      {showExampleData
+                        ? `Try clearing the "${riskFilter !== "all" ? riskFilter.replace("_", " ") : ""}" filter or search term`
+                        : "Enable \"Example data\" to explore the reference portfolio, or click \"New review\" to add a real client"}
                     </div>
-                  </td>
-
-                  {/* VAT Review */}
-                  <td style={{ padding: "16px 20px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span
+                    {!showExampleData && (
+                      <button
+                        type="button"
+                        onClick={onNewReview}
                         style={{
-                          fontSize: "0.9rem",
-                          fontWeight: 700,
-                          fontFamily: "var(--font-mono, monospace)",
-                          color: "var(--cx-ink, #101E30)",
-                        }}
-                      >
-                        {client.vatScore}%
-                      </span>
-                      <RiskBadge risk={client.vatRisk} />
-                    </div>
-                  </td>
-
-                  {/* Trend Sparkline */}
-                  <td style={{ padding: "16px 20px" }}>
-                    <SparklineTrend points={client.trendPoints} risk={client.vatRisk} />
-                  </td>
-
-                  {/* Final Return */}
-                  <td style={{ padding: "16px 20px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span
-                        style={{
-                          fontSize: "0.9rem",
-                          fontWeight: 700,
-                          fontFamily: "var(--font-mono, monospace)",
-                          color: "var(--cx-ink, #101E30)",
-                        }}
-                      >
-                        {client.finalScore}%
-                      </span>
-                      <RiskBadge risk={client.finalRisk} />
-                    </div>
-                  </td>
-
-                  {/* Open Exposure */}
-                  <td style={{ padding: "16px 20px" }}>
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        fontFamily: "var(--font-mono, monospace)",
-                        color:
-                          client.openExposureUgx > 0
-                            ? "var(--cx-brick, #A23F2C)"
-                            : "var(--cx-emerald, #0E7C5A)",
-                      }}
-                    >
-                      {client.openExposureUgx > 0
-                        ? fmtUGX(client.openExposureUgx)
-                        : "UGX 0"}
-                    </span>
-                  </td>
-
-                  {/* High Findings */}
-                  <td style={{ padding: "16px 20px" }}>
-                    {client.highFindingsCount > 0 ? (
-                      <span
-                        style={{
+                          marginTop: 16,
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: 4,
-                          fontSize: "0.78rem",
+                          gap: 7,
+                          padding: "8px 18px",
+                          borderRadius: 8,
+                          fontSize: "0.82rem",
                           fontWeight: 700,
-                          color: "var(--cx-brick, #A23F2C)",
+                          cursor: "pointer",
+                          background: "var(--color-navy, #0F2044)",
+                          color: "#FFFFFF",
+                          border: "none",
                         }}
                       >
-                        <ShieldAlert size={14} />
-                        <span>{client.highFindingsCount} high</span>
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          fontSize: "0.78rem",
-                          fontWeight: 600,
-                          color: "var(--cx-emerald, #0E7C5A)",
-                        }}
-                      >
-                        <CheckCircle2 size={14} />
-                        <span>0 high</span>
-                      </span>
+                        <Plus size={14} />
+                        <span>New review</span>
+                      </button>
                     )}
                   </td>
-
-                  {/* Action */}
-                  <td style={{ padding: "16px 24px", textAlign: "right" }}>
-                    <button
-                      type="button"
-                      onClick={() => onOpenClientReview(client)}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "6px 14px",
-                        borderRadius: 6,
-                        fontSize: "0.78rem",
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        background: "var(--cx-bg, #F3F5F1)",
-                        color: "var(--cx-ink, #101E30)",
-                        border: "1px solid var(--cx-line, #DADFD6)",
-                        transition: "all 0.15s ease",
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.background = "var(--color-navy, #0F2044)";
-                        e.currentTarget.style.color = "#FFFFFF";
-                        e.currentTarget.style.borderColor = "var(--color-navy, #0F2044)";
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.background = "var(--cx-bg, #F3F5F1)";
-                        e.currentTarget.style.color = "var(--cx-ink, #101E30)";
-                        e.currentTarget.style.borderColor = "var(--cx-line, #DADFD6)";
-                      }}
-                    >
-                      <span>Open</span>
-                      <ChevronRight size={13} />
-                    </button>
-                  </td>
                 </tr>
-              ))}
+              ) : (
+                clients.map((client, idx) => (
+                  <tr
+                    key={client.id}
+                    onClick={() => onOpenClientReview(client)}
+                    style={{
+                      borderBottom:
+                        idx === clients.length - 1
+                          ? "none"
+                          : "1px solid var(--cx-line, #DADFD6)",
+                      transition: "background 0.15s ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = "var(--cx-bg, #F3F5F1)";
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    {/* Client Info */}
+                    <td style={{ padding: "16px 24px" }}>
+                      <div style={{ fontWeight: 700, color: "var(--cx-ink, #101E30)", fontSize: "0.9rem" }}>
+                        {client.name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.74rem",
+                          color: "var(--cx-ink-faint, #8B98A0)",
+                          fontFamily: "var(--font-mono, monospace)",
+                          marginTop: 2,
+                        }}
+                      >
+                        TIN {client.tin} • {client.sector}
+                      </div>
+                    </td>
+
+                    {/* VAT Review */}
+                    <td style={{ padding: "16px 20px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span
+                          style={{
+                            fontSize: "0.9rem",
+                            fontWeight: 700,
+                            fontFamily: "var(--font-mono, monospace)",
+                            color: "var(--cx-ink, #101E30)",
+                          }}
+                        >
+                          {client.vatScore}%
+                        </span>
+                        <RiskBadge risk={client.vatRisk} />
+                      </div>
+                    </td>
+
+                    {/* Trend Sparkline */}
+                    <td style={{ padding: "16px 20px" }}>
+                      <SparklineTrend points={client.trendPoints} risk={client.vatRisk} />
+                    </td>
+
+                    {/* Final Return */}
+                    <td style={{ padding: "16px 20px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span
+                          style={{
+                            fontSize: "0.9rem",
+                            fontWeight: 700,
+                            fontFamily: "var(--font-mono, monospace)",
+                            color: "var(--cx-ink, #101E30)",
+                          }}
+                        >
+                          {client.finalScore}%
+                        </span>
+                        <RiskBadge risk={client.finalRisk} />
+                      </div>
+                    </td>
+
+                    {/* Open Exposure */}
+                    <td style={{ padding: "16px 20px" }}>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontFamily: "var(--font-mono, monospace)",
+                          color:
+                            client.openExposureUgx > 0
+                              ? "var(--cx-brick, #A23F2C)"
+                              : "var(--cx-emerald, #0E7C5A)",
+                        }}
+                      >
+                        {client.openExposureUgx > 0
+                          ? fmtUGX(client.openExposureUgx)
+                          : "UGX 0"}
+                      </span>
+                    </td>
+
+                    {/* High Findings */}
+                    <td style={{ padding: "16px 20px" }}>
+                      {client.highFindingsCount > 0 ? (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            fontSize: "0.78rem",
+                            fontWeight: 700,
+                            color: "var(--cx-brick, #A23F2C)",
+                          }}
+                        >
+                          <ShieldAlert size={14} />
+                          <span>{client.highFindingsCount} high</span>
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                            color: "var(--cx-emerald, #0E7C5A)",
+                          }}
+                        >
+                          <CheckCircle2 size={14} />
+                          <span>0 high</span>
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Action */}
+                    <td style={{ padding: "16px 24px", textAlign: "right" }}>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); onOpenClientReview(client); }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          padding: "6px 14px",
+                          borderRadius: 6,
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          background: "var(--cx-bg, #F3F5F1)",
+                          color: "var(--cx-ink, #101E30)",
+                          border: "1px solid var(--cx-line, #DADFD6)",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.background = "var(--color-navy, #0F2044)";
+                          e.currentTarget.style.color = "#FFFFFF";
+                          e.currentTarget.style.borderColor = "var(--color-navy, #0F2044)";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.background = "var(--cx-bg, #F3F5F1)";
+                          e.currentTarget.style.color = "var(--cx-ink, #101E30)";
+                          e.currentTarget.style.borderColor = "var(--cx-line, #DADFD6)";
+                        }}
+                      >
+                        <span>Open</span>
+                        <ChevronRight size={13} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* ── Section: Largest open findings ── */}
-      <div style={{ marginBottom: 40 }}>
+      <div id="largest-findings" style={{ marginBottom: 40, scrollMarginTop: 80 }}>
         <div style={{ marginBottom: 18 }}>
           <h2
             style={{
@@ -1126,6 +1330,25 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
           </p>
         </div>
 
+        {sourceFindings.length === 0 ? (
+          <div
+            style={{
+              padding: "40px 24px",
+              textAlign: "center",
+              background: "var(--cx-surface, #FFFFFF)",
+              border: "1px solid var(--cx-line, #DADFD6)",
+              borderRadius: 12,
+            }}
+          >
+            <div style={{ fontSize: "1.8rem", marginBottom: 8 }}>✅</div>
+            <div style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--cx-ink, #101E30)", marginBottom: 4 }}>
+              No open findings to display
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "var(--cx-ink-soft, #4C5C68)" }}>
+              Enable example data to explore reference statutory findings, or run a new AI audit review
+            </div>
+          </div>
+        ) : (
         <div
           style={{
             display: "grid",
@@ -1133,9 +1356,10 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
             gap: 18,
           }}
         >
-          {REFERENCE_FINDINGS.map((finding) => (
+          {sourceFindings.map((finding) => (
             <div
               key={finding.id}
+              onClick={() => setSelectedFinding(finding)}
               style={{
                 background: "var(--cx-surface, #FFFFFF)",
                 border: "1px solid var(--cx-line, #DADFD6)",
@@ -1146,6 +1370,18 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
                 flexDirection: "column",
                 justifyContent: "space-between",
                 position: "relative",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 16px rgba(16, 30, 48, 0.08)";
+                e.currentTarget.style.borderColor = "var(--cx-emerald, #0E7C5A)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(16, 30, 48, 0.03)";
+                e.currentTarget.style.borderColor = "var(--cx-line, #DADFD6)";
               }}
             >
               <div>
@@ -1264,7 +1500,10 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setSelectedFinding(finding)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedFinding(finding);
+                  }}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -1295,6 +1534,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {/* ── Finding Inspection Modal Drawer ── */}
@@ -1480,15 +1720,44 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
               <div style={{ marginBottom: 18 }}>
                 <div
                   style={{
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    color: "var(--cx-ink-soft, #4C5C68)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                     marginBottom: 6,
                   }}
                 >
-                  Legislation & Governing Provision
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      color: "var(--cx-ink-soft, #4C5C68)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    Legislation &amp; Governing Provision
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleCopyCitation(selectedFinding.statutoryBasis)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      padding: "3px 8px",
+                      borderRadius: 4,
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      background: copiedCitation ? "var(--cx-emerald-soft, #E4F1EA)" : "var(--cx-bg, #F3F5F1)",
+                      color: copiedCitation ? "var(--cx-emerald, #0E7C5A)" : "var(--cx-ink-soft, #4C5C68)",
+                      border: "1px solid var(--cx-line, #DADFD6)",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {copiedCitation ? <Check size={12} /> : <Copy size={12} />}
+                    <span>{copiedCitation ? "Copied" : "Copy citation"}</span>
+                  </button>
                 </div>
                 <div
                   style={{

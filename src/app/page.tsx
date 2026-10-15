@@ -92,16 +92,16 @@ const TopNavItem = ({
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        padding: "6px 11px",
-        borderRadius: 7,
-        border: "1px solid",
-        borderColor: isActive ? "rgba(26, 123, 107, 0.28)" : "transparent",
+        padding: "7px 12px",
+        borderRadius: 8,
+        border: "1.5px solid",
+        borderColor: isActive ? "rgba(26, 123, 107, 0.45)" : "transparent",
         background: isActive 
-          ? "rgba(26, 123, 107, 0.08)" 
+          ? "rgba(26, 123, 107, 0.12)" 
           : "transparent",
-        color: isActive ? C.teal : "#4C5C68",
-        fontWeight: isActive ? 700 : 500,
-        fontSize: "0.82rem",
+        color: isActive ? "#0E7C5A" : C.navy,
+        fontWeight: isActive ? 800 : 700,
+        fontSize: "0.84rem",
         cursor: "pointer",
         whiteSpace: "nowrap",
         fontFamily: "inherit",
@@ -111,19 +111,19 @@ const TopNavItem = ({
       }}
       onMouseEnter={(e) => {
         if (!isActive) {
-          e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+          e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
           e.currentTarget.style.color = C.navy;
         }
       }}
       onMouseLeave={(e) => {
         if (!isActive) {
           e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.color = "#4C5C68";
+          e.currentTarget.style.color = C.navy;
         }
       }}
     >
-      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", color: isActive ? C.teal : "#7A889B" }}>
-        {getNavItemIcon(item.id, 15)}
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", color: isActive ? C.teal : "#64748B" }}>
+        {getNavItemIcon(item.id, 16)}
       </span>
       <span>{item.label}</span>
       {item.badge && (
@@ -132,14 +132,15 @@ const TopNavItem = ({
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "1px 5px",
+            padding: "1px 6px",
             borderRadius: 999,
-            fontSize: "0.64rem",
-            fontWeight: 700,
-            background: isActive ? C.teal : "rgba(200, 146, 42, 0.15)",
-            color: isActive ? "#FFFFFF" : C.gold,
+            fontSize: "0.66rem",
+            fontWeight: 800,
+            background: isActive ? C.teal : "#C8922A",
+            color: "#FFFFFF",
             marginLeft: 2,
             lineHeight: 1.2,
+            boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
           }}
         >
           {item.badge}
@@ -152,8 +153,8 @@ const TopNavItem = ({
             bottom: -6,
             left: "50%",
             transform: "translateX(-50%)",
-            width: 20,
-            height: 2.5,
+            width: 26,
+            height: 3,
             borderRadius: 99,
             background: C.teal,
           }}
@@ -552,8 +553,9 @@ export default function TaxWiseSaaS() {
           top: 0,
           zIndex: 100,
           background: "#FFFFFF",
-          borderBottom: "1px solid rgba(15, 32, 68, 0.08)",
-          boxShadow: "0 2px 10px rgba(15, 32, 68, 0.03)",
+          borderTop: `3px solid ${C.teal}`,
+          borderBottom: "1.5px solid rgba(15, 32, 68, 0.12)",
+          boxShadow: "0 4px 20px -2px rgba(15, 32, 68, 0.08)",
         }}
       >
         <div
@@ -561,7 +563,7 @@ export default function TaxWiseSaaS() {
             maxWidth: 1440,
             margin: "0 auto",
             padding: isMobile ? "0 14px" : "0 22px",
-            height: 60,
+            height: 64,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -592,35 +594,41 @@ export default function TaxWiseSaaS() {
 
             <div 
               onClick={() => setPage("dashboard")}
-              style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
               title="TaxWise Platform — Go to Dashboard"
             >
               <div 
                 style={{ 
-                  width: 32, 
-                  height: 32, 
-                  borderRadius: 8, 
-                  background: `linear-gradient(135deg, ${C.navy} 0%, ${C.teal} 100%)`, 
+                  width: 36, 
+                  height: 36, 
+                  borderRadius: 9, 
+                  background: `linear-gradient(135deg, ${C.navy} 0%, #155F52 50%, ${C.teal} 100%)`, 
                   display: "flex", 
                   alignItems: "center", 
                   justifyContent: "center", 
                   color: "#FFFFFF", 
-                  fontWeight: 800, 
-                  fontSize: "0.85rem",
-                  boxShadow: "0 2px 8px rgba(26,123,107,0.25)",
-                  letterSpacing: "-0.02em",
+                  fontWeight: 900, 
+                  fontSize: "0.92rem",
+                  boxShadow: "0 3px 10px rgba(15,32,68,0.22)",
+                  border: "1.5px solid rgba(200, 146, 42, 0.35)",
+                  letterSpacing: "-0.03em",
                   flexShrink: 0,
                 }}
               >
                 TW
               </div>
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.22rem", color: C.navy, fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1.1, whiteSpace: "nowrap" }}>
-                  Tax<span style={{ color: C.teal }}>Wise</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.3rem", color: C.navy, fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1.1, whiteSpace: "nowrap" }}>
+                    Tax<span style={{ color: C.teal }}>Wise</span>
+                  </span>
+                  <span style={{ fontSize: "0.62rem", fontWeight: 800, background: "rgba(200,146,42,0.15)", color: C.gold, border: "1px solid rgba(200,146,42,0.3)", padding: "1px 5px", borderRadius: 4, letterSpacing: "0.04em" }}>
+                    2026
+                  </span>
                 </div>
                 {!isMobile && (
-                  <div style={{ fontSize: "0.6rem", color: C.muted, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-                    Uganda Tax Platform
+                  <div style={{ fontSize: "0.62rem", color: "#64748B", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                    Uganda Tax &amp; Compliance Platform
                   </div>
                 )}
               </div>
@@ -648,32 +656,32 @@ export default function TaxWiseSaaS() {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    padding: "6px 12px",
-                    borderRadius: 7,
+                    padding: "7px 13px",
+                    borderRadius: 8,
                     border: isDashboardActive 
-                      ? "1px solid rgba(26, 123, 107, 0.3)" 
-                      : (openNavDropdown === "home-dashboard" ? "1px solid rgba(15, 32, 68, 0.16)" : "1px solid rgba(15, 32, 68, 0.08)"),
+                      ? "1.5px solid rgba(26, 123, 107, 0.45)" 
+                      : (openNavDropdown === "home-dashboard" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid rgba(15, 32, 68, 0.1)"),
                     background: isDashboardActive 
-                      ? "rgba(26, 123, 107, 0.08)" 
-                      : (openNavDropdown === "home-dashboard" ? "rgba(15, 32, 68, 0.04)" : "#FFFFFF"),
-                    color: isDashboardActive ? C.teal : C.navy,
-                    fontWeight: isDashboardActive ? 700 : 600,
-                    fontSize: "0.82rem",
+                      ? "rgba(26, 123, 107, 0.12)" 
+                      : (openNavDropdown === "home-dashboard" ? "rgba(15, 32, 68, 0.05)" : "#FFFFFF"),
+                    color: isDashboardActive ? "#0E7C5A" : C.navy,
+                    fontWeight: 800,
+                    fontSize: "0.84rem",
                     cursor: "pointer",
                     whiteSpace: "nowrap",
                     fontFamily: "inherit",
                     transition: "all 0.15s ease",
-                    boxShadow: "0 1px 2px rgba(15,32,68,0.03)",
+                    boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
                   }}
                 >
-                  <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#7A889B" }} />
+                  <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#4C5C68" }} />
                   <span>Dashboard</span>
                   <ChevronDown 
                     size={13} 
                     style={{ 
                       transform: openNavDropdown === "home-dashboard" ? "rotate(180deg)" : "none", 
                       transition: "transform 0.2s",
-                      color: isDashboardActive ? C.teal : C.muted 
+                      color: isDashboardActive ? C.teal : C.navy 
                     }} 
                   />
                 </button>
@@ -784,17 +792,17 @@ export default function TaxWiseSaaS() {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    padding: "6px 11px",
-                    borderRadius: 7,
+                    padding: "7px 13px",
+                    borderRadius: 8,
                     border: isAdvisoryActive 
-                      ? "1px solid rgba(26, 123, 107, 0.28)" 
-                      : (openNavDropdown === "advisory" ? "1px solid rgba(15, 32, 68, 0.15)" : "1px solid transparent"),
+                      ? "1.5px solid rgba(26, 123, 107, 0.45)" 
+                      : (openNavDropdown === "advisory" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid transparent"),
                     background: isAdvisoryActive 
-                      ? "rgba(26, 123, 107, 0.08)" 
-                      : (openNavDropdown === "advisory" ? "rgba(15, 32, 68, 0.04)" : "transparent"),
-                    color: isAdvisoryActive ? C.teal : "#4C5C68",
-                    fontWeight: isAdvisoryActive ? 700 : 500,
-                    fontSize: "0.82rem",
+                      ? "rgba(26, 123, 107, 0.12)" 
+                      : (openNavDropdown === "advisory" ? "rgba(15, 32, 68, 0.05)" : "transparent"),
+                    color: isAdvisoryActive ? "#0E7C5A" : C.navy,
+                    fontWeight: 800,
+                    fontSize: "0.84rem",
                     cursor: "pointer",
                     whiteSpace: "nowrap",
                     fontFamily: "inherit",
@@ -802,25 +810,25 @@ export default function TaxWiseSaaS() {
                   }}
                   onMouseEnter={(e) => {
                     if (!isAdvisoryActive) {
-                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
                       e.currentTarget.style.color = C.navy;
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isAdvisoryActive && openNavDropdown !== "advisory") {
                       e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color = "#4C5C68";
+                      e.currentTarget.style.color = C.navy;
                     }
                   }}
                 >
-                  <ShieldCheck size={14} style={{ color: isAdvisoryActive ? C.teal : "#7A889B" }} />
+                  <ShieldCheck size={15} style={{ color: isAdvisoryActive ? C.teal : "#64748B" }} />
                   <span>Advisory &amp; Tools</span>
                   <ChevronDown 
                     size={13} 
                     style={{ 
                       transform: openNavDropdown === "advisory" ? "rotate(180deg)" : "none", 
                       transition: "transform 0.2s",
-                      color: isAdvisoryActive ? C.teal : C.muted
+                      color: isAdvisoryActive ? C.teal : C.navy
                     }} 
                   />
                 </button>
@@ -910,17 +918,17 @@ export default function TaxWiseSaaS() {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    padding: "6px 11px",
-                    borderRadius: 7,
+                    padding: "7px 13px",
+                    borderRadius: 8,
                     border: isLegalActive 
-                      ? "1px solid rgba(26, 123, 107, 0.28)" 
-                      : (openNavDropdown === "legal" ? "1px solid rgba(15, 32, 68, 0.15)" : "1px solid transparent"),
+                      ? "1.5px solid rgba(26, 123, 107, 0.45)" 
+                      : (openNavDropdown === "legal" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid transparent"),
                     background: isLegalActive 
-                      ? "rgba(26, 123, 107, 0.08)" 
-                      : (openNavDropdown === "legal" ? "rgba(15, 32, 68, 0.04)" : "transparent"),
-                    color: isLegalActive ? C.teal : "#4C5C68",
-                    fontWeight: isLegalActive ? 700 : 500,
-                    fontSize: "0.82rem",
+                      ? "rgba(26, 123, 107, 0.12)" 
+                      : (openNavDropdown === "legal" ? "rgba(15, 32, 68, 0.05)" : "transparent"),
+                    color: isLegalActive ? "#0E7C5A" : C.navy,
+                    fontWeight: 800,
+                    fontSize: "0.84rem",
                     cursor: "pointer",
                     whiteSpace: "nowrap",
                     fontFamily: "inherit",
@@ -928,25 +936,25 @@ export default function TaxWiseSaaS() {
                   }}
                   onMouseEnter={(e) => {
                     if (!isLegalActive) {
-                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
                       e.currentTarget.style.color = C.navy;
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isLegalActive && openNavDropdown !== "legal") {
                       e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color = "#4C5C68";
+                      e.currentTarget.style.color = C.navy;
                     }
                   }}
                 >
-                  <BookOpen size={14} style={{ color: isLegalActive ? C.teal : "#7A889B" }} />
+                  <BookOpen size={15} style={{ color: isLegalActive ? C.teal : "#64748B" }} />
                   <span>Legal &amp; Insights</span>
                   <ChevronDown 
                     size={13} 
                     style={{ 
                       transform: openNavDropdown === "legal" ? "rotate(180deg)" : "none", 
                       transition: "transform 0.2s",
-                      color: isLegalActive ? C.teal : C.muted
+                      color: isLegalActive ? C.teal : C.navy
                     }} 
                   />
                 </button>
@@ -1028,13 +1036,13 @@ export default function TaxWiseSaaS() {
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
-                  padding: "6px 11px",
-                  borderRadius: 7,
-                  border: isPricingActive ? "1px solid rgba(26, 123, 107, 0.28)" : "1px solid transparent",
-                  background: isPricingActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
-                  color: isPricingActive ? C.teal : "#4C5C68",
-                  fontWeight: isPricingActive ? 700 : 500,
-                  fontSize: "0.82rem",
+                  padding: "7px 13px",
+                  borderRadius: 8,
+                  border: isPricingActive ? "1.5px solid rgba(26, 123, 107, 0.45)" : "1px solid transparent",
+                  background: isPricingActive ? "rgba(26, 123, 107, 0.12)" : "transparent",
+                  color: isPricingActive ? "#0E7C5A" : C.navy,
+                  fontWeight: 800,
+                  fontSize: "0.84rem",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
                   fontFamily: "inherit",
@@ -1042,14 +1050,14 @@ export default function TaxWiseSaaS() {
                 }}
                 onMouseEnter={(e) => {
                   if (!isPricingActive) {
-                    e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
+                    e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
                     e.currentTarget.style.color = C.navy;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!isPricingActive) {
                     e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = "#4C5C68";
+                    e.currentTarget.style.color = C.navy;
                   }
                 }}
               >

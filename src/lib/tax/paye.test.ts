@@ -30,8 +30,8 @@ test("Non-resident primary employment has first slice taxed at 10%", () => {
   assert.strictEqual(computeProgressive(300000, false), 30000);
 
   // Higher bands: 335,000 to 410,000 (20% band)
-  // Tax should be 33,500 + (400,000 - 335,000) * 20% = 33,500 + 15,000 = 48,500
-  assert.strictEqual(computeProgressive(400000, false), 48500);
+  // Tax should be 33,500 + (400,000 - 335,000) * 20% = 33,500 + 13,000 = 46,500
+  assert.strictEqual(computeProgressive(400000, false), 46500);
 
   // 410,000 to 10,000,000 (30% band)
   // Tax should be 48,500 + (450,000 - 410,000) * 30% = 48,500 + 12,000 = 60500

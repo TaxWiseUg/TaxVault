@@ -237,18 +237,136 @@ export const AiComplianceReview: React.FC<AiComplianceReviewProps> = ({
 
   const [loadingCompanies, setLoadingCompanies] = useState(false);
 
+  // ── Reference Client Scenarios ───────────────────────────────────────────
+  const applyCompanyScenario = (name: string) => {
+    const n = name.toLowerCase();
+    if (n.includes("kato")) {
+      // Kato Hardware Ltd: High EFRIS sales variance + PAYE casual staff gap
+      setVatOutput(25650000);
+      setVatInput(8400000);
+      setEfrisSales(124260000);
+      setVatInvalidTin(1800000);
+      setPayrollCount(26);
+      setPayeCount(12);
+      setPayrollGross(32000000);
+      setPayeTax(4800000);
+      setGrossMargin(22);
+      setFinancialSales(142500000);
+      setSupplierTinsTotal(18);
+      setSupplierTinsInvalid(5);
+      setNssfContribution(4800000);
+      setDocsPresent(false);
+      setDuplicateInvoices(4);
+      setNegativeBalances(true);
+      setSelectedPeriod("2026-06");
+      setChecklist([
+        { area: "VAT", status: "review" },
+        { area: "PAYE", status: "missing" },
+        { area: "Income Tax", status: "review" },
+        { area: "EFRIS", status: "review" },
+        { area: "Financial Statements", status: "pass" },
+        { area: "Supporting Documents", status: "missing" },
+        { area: "NSSF Cross-Check", status: "review" },
+      ]);
+    } else if (n.includes("lira")) {
+      // Lira Pharmacy Ltd: WHT exposure + critical attention
+      setVatOutput(18900000);
+      setVatInput(14200000);
+      setEfrisSales(95000000);
+      setVatInvalidTin(3200000);
+      setPayrollCount(18);
+      setPayeCount(14);
+      setPayrollGross(26000000);
+      setPayeTax(3800000);
+      setGrossMargin(14);
+      setFinancialSales(105000000);
+      setSupplierTinsTotal(28);
+      setSupplierTinsInvalid(9);
+      setNssfContribution(3900000);
+      setDocsPresent(false);
+      setDuplicateInvoices(2);
+      setNegativeBalances(true);
+      setSelectedPeriod("2026-05");
+      setChecklist([
+        { area: "VAT", status: "review" },
+        { area: "PAYE", status: "review" },
+        { area: "Income Tax", status: "missing" },
+        { area: "EFRIS", status: "review" },
+        { area: "Financial Statements", status: "review" },
+        { area: "Supporting Documents", status: "missing" },
+        { area: "NSSF Cross-Check", status: "review" },
+      ]);
+    } else if (n.includes("mbarara")) {
+      // Mbarara Agro Processors Ltd: Clean, fully compliant
+      setVatOutput(36000000);
+      setVatInput(12500000);
+      setEfrisSales(200000000);
+      setVatInvalidTin(0);
+      setPayrollCount(40);
+      setPayeCount(40);
+      setPayrollGross(68000000);
+      setPayeTax(14200000);
+      setGrossMargin(32);
+      setFinancialSales(200000000);
+      setSupplierTinsTotal(35);
+      setSupplierTinsInvalid(0);
+      setNssfContribution(10200000);
+      setDocsPresent(true);
+      setDuplicateInvoices(0);
+      setNegativeBalances(false);
+      setSelectedPeriod("2026-06");
+      setChecklist([
+        { area: "VAT", status: "pass" },
+        { area: "PAYE", status: "pass" },
+        { area: "Income Tax", status: "pass" },
+        { area: "EFRIS", status: "pass" },
+        { area: "Financial Statements", status: "pass" },
+        { area: "Supporting Documents", status: "pass" },
+        { area: "NSSF Cross-Check", status: "pass" },
+      ]);
+    }
+  };
+
   // ── Load Companies ────────────────────────────────────────────────────────
   const loadCompanies = async () => {
     try {
       setLoadingCompanies(true);
-      const data = await getCompaniesAction();
-      setCompanies(data);
-      if (data.length > 0) {
+      let data: any[] = await getCompaniesAction();
+
+      if (initialCompanyName) {
+        const found = data.find((c: any) => c.name.toLowerCase() === initialCompanyName.toLowerCase());
+        if (found) {
+          setSelectedCompany(found);
+        } else {
+          const synthesized = {
+            id: `client-${initialCompanyName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+            name: initialCompanyName,
+            created_at: new Date().toISOString(),
+            role: "Tax Client",
+          };
+          data = [synthesized, ...data];
+          setSelectedCompany(synthesized);
+        }
+        applyCompanyScenario(initialCompanyName);
+      } else if (data.length > 0) {
         setSelectedCompany(data[0]);
       }
+      setCompanies(data);
     } catch (err: any) {
       console.error("Error loading companies:", err);
-      showToast("Using default entity context.", "info");
+      if (initialCompanyName) {
+        const synthesized = {
+          id: `client-${initialCompanyName.toLowerCase().replace(/[^a-z0-9]/g, "-")}`,
+          name: initialCompanyName,
+          created_at: new Date().toISOString(),
+          role: "Tax Client",
+        };
+        setCompanies([synthesized]);
+        setSelectedCompany(synthesized);
+        applyCompanyScenario(initialCompanyName);
+      } else {
+        showToast("Using default entity context.", "info");
+      }
     } finally {
       setLoadingCompanies(false);
     }
@@ -256,7 +374,7 @@ export const AiComplianceReview: React.FC<AiComplianceReviewProps> = ({
 
   useEffect(() => {
     loadCompanies();
-  }, []);
+  }, [initialCompanyName]);
 
   // ── Load Periods for Selected Company ─────────────────────────────────────
   const loadPeriods = async (companyId: string) => {
@@ -712,7 +830,7 @@ export const AiComplianceReview: React.FC<AiComplianceReviewProps> = ({
             }}
           >
             <ArrowLeft size={16} />
-            <span>← Back to Compliance Overview</span>
+            <span>Back to Compliance Overview</span>
           </button>
 
           {initialCompanyName && (
