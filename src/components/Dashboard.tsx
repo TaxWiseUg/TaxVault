@@ -606,7 +606,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   <p style={{ fontSize: "0.82rem", color: "#64748B", margin: 0, lineHeight: 1.4, maxWidth: "100%" }}>
                     {isSeptemberFiled 
                       ? "September 2026 PAYE, withholding tax and VAT returns recorded as successfully filed with URA."
-                      : "File and pay PAYE, withholding tax and VAT before Thursday 15 October 2026 at 11:59 PM to avoid penalties & interest."}
+                      : (timeLeft.isLate || timeLeft.isCountUp
+                          ? "Deadline of Thursday 15 October 2026 before midnight has passed. Returns are currently overdue — prompt filing is advised to mitigate escalating statutory penalties & interest."
+                          : "File and pay PAYE, withholding tax and VAT before Thursday 15 October 2026 before midnight to avoid penalties & interest.")}
                   </p>
                 </div>
               </div>
