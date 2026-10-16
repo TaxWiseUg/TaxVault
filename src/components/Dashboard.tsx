@@ -614,13 +614,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0, flexWrap: "nowrap" }}>
                 {!isSeptemberFiled ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FFFFFF", padding: "10px 16px", borderRadius: 12, border: timerBorder, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", flexShrink: 0 }}>
-                    {timeLeft.isCountUp ? (
+                    {timeLeft.isCountUp || timeLeft.isLate ? (
                       <span style={{ color: "#DC2626", fontWeight: 800, fontSize: "0.92rem", fontFamily: "monospace" }}>
                         +{timeLeft.days > 0 ? `${timeLeft.days}d ` : ""}{String(timeLeft.hours).padStart(2, '0')}h {String(timeLeft.mins).padStart(2, '0')}m {String(timeLeft.secs).padStart(2, '0')}s OVERDUE
-                      </span>
-                    ) : timeLeft.isLate ? (
-                      <span style={{ color: "#DC2626", fontWeight: 800, fontSize: "0.9rem" }}>
-                        ⚠️ LATE / OVERDUE (Past 11:59 PM 15th)
                       </span>
                     ) : (
                       <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "monospace", fontWeight: 800, color: timerTextColor, fontSize: "1.1rem" }}>
