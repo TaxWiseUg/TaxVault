@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 
 import { setScrollLocked } from "./UI";
+import { KnowYourTaxesCard } from "../features/know-your-taxes/components/KnowYourTaxesCard";
 
 interface DashboardProps {
   user: {
@@ -63,6 +64,7 @@ const INITIAL_DEADLINES: DeadlineItem[] = [
 ];
 
 const SEARCH_CATALOG = [
+  { title: "Know Your Taxes — Statutory Obligation Engine", category: "Advisory", page: "know-your-taxes", keywords: "know your taxes obligations questionnaire assessment statutory paye vat presumptive cit" },
   { title: "PAYE Calculator (2026 Bands)", category: "Calculator", page: "calculators", keywords: "paye salary income employment tax bands" },
   { title: "Corporate Tax Calculator (Loss carry-forward)", category: "Calculator", page: "calculators", keywords: "corporate business company profit 30% 25%" },
   { title: "Rental Income Tax Calculator", category: "Calculator", page: "calculators", keywords: "rental property deemed deduction landlord" },
@@ -877,6 +879,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
           </div>
         </motion.div>
       </div>
+
+      {/* Know Your Taxes Feature Banner */}
+      <motion.div variants={itemVariants}>
+        <KnowYourTaxesCard onStart={() => onNavigate("know-your-taxes")} />
+      </motion.div>
 
       {/* 4. Main Section Split: Left (Your cases) & Right (Filing calendar) */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 24, alignItems: "start" }}>

@@ -35,17 +35,6 @@ const calculatorTabs: CalculatorTab[] = [
     format: (value: number) => `UGX ${Math.round(value).toLocaleString()}`,
   },
   {
-    id: "vat",
-    title: "VAT Calculator",
-    description: "Estimate VAT on a taxable supply or invoice value.",
-    accent: C.navy,
-    helper: "Ideal for invoices, cashbook entries, and VAT filing prep.",
-    inputLabel: "Taxable amount (UGX)",
-    inputValue: 1000000,
-    inputMin: 0,
-    format: (value: number) => `UGX ${Math.round(value).toLocaleString()}`,
-  },
-  {
     id: "corporate",
     title: "Corporate Tax",
     description: "Estimate corporate tax from annual taxable profit.",

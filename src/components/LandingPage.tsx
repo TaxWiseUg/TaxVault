@@ -977,11 +977,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   <Building2 size={16} style={{ color: "#C8922A" }} />
-                  <span>ICPAU CPD-Eligible Training</span>
+                  <span>Professional Training Modules</span>
                 </span>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                   <Scale size={16} style={{ color: "#0F2044" }} />
-                  <span>ITA Cap 340 · VATA Cap 349</span>
+                  <span>Uganda Tax Law & Precedents</span>
                 </span>
               </div>
             </motion.div>
@@ -1437,7 +1437,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <Calculator size={24} />
                 </div>
                 <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#1A7B6B", background: "rgba(26, 123, 107, 0.08)", padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(26, 123, 107, 0.22)", letterSpacing: "0.02em" }}>
-                  ITA Cap 340 4th Sched
+                  Statutory Schedule
                 </span>
               </div>
 
@@ -1518,7 +1518,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <Building2 size={24} />
                 </div>
                 <span style={{ fontSize: ".7rem", fontWeight: 700, color: "#C8922A", background: "rgba(200, 146, 42, 0.08)", padding: "4px 10px", borderRadius: 6, border: "1px solid rgba(200, 146, 42, 0.22)", letterSpacing: "0.02em" }}>
-                  ITA Cap 340 Sec 5
+                  Income Tax Provision
                 </span>
               </div>
 
@@ -1854,7 +1854,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               {
                 step: "02",
                 title: "Statutory & Precedent Cross-Check",
-                desc: "TaxWise scans ITA Cap 340, VATA Cap 349, and 68+ binding Tax Appeals Tribunal rulings to identify winning legal precedents, deadline windows, and penalty exemptions.",
+                desc: "TaxWise scans Ugandan tax legislation and 68+ binding Tax Appeals Tribunal rulings to identify winning legal precedents, deadline windows, and penalty exemptions.",
                 icon: <Cpu size={24} style={{ color: "#C8922A" }} />,
                 pill: "Statutory Intelligence",
                 accentColor: "#C8922A",

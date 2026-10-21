@@ -1,6 +1,6 @@
 {
-  "summary": "Revised implementation plan incorporating the user's specific requirement for the dynamic Home/Dashboard toggle dropdown: when on the landing page, the button shows 'Home' with a 'Dashboard' option in its dropdown; when on the dashboard/workspace, it shows 'Dashboard' with a 'Home' option in its dropdown. Also details the removal of the Enterprise badge, removal of notification/theme/home icons, and grouping of tools into clean dropdowns.",
-  "updatedAt": "2026-10-15T10:26:19.751988924Z",
-  "requestFeedback": true,
-  "userFacing": true
+  "summary":  "Completed app-wide layout and typography upgrades: unified breadcrumb bar into a clean single trail, compacted Questionnaire sizing to fit fully within the viewport, made ResultsView responsive with .kyt-responsive-grid so sidebars never clip, set Plus Jakarta Sans across the entire application, streamlined the top header by making Dashboard a direct navigation button, and polished grammar and legal obligation titles.",
+  "updatedAt":  "2026-10-21T14:54:37.389409075Z",
+  "requestFeedback":  true,
+  "userFacing":  true
 }

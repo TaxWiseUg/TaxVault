@@ -941,7 +941,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
           </a>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", padding: "5px 12px", borderRadius: 50, fontSize: ".68rem", color: "rgba(255,255,255,0.75)", fontWeight: 600, width: "fit-content", marginTop: 8 }}>
             <Building2 size={13} style={{ color: "#2DD4BF" }} />
-            <span>ICPAU CPD-Eligible Platform</span>
+            <span>Professional Tax Platform</span>
           </div>
         </div>
 

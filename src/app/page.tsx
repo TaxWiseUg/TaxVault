@@ -21,6 +21,7 @@ import {
   Moon,
   Sparkles,
   Home,
+  Compass,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
@@ -37,6 +38,7 @@ import { AdminPortal } from "../components/AdminPortal";
 import { ProfileSettings } from "../components/ProfileSettings";
 import { CalculatorsPortal } from "../components/CalculatorsPortal";
 import { IntelligencePortal } from "../components/IntelligencePortal";
+import { KnowYourTaxesPortal } from "../features/know-your-taxes/components/KnowYourTaxesPortal";
 import { setScrollLocked } from "../components/UI";
 
 interface DbProfile {
@@ -58,6 +60,7 @@ export const SANDBOX_USER: DbProfile = {
 const getNavItemIcon = (id: string, size = 15) => {
   switch (id) {
     case "dashboard": return <LayoutDashboard size={size} />;
+    case "know-your-taxes": return <Compass size={size} />;
     case "compliance": return <ShieldCheck size={size} />;
     case "analyzer": return <Scale size={size} />;
     case "library": return <BookOpen size={size} />;
@@ -349,7 +352,7 @@ export default function TaxWiseSaaS() {
   }
 
   const advisoryItems: GroupedNavItem[] = [
-    { id: "compliance", label: "Compliance Checker", badge: "2", desc: "URA audit exposure & statutory calendar" },
+    { id: "know-your-taxes", label: "Know Your Taxes", badge: "2026", desc: "Guided statutory obligation assessment" },
     { id: "analyzer", label: "Case Analyzer", desc: "AI-assisted TAT objection briefs & ratio" },
     { id: "calculators", label: "Tax Calculators", desc: "PAYE, VAT, WHT & Vehicle customs duties" },
   ];
@@ -370,9 +373,7 @@ export default function TaxWiseSaaS() {
     ...legalItems,
   ];
 
-  const secondaryNavItems: NavItemDef[] = [
-    { id: "pricing", label: "Pricing & Plans" },
-  ];
+  const secondaryNavItems: NavItemDef[] = [];
 
   const allNavItems: NavItemDef[] = [...primaryNavItems, ...secondaryNavItems];
   const isAdvisoryActive = advisoryItems.some(i => i.id === page);
@@ -397,6 +398,8 @@ export default function TaxWiseSaaS() {
     switch (page) {
       case "dashboard":
         return <Dashboard user={activeUser} onNavigate={setPage} />;
+      case "know-your-taxes":
+        return <KnowYourTaxesPortal onNavigateHome={() => setPage("dashboard")} />;
       case "analyzer":
         return <CaseAnalyzer user={activeUser} />;
       case "library":
@@ -645,141 +648,74 @@ export default function TaxWiseSaaS() {
                 minWidth: 0,
               }}
             >
-              {/* Dynamic Home ⇄ Dashboard Toggle Dropdown */}
-              <div style={{ position: "relative" }}>
-                <button
-                  type="button"
-                  onClick={() => setOpenNavDropdown(openNavDropdown === "home-dashboard" ? null : "home-dashboard")}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "7px 13px",
-                    borderRadius: 8,
-                    border: isDashboardActive 
-                      ? "1.5px solid rgba(26, 123, 107, 0.45)" 
-                      : (openNavDropdown === "home-dashboard" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid rgba(15, 32, 68, 0.1)"),
-                    background: isDashboardActive 
-                      ? "rgba(26, 123, 107, 0.12)" 
-                      : (openNavDropdown === "home-dashboard" ? "rgba(15, 32, 68, 0.05)" : "#FFFFFF"),
-                    color: isDashboardActive ? "#0E7C5A" : C.navy,
-                    fontWeight: 800,
-                    fontSize: "0.84rem",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    fontFamily: "inherit",
-                    transition: "all 0.15s ease",
-                    boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
-                  }}
-                >
-                  <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#4C5C68" }} />
-                  <span>Dashboard</span>
-                  <ChevronDown 
-                    size={13} 
-                    style={{ 
-                      transform: openNavDropdown === "home-dashboard" ? "rotate(180deg)" : "none", 
-                      transition: "transform 0.2s",
-                      color: isDashboardActive ? C.teal : C.navy 
-                    }} 
-                  />
-                </button>
+              {/* Return to Landing Button */}
+              <button
+                type="button"
+                onClick={() => setView("landing")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "7px 12px",
+                  borderRadius: 8,
+                  border: "1px solid rgba(15, 32, 68, 0.12)",
+                  background: "#FFFFFF",
+                  color: C.navy,
+                  fontWeight: 700,
+                  fontSize: "0.82rem",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  fontFamily: "inherit",
+                  transition: "all 0.15s ease",
+                  boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
+                title="Return to public landing page"
+              >
+                <Home size={14} style={{ color: C.teal }} />
+                <span>Home</span>
+              </button>
 
-                {openNavDropdown === "home-dashboard" && (
-                  <>
-                    <div 
-                      onClick={() => setOpenNavDropdown(null)} 
-                      style={{ position: "fixed", inset: 0, zIndex: 110 }} 
-                    />
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "calc(100% + 8px)",
-                        left: 0,
-                        width: 250,
-                        background: "#FFFFFF",
-                        borderRadius: 10,
-                        border: `1px solid ${C.border}`,
-                        boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
-                        padding: "8px",
-                        zIndex: 120,
-                        animation: "fadeInUp 0.15s ease-out",
-                      }}
-                    >
-                      <div style={{ padding: "6px 10px 8px", borderBottom: `1px solid ${C.border}`, marginBottom: 6 }}>
-                        <div style={{ fontSize: "0.65rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Currently in App</div>
-                        <div style={{ fontSize: "0.78rem", fontWeight: 700, color: C.navy }}>TaxWise Workspace</div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOpenNavDropdown(null);
-                          setView("landing");
-                        }}
-                        style={{
-                          width: "100%",
-                          display: "flex",
-                          alignItems: "flex-start",
-                          gap: 10,
-                          padding: "9px 10px",
-                          borderRadius: 7,
-                          border: "none",
-                          background: "transparent",
-                          cursor: "pointer",
-                          textAlign: "left",
-                          fontFamily: "inherit",
-                          transition: "all 0.15s",
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                      >
-                        <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(26,123,107,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                          <Home size={15} style={{ color: C.teal }} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>Home</div>
-                          <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>Return to public landing page</div>
-                        </div>
-                      </button>
-
-                      {page !== "dashboard" && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOpenNavDropdown(null);
-                            setPage("dashboard");
-                          }}
-                          style={{
-                            width: "100%",
-                            display: "flex",
-                            alignItems: "flex-start",
-                            gap: 10,
-                            padding: "9px 10px",
-                            borderRadius: 7,
-                            border: "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                            textAlign: "left",
-                            fontFamily: "inherit",
-                            marginTop: 2,
-                            transition: "all 0.15s",
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                        >
-                          <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(15,32,68,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                            <LayoutDashboard size={15} style={{ color: C.navy }} />
-                          </div>
-                          <div>
-                            <div style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>Dashboard Overview</div>
-                            <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>Executive overview &amp; alerts</div>
-                          </div>
-                        </button>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+              {/* Direct Dashboard Button */}
+              <button
+                type="button"
+                onClick={() => setPage("dashboard")}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "7px 14px",
+                  borderRadius: 8,
+                  border: isDashboardActive 
+                    ? "1.5px solid rgba(26, 123, 107, 0.45)" 
+                    : "1px solid rgba(15, 32, 68, 0.12)",
+                  background: isDashboardActive 
+                    ? "rgba(26, 123, 107, 0.12)" 
+                    : "#FFFFFF",
+                  color: isDashboardActive ? "#0E7C5A" : C.navy,
+                  fontWeight: 800,
+                  fontSize: "0.84rem",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  fontFamily: "inherit",
+                  transition: "all 0.15s ease",
+                  boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isDashboardActive) {
+                    e.currentTarget.style.background = C.offwhite;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isDashboardActive) {
+                    e.currentTarget.style.background = "#FFFFFF";
+                  }
+                }}
+              >
+                <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#4C5C68" }} />
+                <span>Dashboard</span>
+              </button>
 
               {/* Advisory & Tools Dropdown */}
               <div style={{ position: "relative" }}>
@@ -1571,7 +1507,7 @@ export default function TaxWiseSaaS() {
           style={{ 
             maxWidth: 1400, 
             margin: "0 auto", 
-            padding: isMobile ? "20px 16px 48px" : "32px 32px 64px" 
+            padding: isMobile ? "14px 12px 36px" : "18px 24px 48px" 
           }}
         >
           {renderActivePage()}
