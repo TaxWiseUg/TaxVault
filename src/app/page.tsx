@@ -37,6 +37,7 @@ import { AdminPortal } from "../components/AdminPortal";
 import { ProfileSettings } from "../components/ProfileSettings";
 import { CalculatorsPortal } from "../components/CalculatorsPortal";
 import { IntelligencePortal } from "../components/IntelligencePortal";
+import { setScrollLocked } from "../components/UI";
 
 interface DbProfile {
   id: string;
@@ -190,12 +191,9 @@ export default function TaxWiseSaaS() {
 
   useEffect(() => {
     if (isMobile && isMobileMenuOpen) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      document.body.classList.add("modal-open");
+      setScrollLocked(true);
       return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.classList.remove("modal-open");
+        setScrollLocked(false);
       };
     }
   }, [isMobile, isMobileMenuOpen]);

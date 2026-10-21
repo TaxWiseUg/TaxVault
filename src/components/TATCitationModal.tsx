@@ -7,7 +7,7 @@ import { X, Scale, Check, Copy, Search, ShieldCheck, ArrowRight } from "lucide-r
 import { C } from "../lib/constants";
 import { UGANDA_TAX_STATUTES } from "../lib/tax/ugandaTaxLaw";
 import { IMPORTED_TAT_CASES, ImportedTatCase } from "../lib/importedData";
-import { Badge, Button } from "./UI";
+import { Badge, Button, setScrollLocked } from "./UI";
 
 export interface CitationItem {
   type: "statute" | "tat_case";
@@ -40,10 +40,9 @@ export const CitationViewerModal: React.FC<CitationViewerModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
+      setScrollLocked(true);
       return () => {
-        document.body.style.overflow = prev;
+        setScrollLocked(false);
       };
     }
   }, [open]);

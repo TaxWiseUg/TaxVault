@@ -181,6 +181,20 @@ export const CardDescription: React.FC<{ children: React.ReactNode; style?: Reac
   </p>
 );
 
+export function setScrollLocked(locked: boolean) {
+  if (typeof document === "undefined") return;
+  const scrollEl = document.querySelector('.main-scroll-container') as HTMLElement;
+  if (locked) {
+    document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-open");
+    if (scrollEl) scrollEl.style.overflowY = "hidden";
+  } else {
+    document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+    if (scrollEl) scrollEl.style.overflowY = "auto";
+  }
+}
+
 interface ModalProps {
   open: boolean;
   onClose: () => void;
@@ -192,12 +206,9 @@ interface ModalProps {
 export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, width = 560 }) => {
   React.useEffect(() => {
     if (open) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      document.body.classList.add("modal-open");
+      setScrollLocked(true);
       return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.classList.remove("modal-open");
+        setScrollLocked(false);
       };
     }
   }, [open]);

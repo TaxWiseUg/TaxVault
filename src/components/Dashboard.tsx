@@ -27,6 +27,8 @@ import {
   CalendarPlus
 } from "lucide-react";
 
+import { setScrollLocked } from "./UI";
+
 interface DashboardProps {
   user: {
     id: string;
@@ -99,6 +101,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
     { id: "vat", title: "VAT", sub: "Output vs input (18%)", page: "calculators" },
   ]);
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+
+  // Prevent background scrolling when modal overlays are open
+  useEffect(() => {
+    if (isAddDeadlineOpen || isPinModalOpen) {
+      setScrollLocked(true);
+      return () => {
+        setScrollLocked(false);
+      };
+    }
+  }, [isAddDeadlineOpen, isPinModalOpen]);
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
