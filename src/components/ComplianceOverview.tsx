@@ -124,7 +124,7 @@ const REFERENCE_FINDINGS: StatutoryFinding[] = [
     taxType: "Withholding Tax",
     exposureUgx: 12450000,
     severity: "high",
-    statutoryBasis: "Section 117 Income Tax Act Cap 340",
+    statutoryBasis: "Section 117 Income Tax Act",
     period: "May 2026",
     description:
       "Audit trail indicates management consultancy, ERP software integration, and legal retainers totaling UGX 207,500,000 were settled without deducting the mandatory 6% resident WHT.",
@@ -143,7 +143,7 @@ const REFERENCE_FINDINGS: StatutoryFinding[] = [
     taxType: "PAYE / NSSF",
     exposureUgx: 9772000,
     severity: "high",
-    statutoryBasis: "Section 116 ITA Cap 340 & NSSF Act Cap 222",
+    statutoryBasis: "Section 116 Income Tax Act & NSSF Act",
     period: "June 2026",
     description:
       "Wages paid to 14 warehouse offloading and logistics workers were classified as informal casual expenses without TIN registration, PAYE deduction, or NSSF contribution (10% employer + 5% employee).",

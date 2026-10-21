@@ -643,14 +643,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Calculators
             </button>
 
-            {/* Pricing Link */}
-            <button
-              className="tw-nav-link"
-              onClick={() => scrollToId("pricing-section")}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
-            >
-              Pricing
-            </button>
           </div>
 
           {/* Desktop Nav Actions */}
@@ -864,7 +856,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             { label: "Uganda Tax Intelligence", page: "intelligence" },
             { label: "Compliance Checklists", page: "compliance" },
             { label: "Learning & Education Hub", page: "education" },
-            { label: "Pricing Plans", page: "pricing" },
           ].map(item => (
             <button 
               key={item.label} 
@@ -2231,221 +2222,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
 
 
-      {/* ══════════════════════════════════════════════════════════════
-          7. PRICING PLANS
-      ══════════════════════════════════════════════════════════════ */}
-      <section id="pricing-section" className="tw-section" style={{ padding: "64px 5%", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)" }}>
-        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 40px" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "5px 14px", borderRadius: 20, background: "rgba(26, 123, 107, 0.08)", border: "1px solid rgba(26, 123, 107, 0.2)", color: "#1A7B6B", fontSize: ".72rem", fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase", marginBottom: 12 }}>
-              <CheckCircle2 size={13} style={{ color: "#1A7B6B" }} />
-              <span>Transparent Subscription Tiers</span>
-            </div>
-            <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(1.85rem, 3.2vw, 2.5rem)", color: "var(--landing-text)", fontWeight: 800, marginTop: 4, marginBottom: 12, lineHeight: 1.25, letterSpacing: "-0.02em" }}>
-              Choose the Plan for Your Practice
-            </h2>
-            <p style={{ fontSize: ".92rem", color: "var(--landing-muted)", lineHeight: 1.6, maxWidth: 660, margin: "0 auto" }}>
-              All subscriptions priced in Uganda Shillings. Upgrade or cancel your subscription at any time.
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))", gap: 24, alignItems: "stretch" }}>
-            {plans.map((p) => {
-              if (p.comingSoon) {
-                return (
-                  <div
-                    key={p.name}
-                    className="tw-card-interactive"
-                    style={{
-                      padding: "48px 28px",
-                      position: "relative",
-                      border: "1.5px dashed var(--landing-border)",
-                      background: "rgba(15,32,68,0.01)",
-                      borderRadius: 16,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      textAlign: "center",
-                      minHeight: 420,
-                      opacity: 0.85,
-                      overflow: "visible",
-                    }}
-                  >
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: 14,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        background: "#C8922A",
-                        color: "#FFFFFF",
-                        fontSize: "0.68rem",
-                        fontWeight: 800,
-                        padding: "4px 16px",
-                        borderRadius: 50,
-                        whiteSpace: "nowrap",
-                        letterSpacing: "0.04em",
-                        boxShadow: "0 2px 6px rgba(200, 146, 42, 0.2)",
-                      }}
-                    >
-                      COMING SOON
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        fontWeight: 800,
-                        color: "#9ca3af",
-                        textTransform: "uppercase",
-                        letterSpacing: ".08em",
-                        marginBottom: 16,
-                      }}
-                    >
-                      {p.name}
-                    </div>
-
-                    <div style={{ flexGrow: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
-                      <div
-                        style={{
-                          width: 56,
-                          height: 56,
-                          borderRadius: "50%",
-                          background: "rgba(200, 146, 42, 0.1)",
-                          color: "#C8922A",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          marginBottom: 16,
-                        }}
-                      >
-                        <Clock size={20} />
-                      </div>
-                      <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.6rem", fontWeight: 800, color: "var(--landing-text)", marginBottom: 8 }}>
-                        Coming Soon
-                      </div>
-                      <p style={{ fontSize: "0.82rem", color: "var(--landing-muted)", maxWidth: 220, lineHeight: "1.5", fontWeight: 500 }}>
-                        We are currently finalizing this tier to bring you advanced tax analysis tools.
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div
-                  key={p.name}
-                  className="tw-card-interactive"
-                  style={{
-                    padding: "36px 28px 28px",
-                    position: "relative",
-                    borderRadius: 16,
-                    border: p.popular ? "2px solid #1A7B6B" : "1.5px solid var(--landing-border)",
-                    background: "var(--landing-surface)",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    minHeight: 420,
-                    transform: p.popular ? "scale(1.01)" : "none",
-                    boxShadow: p.popular ? "0 12px 36px rgba(26,123,107,0.08)" : "0 4px 16px rgba(15, 32, 68, 0.03)",
-                    overflow: "visible",
-                  }}
-                >
-                  <div>
-                    {p.popular && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: -13,
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          background: "#1A7B6B",
-                          color: "#FFFFFF",
-                          fontSize: "0.68rem",
-                          fontWeight: 800,
-                          padding: "4px 16px",
-                          borderRadius: 50,
-                          whiteSpace: "nowrap",
-                          letterSpacing: "0.04em",
-                          boxShadow: "0 2px 6px rgba(26,123,107,0.2)",
-                        }}
-                      >
-                        RECOMMENDED
-                      </div>
-                    )}
-
-                    <div
-                      style={{
-                        fontSize: "0.72rem",
-                        fontWeight: 800,
-                        color: "var(--landing-muted)",
-                        textTransform: "uppercase",
-                        letterSpacing: ".08em",
-                        marginBottom: 12,
-                      }}
-                    >
-                      {p.name}
-                    </div>
-
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 24 }}>
-                      <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2.2rem", fontWeight: 800, color: "var(--landing-text)" }}>
-                        UGX {p.price}
-                      </span>
-                      <span style={{ fontSize: "0.85rem", color: "var(--landing-muted)", fontWeight: 500 }}>
-                        {p.period}
-                      </span>
-                    </div>
-
-                    <div style={{ borderTop: "1px solid var(--landing-border)", paddingTop: 20, marginBottom: 24 }}>
-                      {p.features?.map((f) => (
-                        <div key={f} style={{ fontSize: "0.85rem", color: "var(--landing-text)", marginBottom: 12, display: "flex", gap: 8, alignItems: "center", fontWeight: 500 }}>
-                          <Check size={14} style={{ color: "#1A7B6B" }} strokeWidth={3} />
-                          <span>{f}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={onGetStarted}
-                    style={{
-                      width: "100%",
-                      padding: "10px 22px",
-                      borderRadius: 8,
-                      fontWeight: 700,
-                      fontSize: "0.9rem",
-                      cursor: "pointer",
-                      border: p.popular ? "none" : "2.5px solid #0F2044",
-                      background: p.popular ? "linear-gradient(135deg, #1A7B6B 0%, #135E52 100%)" : "transparent",
-                      color: p.popular ? "#FFFFFF" : "var(--landing-text)",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      fontFamily: "inherit",
-                      transition: "all 0.25s ease",
-                      boxShadow: p.popular ? "0 4px 14px rgba(26,123,107,0.25)" : "0 2px 4px rgba(15, 32, 68, 0.04)",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!p.popular) {
-                        e.currentTarget.style.background = "rgba(15, 32, 68, 0.04)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!p.popular) {
-                        e.currentTarget.style.background = "transparent";
-                      }
-                    }}
-                  >
-                    {p.cta}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {/* ══════════════════════════════════════════════════════════════
           8. CONVERSION CTA BANNER
@@ -2537,7 +2313,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {[
                   { label: "URA Portal", url: "https://www.ura.go.ug" },
                   { label: "Tax Appeals Tribunal", url: "https://www.tat.go.ug" },
-                  { label: "ICPAU", url: "https://www.icpau.co.ug" },
                   { label: "Ministry of Finance", url: "https://www.finance.go.ug" },
                 ].map(item => (
                   <li key={item.label}>

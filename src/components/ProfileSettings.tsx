@@ -526,29 +526,6 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                   )}
                 </ul>
               </div>
-
-              {user.plan?.toLowerCase() === "free" && (
-                <button
-                  onClick={onNavigateToPricing}
-                  style={{
-                    background: `linear-gradient(135deg, ${C.teal} 0%, ${C.tealDark} 100%)`,
-                    color: C.white,
-                    border: "none",
-                    padding: "10px 0",
-                    borderRadius: 10,
-                    fontSize: "0.82rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    boxShadow: "0 4px 12px rgba(26,123,107,0.2)",
-                    transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-                    textAlign: "center"
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.9"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "none"; }}
-                >
-                  Upgrade to Professional Plan
-                </button>
-              )}
             </Card>
           </div>
         </div>

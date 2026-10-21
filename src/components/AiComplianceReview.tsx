@@ -1492,7 +1492,7 @@ export const AiComplianceReview: React.FC<AiComplianceReviewProps> = ({
                   2. PAYE &amp; NSSF Reconciliation
                 </div>
                 <span style={{ fontSize: "0.68rem", fontWeight: 700, color: C.teal, background: "rgba(26,123,107,0.1)", padding: "2px 8px", borderRadius: 4 }}>
-                  ITA Cap 340
+                  Income Tax Provision
                 </span>
               </div>
 
