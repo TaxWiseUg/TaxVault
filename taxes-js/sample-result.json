@@ -1,0 +1,850 @@
+{
+  "engineVersion": "kyt-engine/1.0.0",
+  "asOf": "2026-10-19",
+  "ruleSetVersion": "UG-2026.07",
+  "profileSummary": [
+    "Taxpayer type: Individual",
+    "Residency: Resident",
+    "Employed — UGX 1,500,000/month gross",
+    "Business turnover: UGX 45,000,000/year",
+    "Activities: trading",
+    "VAT registered: no",
+    "Rental income: UGX 24,000,000/year"
+  ],
+  "obligations": [
+    {
+      "code": "PAYE_EMPLOYEE",
+      "status": "LIKELY",
+      "why": [
+        "You receive a salary from an employer. Under the Income Tax Act your employer must deduct PAYE before paying you and send it to URA — that's why you see it on your payslip rather than paying it yourself.",
+        "At UGX 1,500,000 a month your pay is above the tax-free band, so PAYE is calculated on the portion above it, band by band."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "estimate": {
+        "amount": 338250,
+        "period": "MONTHLY",
+        "basis": "ESTIMATE",
+        "workings": [
+          "Gross monthly salary: UGX 1,500,000",
+          "First UGX 335,000 is tax-free",
+          "UGX 75,000 between UGX 335,000 and UGX 410,000 × 20% = UGX 15,000",
+          "UGX 75,000 between UGX 410,000 and UGX 485,000 × 25% = UGX 18,750",
+          "UGX 1,015,000 between UGX 485,000 and UGX 10,000,000 × 30% = UGX 304,500",
+          "Estimated PAYE: UGX 338,250 per month"
+        ],
+        "indicativeOnly": true,
+        "paramsUsed": [
+          {
+            "key": "monthlyBands",
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ]
+      },
+      "rateSummary": [
+        "Resident individual monthly PAYE bands [from, to, rate %]: UGX 0–UGX 335,000: 0%; UGX 335,000–UGX 410,000: 20%; UGX 410,000–UGX 485,000: 25%; UGX 485,000–UGX 10,000,000: 30%; above UGX 10,000,000: 40% — pending verification"
+      ],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Pay As You Earn (PAYE) — as an employee",
+        "shortName": "PAYE",
+        "category": "TAX",
+        "plainDefinition": "PAYE (Pay As You Earn) is income tax on your salary that your employer deducts before paying you, and sends to URA on your behalf. You usually don't file it yourself.",
+        "legalBasis": [
+          "ITA-S116",
+          "ITA-AMEND-2026"
+        ],
+        "triggers": [
+          "You receive employment income (salary, wages, cash allowances) from an employer."
+        ],
+        "records": [
+          "Monthly payslips",
+          "Your employment contract",
+          "Any PAYE certificate or annual statement from your employer"
+        ],
+        "deadlines": [
+          "Your employer must pay the PAYE it deducts to URA by the 15th day of the following month."
+        ],
+        "channel": [
+          "Your employer files and pays. You can view your PAYE credits on your URA portal account (Ledger)."
+        ],
+        "consequences": [
+          {
+            "text": "If your employer fails to withhold, URA can hold the employer liable; you may still need to declare the income yourself.",
+            "sourceIds": [
+              "ITA-S116"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Check each payslip shows a PAYE deduction once your pay is above the tax-free threshold.",
+          "Log in to the URA portal and confirm your employer's PAYE remittances appear against your TIN.",
+          "If you have a second employer or other income, ask a tax adviser whether you need to file an annual return."
+        ]
+      }
+    },
+    {
+      "code": "PRESUMPTIVE_TAX",
+      "status": "LIKELY",
+      "why": [
+        "Your turnover of UGX 45,000,000 is within the presumptive range: above UGX 10,000,000 and up to UGX 150,000,000 (pending verification). That makes you likely a 'small business taxpayer' — instead of tax on exact profit, you pay a set annual amount for your turnover band.",
+        "Because you keep proper books of account, the lower records-based amount applies."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "estimate": {
+        "amount": 155000,
+        "period": "ANNUAL",
+        "basis": "ESTIMATE",
+        "workings": [
+          "Turnover UGX 45,000,000 falls in the band above UGX 30,000,000 up to UGX 50,000,000",
+          "You keep proper books, so the records-based rate applies:",
+          "UGX 80,000 + 0.5% × (UGX 45,000,000 - UGX 30,000,000) = UGX 155,000",
+          "Estimated presumptive tax: UGX 155,000 per year",
+          "(Without records it would be the fixed UGX 200,000.)"
+        ],
+        "indicativeOnly": true,
+        "paramsUsed": [
+          {
+            "key": "recordsBands",
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ]
+      },
+      "rateSummary": [
+        "Presumptive regime lower turnover bound: UGX 10,000,000 — pending verification",
+        "Presumptive regime upper turnover bound: UGX 150,000,000 — pending verification",
+        "Annual presumptive tax where no proper records are kept [turnover above, up to and including, UGX payable]: UGX 10,000,000–UGX 30,000,000: UGX 80,000; UGX 30,000,000–UGX 50,000,000: UGX 200,000; UGX 50,000,000–UGX 80,000,000: UGX 400,000; UGX 80,000,000–UGX 150,000,000: UGX 900,000 — pending verification",
+        "Annual presumptive tax where proper records are kept [turnover above, up to, base UGX, % of turnover above band start]: UGX 10,000,000–UGX 30,000,000: 0.4% of turnover above UGX 10,000,000; UGX 30,000,000–UGX 50,000,000: UGX 80,000 + 0.5% of turnover above UGX 30,000,000; UGX 50,000,000–UGX 80,000,000: UGX 180,000 + 0.6% of turnover above UGX 50,000,000; UGX 80,000,000–UGX 150,000,000: UGX 360,000 + 0.7% of turnover above UGX 80,000,000 — pending verification"
+      ],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Presumptive tax (small business taxpayers)",
+        "shortName": "Presumptive tax",
+        "category": "TAX",
+        "plainDefinition": "Presumptive tax is a simplified regime for small businesses: instead of working out exact profit, you pay a set annual amount based on your turnover band — or a lower percentage-based amount if you keep proper books of account. It is a final tax: no deductions for expenses.",
+        "legalBasis": [
+          "ITA-PRESUMPTIVE",
+          "UNU-WIDER-PRESUMPTIVE"
+        ],
+        "triggers": [
+          "You are a resident small business with annual turnover inside the presumptive range.",
+          "You are not in an excluded profession (e.g. medical, legal, accounting, engineering and similar professional services)."
+        ],
+        "records": [
+          "A record of daily sales (needed to show your turnover band)",
+          "Purchase receipts",
+          "Books of account, if you want the lower records-based rate",
+          "Withholding tax certificates and provisional tax receipts — the only credits allowed against presumptive tax"
+        ],
+        "deadlines": [
+          "File the annual return after the tax year ends (by 31 December). Confirm payment timing with URA."
+        ],
+        "channel": [
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "Late registration, filing or payment can attract penalties and interest under the Tax Procedures Code Act. The amounts are set in the Act — check the current figures with URA or your tax adviser.",
+            "sourceIds": [
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Keep proper books of account — the records-based amount is lower than the fixed amount in every band.",
+          "If your turnover is close to the top of a band, track it monthly: crossing the band limit moves you to the next amount.",
+          "If you keep full books and have high expenses, ask an adviser whether electing out of presumptive tax would cost less."
+        ]
+      }
+    },
+    {
+      "code": "RENTAL_TAX_INDIVIDUAL",
+      "status": "LIKELY",
+      "why": [
+        "You earn rent from property in Uganda. Individuals pay rental tax as a separate flat-rate tax on gross rent above a threshold — no expenses are deducted."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "estimate": {
+        "amount": 2541600,
+        "period": "ANNUAL",
+        "basis": "ESTIMATE",
+        "workings": [
+          "Gross annual rent: UGX 24,000,000",
+          "Less threshold: UGX 2,820,000",
+          "Amount subject to tax: UGX 21,180,000",
+          "UGX 21,180,000 × 12% = UGX 2,541,600 per year"
+        ],
+        "indicativeOnly": true,
+        "paramsUsed": [
+          {
+            "key": "rate",
+            "verification": "NEEDS_VERIFICATION"
+          },
+          {
+            "key": "threshold",
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ]
+      },
+      "rateSummary": [
+        "Rental tax rate for individuals: 12% — pending verification",
+        "Annual rental income threshold for individuals: UGX 2,820,000 — pending verification"
+      ],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Rental income tax (individuals)",
+        "shortName": "Rental tax",
+        "category": "TAX",
+        "plainDefinition": "Individual landlords pay rental tax as a flat percentage of gross rent above a threshold. It is a separate tax — rent isn't mixed with your salary or business income.",
+        "legalBasis": [
+          "ITA-S5"
+        ],
+        "triggers": [
+          "You are an individual earning rent from property in Uganda."
+        ],
+        "records": [
+          "Tenancy agreements",
+          "Rent receipts / rent book",
+          "Property ownership documents",
+          "Bank records of rent received"
+        ],
+        "deadlines": [
+          "Rental income return is due within six months after the end of the tax year (31 December)."
+        ],
+        "channel": [
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "Late registration, filing or payment can attract penalties and interest under the Tax Procedures Code Act. The amounts are set in the Act — check the current figures with URA or your tax adviser.",
+            "sourceIds": [
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Register each property under your TIN on the URA portal.",
+          "Use TaxWise's Rental Income Tax calculator for property-by-property detail."
+        ]
+      }
+    },
+    {
+      "code": "INVESTMENT_INCOME_WHT",
+      "status": "LIKELY",
+      "why": [
+        "You receive interest. Tax is usually withheld by the bank or company when paid — for many individuals that is the final tax and nothing more is due."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Withholding tax on dividends and interest",
+        "shortName": "Dividends & interest",
+        "category": "TAX",
+        "plainDefinition": "Banks and companies usually deduct withholding tax when they pay you interest or dividends. For many individuals this is a final tax — you don't declare it again — but it depends on the type of income.",
+        "legalBasis": [
+          "ITA"
+        ],
+        "triggers": [
+          "You receive dividends or interest."
+        ],
+        "records": [
+          "Bank interest certificates",
+          "Dividend vouchers"
+        ],
+        "deadlines": [
+          "Withheld by the payer at the time of payment."
+        ],
+        "channel": [
+          "Withheld and paid by the bank or company."
+        ],
+        "consequences": [],
+        "nextSteps": [
+          "Keep certificates showing tax deducted, in case you need to show it was a final tax."
+        ]
+      }
+    },
+    {
+      "code": "TRADING_LICENCE",
+      "status": "LIKELY",
+      "why": [
+        "You run a business. Separately from tax, you'll need business registration and a local trading licence."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Business registration and trading licence (not a tax)",
+        "shortName": "Licences",
+        "category": "REGISTRATION",
+        "plainDefinition": "Separate from tax, most businesses must be registered with URSB and hold a trading licence from their local government. Some sectors need additional regulatory licences.",
+        "legalBasis": [
+          "LGA-LST"
+        ],
+        "triggers": [
+          "You run a business from premises in Uganda."
+        ],
+        "records": [
+          "URSB registration certificate",
+          "Trading licence",
+          "Sector licences"
+        ],
+        "deadlines": [
+          "Trading licences are renewed annually."
+        ],
+        "channel": [
+          "URSB (business registration); local government / KCCA (trading licence)."
+        ],
+        "consequences": [],
+        "nextSteps": [
+          "Confirm your licence is current for this financial year."
+        ]
+      }
+    },
+    {
+      "code": "TIN_REGISTRATION",
+      "status": "LIKELY",
+      "why": [
+        "You have income or activities that URA tracks, so you need a TIN to file, pay or claim credits."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Taxpayer Identification Number (TIN) registration",
+        "shortName": "TIN",
+        "category": "REGISTRATION",
+        "plainDefinition": "A TIN is your unique number with URA. You need it before you can file returns, register for VAT, or clear goods at customs.",
+        "legalBasis": [
+          "TPCA",
+          "URA-PORTAL"
+        ],
+        "triggers": [
+          "You earn income that must be declared to URA, run a business, employ staff, or import goods."
+        ],
+        "records": [
+          "National ID (individuals) or certificate of incorporation (companies)",
+          "Business registration documents from URSB where applicable"
+        ],
+        "deadlines": [
+          "Register before you start filing or trading. Registration is free on the URA portal."
+        ],
+        "channel": [
+          "Apply online at ura.go.ug (TIN registration)."
+        ],
+        "consequences": [
+          {
+            "text": "Late registration, filing or payment can attract penalties and interest under the Tax Procedures Code Act. The amounts are set in the Act — check the current figures with URA or your tax adviser.",
+            "sourceIds": [
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Check whether you already have a TIN before applying — duplicate TINs cause problems later."
+        ]
+      }
+    },
+    {
+      "code": "LOCAL_SERVICE_TAX",
+      "status": "NEEDS_INFO",
+      "why": [
+        "Local Service Tax is charged by local governments on people earning employment or business income above a minimum level."
+      ],
+      "missing": [
+        "Your local government area and income band — LST scales are set locally."
+      ],
+      "followUpQuestionIds": [],
+      "rateSummary": [],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Local Service Tax (local government)",
+        "shortName": "LST",
+        "category": "TAX",
+        "plainDefinition": "Local Service Tax is a small annual tax collected by your local government (e.g. KCCA in Kampala) from people in gainful employment or business, graduated by income. Employers usually deduct it from salary.",
+        "legalBasis": [
+          "LGA-LST"
+        ],
+        "triggers": [
+          "You earn employment or business income above the local exemption level, or you employ staff (deduct and remit for them)."
+        ],
+        "records": [
+          "LST receipts",
+          "Payroll LST deductions"
+        ],
+        "deadlines": [
+          "Collected in instalments at the start of the financial year — confirm with your local government."
+        ],
+        "channel": [
+          "Local government / KCCA revenue system."
+        ],
+        "consequences": [],
+        "nextSteps": [
+          "Check your local government's current LST scale — TaxWise does not encode it yet."
+        ]
+      }
+    },
+    {
+      "code": "INDIVIDUAL_INCOME_TAX",
+      "status": "PROFESSIONAL_REVIEW",
+      "why": [
+        "You have both a salary and business income. Where employment income is combined with other income, you may need to file an annual individual return rather than rely on PAYE alone."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [
+        "Resident individual annual bands [from, to, rate %]: UGX 0–UGX 4,020,000: 0%; UGX 4,020,000–UGX 4,920,000: 20%; UGX 4,920,000–UGX 5,820,000: 25%; UGX 5,820,000–UGX 120,000,000: 30%; above UGX 120,000,000: 40% — pending verification"
+      ],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Individual income tax (business, freelance and other income)",
+        "shortName": "Individual income tax",
+        "category": "TAX",
+        "plainDefinition": "Individual income tax is tax on an individual's chargeable income for the year — business or freelance profit and other income not already fully taxed at source. You declare it yourself in an annual return.",
+        "legalBasis": [
+          "ITA",
+          "ITA-AMEND-2026"
+        ],
+        "triggers": [
+          "You earn business or freelance income above the presumptive tax range, or you are excluded from the presumptive regime (e.g. professional services)."
+        ],
+        "records": [
+          "Sales invoices and receipts (EFRIS where applicable)",
+          "Expense receipts",
+          "Bank statements",
+          "Books of account"
+        ],
+        "deadlines": [
+          "Uganda's tax year runs 1 July – 30 June. The annual return is due within six months after year-end (31 December).",
+          "Provisional (estimated) returns and payments may be due during the year — confirm the dates for your situation."
+        ],
+        "channel": [
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "Late registration, filing or payment can attract penalties and interest under the Tax Procedures Code Act. The amounts are set in the Act — check the current figures with URA or your tax adviser.",
+            "sourceIds": [
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Keep separate books for your business income.",
+          "Estimate your profit (income minus allowable expenses) so you can file a provisional return."
+        ]
+      }
+    },
+    {
+      "code": "VAT",
+      "status": "NOT_APPLICABLE",
+      "why": [
+        "Your turnover of UGX 45,000,000 is below the VAT registration threshold of UGX 300,000,000, so registration isn't compulsory."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [
+        "Standard VAT rate: 18% — pending verification",
+        "Annual VAT registration threshold: UGX 300,000,000"
+      ],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Value Added Tax (VAT)",
+        "shortName": "VAT",
+        "category": "TAX",
+        "plainDefinition": "VAT is a tax on sales. A VAT-registered business adds VAT to its prices (output VAT), deducts the VAT it paid on business purchases (input VAT), and pays URA the difference every month.",
+        "legalBasis": [
+          "VATA-S7",
+          "VATA",
+          "VATA-AMEND-2026",
+          "URA-EFRIS"
+        ],
+        "triggers": [
+          "Your taxable turnover exceeds, or is expected to exceed, the registration threshold — or you are already registered (voluntarily or otherwise)."
+        ],
+        "records": [
+          "EFRIS e-invoices / e-receipts for every sale",
+          "Purchase invoices showing input VAT",
+          "Import entries (for VAT on imports)",
+          "Monthly VAT returns"
+        ],
+        "deadlines": [
+          "File the monthly VAT return and pay by the 15th day of the following month — even in months with no sales."
+        ],
+        "channel": [
+          "Issue invoices through EFRIS.",
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "Late registration, filing or payment can attract penalties and interest under the Tax Procedures Code Act. The amounts are set in the Act — check the current figures with URA or your tax adviser.",
+            "sourceIds": [
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Issue every sale through EFRIS.",
+          "Reconcile EFRIS sales to your VAT return each month — TaxWise's Compliance Review can check this."
+        ]
+      }
+    },
+    {
+      "code": "PAYE_EMPLOYER",
+      "status": "NOT_APPLICABLE",
+      "why": [
+        "You don't employ staff, so you have no PAYE withholding duty."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "PAYE — your duty as an employer",
+        "shortName": "PAYE (employer)",
+        "category": "TAX",
+        "plainDefinition": "As an employer you are a 'withholding agent': the law makes you deduct PAYE from each employee's pay and send it to URA, because the employer is the one actually holding the money when salary is paid.",
+        "legalBasis": [
+          "ITA-S116",
+          "ITA-AMEND-2026"
+        ],
+        "triggers": [
+          "You pay salaries or wages to one or more employees, including casual and domestic workers."
+        ],
+        "records": [
+          "Payroll register",
+          "Employment contracts",
+          "Monthly PAYE returns and payment receipts",
+          "Records of benefits in kind"
+        ],
+        "deadlines": [
+          "File the monthly PAYE return and pay the tax by the 15th day of the month after the salary month."
+        ],
+        "channel": [
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "An employer who fails to withhold or remit PAYE can be made personally liable for the tax not withheld, plus penalties and interest.",
+            "sourceIds": [
+              "ITA-S116",
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Update your payroll for the 2026/27 bands (effective 1 July 2026). TaxWise's PAYE calculator uses the same rule set.",
+          "Register each employee's TIN in your payroll records.",
+          "Set a calendar reminder for the 15th of every month."
+        ]
+      }
+    },
+    {
+      "code": "WHT_AGENT",
+      "status": "NOT_APPLICABLE",
+      "why": [
+        "You don't pay suppliers or contractors, so supplier withholding doesn't arise."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [
+        "WHT on payments by designated agents: 6% — pending verification",
+        "Minimum payment subject to WHT: UGX 1,000,000 — pending verification"
+      ],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Withholding tax (WHT) as a designated agent",
+        "shortName": "WHT (agent)",
+        "category": "TAX",
+        "plainDefinition": "Withholding tax is tax deducted at the point of payment. URA designates certain businesses to deduct a percentage from qualifying payments to suppliers and pay it to URA; the supplier gets a credit against their own tax.",
+        "legalBasis": [
+          "ITA-S119"
+        ],
+        "triggers": [
+          "URA has designated you as a withholding agent and you pay suppliers for goods or services above the minimum amount."
+        ],
+        "records": [
+          "Supplier invoices",
+          "WHT certificates issued to suppliers",
+          "Monthly WHT returns",
+          "List of suppliers exempted from WHT (with URA exemption certificates)"
+        ],
+        "deadlines": [
+          "Pay the tax withheld by the 15th day of the following month."
+        ],
+        "channel": [
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "A withholding agent who fails to withhold is generally personally liable for the tax not withheld, plus penalties.",
+            "sourceIds": [
+              "ITA-S119",
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Check each supplier's WHT exemption status on the URA portal before paying.",
+          "Issue WHT certificates promptly."
+        ]
+      }
+    },
+    {
+      "code": "FOREIGN_INCOME",
+      "status": "NOT_APPLICABLE",
+      "why": [
+        "You don't earn income from outside Uganda."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Tax on foreign-source income",
+        "shortName": "Foreign income",
+        "category": "TAX",
+        "plainDefinition": "Uganda taxes residents on worldwide income. From 1 July 2026, foreign-source income of resident individuals is taxed at the same rates as Ugandan income. A foreign tax credit may reduce double taxation.",
+        "legalBasis": [
+          "ITA",
+          "ITA-AMEND-2026"
+        ],
+        "triggers": [
+          "You are resident in Uganda and earn income from outside Uganda."
+        ],
+        "records": [
+          "Foreign income statements",
+          "Proof of foreign tax paid",
+          "Exchange-rate records"
+        ],
+        "deadlines": [
+          "Declared in your annual return (due 31 December)."
+        ],
+        "channel": [
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "Late registration, filing or payment can attract penalties and interest under the Tax Procedures Code Act. The amounts are set in the Act — check the current figures with URA or your tax adviser.",
+            "sourceIds": [
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Have a professional confirm source, treaty position and foreign tax credits."
+        ]
+      }
+    },
+    {
+      "code": "CAPITAL_GAINS",
+      "status": "NOT_APPLICABLE",
+      "why": [
+        "You didn't sell business assets, commercial property or shares this year."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "Tax on gains from selling business assets or shares",
+        "shortName": "Capital gains",
+        "category": "TAX",
+        "plainDefinition": "Uganda doesn't have a separate capital gains tax Act; gains on disposing of business assets, commercial property or shares are generally included in income and taxed under the Income Tax Act.",
+        "legalBasis": [
+          "ITA"
+        ],
+        "triggers": [
+          "You sold business assets, commercial property or shares at a gain."
+        ],
+        "records": [
+          "Purchase and sale agreements",
+          "Cost records and improvement costs",
+          "Valuation reports",
+          "Share transfer documents"
+        ],
+        "deadlines": [
+          "Included in the annual return for the year of disposal."
+        ],
+        "channel": [
+          "File returns on the URA web portal (ura.go.ug) using your TIN.",
+          "Generate a Payment Registration Number (PRN) on the portal, then pay at a URA-designated bank or approved mobile money channel."
+        ],
+        "consequences": [
+          {
+            "text": "Late registration, filing or payment can attract penalties and interest under the Tax Procedures Code Act. The amounts are set in the Act — check the current figures with URA or your tax adviser.",
+            "sourceIds": [
+              "TPCA"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "The treatment depends on the asset and your status — have a professional review the transaction."
+        ]
+      }
+    },
+    {
+      "code": "NSSF",
+      "status": "NOT_APPLICABLE",
+      "why": [
+        "You don't employ staff, so employer NSSF contributions don't arise."
+      ],
+      "missing": [],
+      "followUpQuestionIds": [],
+      "rateSummary": [
+        "Employee NSSF contribution: 5% — pending verification",
+        "Employer NSSF contribution: 10% — pending verification"
+      ],
+      "rule": {
+        "version": "2026.07",
+        "effectiveFrom": "2026-07-01",
+        "verification": "NEEDS_VERIFICATION"
+      },
+      "content": {
+        "name": "NSSF contributions (statutory social security — not a tax)",
+        "shortName": "NSSF",
+        "category": "STATUTORY_CONTRIBUTION",
+        "plainDefinition": "NSSF contributions are retirement savings that employers must remit for employees. They are not a tax and are not paid to URA, but they are a legal obligation that runs alongside PAYE.",
+        "legalBasis": [
+          "NSSF-ACT"
+        ],
+        "triggers": [
+          "You employ staff. Coverage rules were broadened by recent NSSF amendments — confirm for small employers."
+        ],
+        "records": [
+          "Payroll",
+          "NSSF schedules and payment receipts",
+          "Employee NSSF numbers"
+        ],
+        "deadlines": [
+          "Remit by the 15th day of the following month."
+        ],
+        "channel": [
+          "NSSF employer portal (nssfug.org)."
+        ],
+        "consequences": [
+          {
+            "text": "Late remittance attracts surcharges under the NSSF Act.",
+            "sourceIds": [
+              "NSSF-ACT"
+            ],
+            "verification": "NEEDS_VERIFICATION"
+          }
+        ],
+        "nextSteps": [
+          "Register as an employer with NSSF and enrol each employee."
+        ]
+      }
+    }
+  ],
+  "missingInformation": [
+    "Your local government area and income band — LST scales are set locally."
+  ],
+  "upcomingDeadlines": [
+    {
+      "obligation": "PAYE_EMPLOYEE",
+      "label": "PAYE",
+      "text": "Your employer must pay the PAYE it deducts to URA by the 15th day of the following month."
+    },
+    {
+      "obligation": "PRESUMPTIVE_TAX",
+      "label": "Presumptive tax",
+      "text": "File the annual return after the tax year ends (by 31 December). Confirm payment timing with URA."
+    },
+    {
+      "obligation": "RENTAL_TAX_INDIVIDUAL",
+      "label": "Rental tax",
+      "text": "Rental income return is due within six months after the end of the tax year (31 December)."
+    },
+    {
+      "obligation": "INVESTMENT_INCOME_WHT",
+      "label": "Dividends & interest",
+      "text": "Withheld by the payer at the time of payment."
+    }
+  ],
+  "nextSteps": [
+    "Answer the follow-up questions flagged below to firm up the 'needs more information' items.",
+    "Book a review with a qualified tax professional for the items marked 'professional review'.",
+    "Check each payslip shows a PAYE deduction once your pay is above the tax-free threshold.",
+    "Keep proper books of account — the records-based amount is lower than the fixed amount in every band.",
+    "Register each property under your TIN on the URA portal.",
+    "Keep certificates showing tax deducted, in case you need to show it was a final tax.",
+    "Confirm your licence is current for this financial year.",
+    "Check whether you already have a TIN before applying — duplicate TINs cause problems later."
+  ],
+  "unverifiedRuleCount": 14
+}

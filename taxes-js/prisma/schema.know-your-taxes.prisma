@@ -1,0 +1,177 @@
+// ─── Know Your Taxes ─────────────────────────────────────────────────────────
+// Merge these models into prisma/schema.prisma. Add the back-relations shown at
+// the bottom to your EXISTING `User` model (field names assume `User.id String`).
+
+enum KytEntityType {
+  INDIVIDUAL
+  SOLE_PROPRIETOR
+  PARTNERSHIP
+  COMPANY
+}
+
+enum KytAssessmentStatus {
+  DRAFT      // questionnaire in progress (autosaved)
+  COMPLETED  // engine has run; result is frozen
+}
+
+enum KytVerificationStatus {
+  VERIFIED
+  NEEDS_VERIFICATION
+  SUPERSEDED
+}
+
+enum KytObligationStatus {
+  LIKELY
+  NEEDS_INFO
+  NOT_APPLICABLE
+  PROFESSIONAL_REVIEW
+}
+
+/// Legal source referenced by rules (Act section, URA guide, etc.)
+model KytLegalSource {
+  id          String   @id            // stable key, e.g. "ITA-S116"
+  title       String
+  publisher   String
+  url         String
+  section     String?
+  note        String?
+  lastCheckedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ruleSources KytRuleSource[]
+}
+
+/// A named, immutable set of rule versions (e.g. "UG-2026.07"). Assessments pin to one.
+model KytRuleSet {
+  id            String   @id            // "UG-2026.07"
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  publishedAt   DateTime @default(now())
+  notes         String?
+
+  rules       KytTaxRule[]
+  assessments KytAssessment[]
+}
+
+/// One obligation's parameters + explanation content within a rule set.
+/// Parameters are JSON (each param carries its own verification status); logic lives in code.
+model KytTaxRule {
+  id            String                @id @default(cuid())
+  ruleSetId     String
+  code          String                // ObligationCode, e.g. "VAT"
+  version       String                // "2026.07"
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  verification  KytVerificationStatus @default(NEEDS_VERIFICATION)
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  params        Json                  // RuleParam[]
+  content       Json                  // RuleContent
+  createdAt     DateTime              @default(now())
+
+  ruleSet KytRuleSet      @relation(fields: [ruleSetId], references: [id], onDelete: Restrict)
+  sources KytRuleSource[]
+
+  @@unique([ruleSetId, code])
+  @@index([code, effectiveFrom])
+}
+
+model KytRuleSource {
+  ruleId   String
+  sourceId String
+  rule     KytTaxRule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  source   KytLegalSource @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+
+  @@id([ruleId, sourceId])
+}
+
+/// A user's assessment. Answers and result are frozen once COMPLETED so history stays reproducible.
+model KytAssessment {
+  id            String              @id @default(cuid())
+  userId        String
+  status        KytAssessmentStatus @default(DRAFT)
+  entityType    KytEntityType?
+  ruleSetId     String?
+  engineVersion String?
+  asOf          DateTime?           // date the rules were evaluated against
+  result        Json?               // AssessmentResult snapshot
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  completedAt   DateTime?
+
+  user        User                   @relation("KytAssessments", fields: [userId], references: [id], onDelete: Cascade)
+  ruleSet     KytRuleSet?            @relation(fields: [ruleSetId], references: [id], onDelete: Restrict)
+  responses   KytQuestionResponse[]
+  obligations KytObligationResult[]
+  reports     KytReport[]
+  questions   KytQuestion[]
+
+  @@index([userId, createdAt])
+}
+
+/// One row per answered question (queryable + auditable; mirrors result.answers).
+model KytQuestionResponse {
+  id           String   @id @default(cuid())
+  assessmentId String
+  questionId   String
+  value        Json
+  answeredAt   DateTime @default(now())
+
+  assessment KytAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, questionId])
+}
+
+/// Denormalised obligation outcomes for dashboards/analytics.
+model KytObligationResult {
+  id             String              @id @default(cuid())
+  assessmentId   String
+  code           String
+  status         KytObligationStatus
+  ruleVersion    String
+  estimateAmount Decimal?            @db.Decimal(18, 0)  // UGX, always an ESTIMATE
+  estimatePeriod String?
+  indicativeOnly Boolean             @default(true)
+
+  assessment KytAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, code])
+  @@index([code, status])
+}
+
+/// Generated PDF reports (metadata; bytes are rendered on demand, not stored).
+model KytReport {
+  id           String   @id @default(cuid())
+  assessmentId String
+  userId       String
+  format       String   @default("PDF")
+  createdAt    DateTime @default(now())
+
+  assessment KytAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Interactive Q&A log (question, grounded answer, cited sources).
+model KytQuestion {
+  id             String   @id @default(cuid())
+  assessmentId   String
+  userId         String
+  obligationCode String
+  question       String
+  answer         String
+  citedSourceIds String[]
+  grounded       Boolean  // false => assistant flagged uncertainty / professional review
+  createdAt      DateTime @default(now())
+
+  assessment KytAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+}
+
+// ─── Add to your existing User model ─────────────────────────────────────────
+// model User {
+//   ...
+//   kytAssessments KytAssessment[] @relation("KytAssessments")
+// }
