@@ -4,8 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { supabase, safeStorage } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { LegalPortal } from "./LegalPortal";
-import { Card, Button } from "./UI";
-import { AlertTriangle, Check, CheckCircle2, Building2, HelpCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ShieldCheck, Lock, Mail, User, Eye, EyeOff } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -49,34 +48,12 @@ function getPasswordStrength(pw: string): { score: 0 | 1 | 2 | 3 | 4; label: str
   return { score: score as 0 | 1 | 2 | 3 | 4, ...map[score] };
 }
 
-// ─── SVG Icons ────────────────────────────────────────────────────────────────
-
-const EyeIcon = ({ open }: { open: boolean }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    {open ? (
-      <>
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-        <circle cx="12" cy="12" r="3" />
-      </>
-    ) : (
-      <>
-        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
-        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
-        <line x1="1" y1="1" x2="23" y2="23" />
-      </>
-    )}
-  </svg>
-);
-
-const KeyIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
-  </svg>
-);
-
-const ShieldIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+const GoogleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z" />
+    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z" />
+    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.04 0 12s.45 3.82 1.25 5.42l4.03-3.15z" />
+    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z" />
   </svg>
 );
 
@@ -193,14 +170,21 @@ const OtpInput: React.FC<OtpInputProps> = ({ value, onChange, error, length = 6,
 
 // ─── Form Field Wrapper ───────────────────────────────────────────────────────
 
-const FormField: React.FC<{ label: string; required?: boolean; error?: string; children: React.ReactNode }> = ({ label, required, error, children }) => (
-  <div style={{ marginBottom: 18 }}>
-    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: C.navy, marginBottom: 6, letterSpacing: "0.01em" }}>
-      {label}{required && <span style={{ color: C.red }}> *</span>}
+const FormField: React.FC<{ label: string; required?: boolean; error?: string; icon?: React.ReactNode; children: React.ReactNode }> = ({ label, required, error, icon, children }) => (
+  <div style={{ marginBottom: 16 }}>
+    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+      {label}{required && <span style={{ color: "#E04838" }}> *</span>}
     </label>
-    {children}
+    <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+      {icon && (
+        <span style={{ position: "absolute", left: 14, color: "#8C7E72", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
+          {icon}
+        </span>
+      )}
+      {children}
+    </div>
     {error && (
-      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.74rem", color: "#DC2626", fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
         <AlertTriangle size={13} /> {error}
       </div>
     )}
@@ -219,37 +203,34 @@ const PasswordField: React.FC<{
   showStrength?: boolean;
   showForgot?: boolean;
   onForgot?: () => void;
-}> = ({ label, value, onChange, error, placeholder = "••••••••", required, showStrength, showForgot, onForgot }) => {
+}> = ({ label, value, onChange, error, placeholder = "Enter your password", required, showStrength, showForgot, onForgot }) => {
   const [show, setShow] = useState(false);
   const pwStrength = getPasswordStrength(value);
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    border: `1.5px solid ${error ? C.red : C.border}`,
-    borderRadius: 8,
-    padding: "11px 44px 11px 16px",
-    fontSize: "0.875rem",
+    border: error ? "1.5px solid #EF4444" : "1px solid rgba(0, 0, 0, 0.05)",
+    borderRadius: 14,
+    padding: "13px 44px 13px 42px",
+    fontSize: "0.88rem",
     fontFamily: "inherit",
     outline: "none",
-    background: error ? "#FFF5F5" : C.offwhite,
-    color: C.text,
+    background: "#FFFFFF",
+    color: "#1F2937",
     boxSizing: "border-box",
     transition: "all 0.2s ease",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
   };
 
   return (
-    <div style={{ marginBottom: 18 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <label style={{ fontSize: "0.8rem", fontWeight: 700, color: C.navy, letterSpacing: "0.01em" }}>
-          {label}{required && <span style={{ color: C.red }}> *</span>}
-        </label>
-        {showForgot && (
-          <button type="button" className="forgot-link" onClick={onForgot}>
-            Forgot password?
-          </button>
-        )}
-      </div>
-      <div style={{ position: "relative" }}>
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+        {label}{required && <span style={{ color: "#E04838" }}> *</span>}
+      </label>
+      <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+        <span style={{ position: "absolute", left: 14, color: "#8C7E72", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
+          <Lock size={16} />
+        </span>
         <input
           type={show ? "text" : "password"}
           value={value}
@@ -259,14 +240,25 @@ const PasswordField: React.FC<{
         />
         <button
           type="button"
-          className="pw-toggle"
           onClick={() => setShow(!show)}
           tabIndex={-1}
           aria-label={show ? "Hide password" : "Show password"}
+          style={{ position: "absolute", right: 14, background: "none", border: "none", color: "#8C7E72", cursor: "pointer", display: "flex", alignItems: "center", padding: 0 }}
         >
-          <EyeIcon open={show} />
+          {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
+      {showForgot && (
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+          <button
+            type="button"
+            onClick={onForgot}
+            style={{ background: "none", border: "none", color: "#2B221B", fontSize: "0.76rem", fontWeight: 600, cursor: "pointer", padding: 0 }}
+          >
+            Forgot your password?
+          </button>
+        </div>
+      )}
       {showStrength && value && (
         <div style={{ marginTop: 8 }}>
           <div className="strength-bar-track">
@@ -277,14 +269,14 @@ const PasswordField: React.FC<{
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
             <span style={{ fontSize: "0.72rem", color: pwStrength.color, fontWeight: 700 }}>{pwStrength.label}</span>
-            <span style={{ fontSize: "0.7rem", color: C.muted, fontWeight: 500 }}>
+            <span style={{ fontSize: "0.7rem", color: "#8C7E72", fontWeight: 500 }}>
               {pwStrength.score < 3 ? "Add uppercase, numbers & symbols" : "Great password!"}
             </span>
           </div>
         </div>
       )}
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.74rem", color: "#DC2626", fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
           <AlertTriangle size={13} /> {error}
         </div>
       )}
@@ -307,48 +299,47 @@ const ConfirmPasswordField: React.FC<{
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    border: `1.5px solid ${error ? C.red : matches ? C.green : C.border}`,
-    borderRadius: 8,
-    padding: "11px 44px 11px 16px",
-    fontSize: "0.875rem",
+    border: error ? "1.5px solid #EF4444" : matches ? "1.5px solid #16A34A" : "1px solid rgba(0, 0, 0, 0.05)",
+    borderRadius: 14,
+    padding: "13px 44px 13px 42px",
+    fontSize: "0.88rem",
     fontFamily: "inherit",
     outline: "none",
-    background: error ? "#FFF5F5" : matches ? "#F0FDF4" : C.offwhite,
-    color: C.text,
+    background: "#FFFFFF",
+    color: "#1F2937",
     boxSizing: "border-box",
     transition: "all 0.2s ease",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
   };
 
   return (
-    <div style={{ marginBottom: 18 }}>
-      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: C.navy, marginBottom: 6, letterSpacing: "0.01em" }}>
-        {label}{required && <span style={{ color: C.red }}> *</span>}
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+        {label}{required && <span style={{ color: "#E04838" }}> *</span>}
       </label>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+        <span style={{ position: "absolute", left: 14, color: "#8C7E72", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
+          <Lock size={16} />
+        </span>
         <input
           type={show ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="••••••••"
+          placeholder="Confirm your password"
           style={inputStyle}
         />
         <button
           type="button"
-          className="pw-toggle"
           onClick={() => setShow(!show)}
           tabIndex={-1}
           aria-label={show ? "Hide password" : "Show password"}
+          style={{ position: "absolute", right: 14, background: "none", border: "none", color: "#8C7E72", cursor: "pointer", display: "flex", alignItems: "center", padding: 0 }}
         >
-          <EyeIcon open={show} />
+          {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </div>
-      {matches && (
-        <div style={{ fontSize: "0.72rem", color: C.green, fontWeight: 700, marginTop: 5, display: "flex", alignItems: "center", gap: 4 }}>
-          <Check size={13} /> Passwords match
-        </div>
-      )}
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.74rem", color: "#DC2626", fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
           <AlertTriangle size={13} /> {error}
         </div>
       )}
@@ -750,24 +741,44 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+        },
+      });
+      if (error) {
+        setGlobalError(error.message);
+      }
+    } catch (err: unknown) {
+      setGlobalError((err as Error).message || "Google sign-in is currently unavailable.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const inputStyle = (hasError?: boolean): React.CSSProperties => ({
     width: "100%",
-    border: `1.5px solid ${hasError ? C.red : C.border}`,
-    borderRadius: 8,
-    padding: "11px 16px",
-    fontSize: "0.875rem",
+    border: hasError ? "1.5px solid #EF4444" : "1px solid rgba(0, 0, 0, 0.05)",
+    borderRadius: 14,
+    padding: "13px 16px 13px 44px",
+    fontSize: "0.88rem",
     fontFamily: "inherit",
     outline: "none",
-    background: hasError ? "#FFF5F5" : C.offwhite,
-    color: C.text,
+    background: "#FFFFFF",
+    color: "#1F2937",
     boxSizing: "border-box",
     transition: "all 0.2s ease",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
   });
 
   // ─── JSX ────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="auth-container">
+    <div className="auth-root">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap');
 
@@ -775,321 +786,564 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
           from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes mailBounce {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-7px); }
-        }
         @keyframes strengthGrow { from { width: 0; } }
-        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
 
-        .auth-container {
-          display: flex; width: 100vw; min-height: 100vh;
+        .auth-root {
+          height: 100vh;
+          width: 100vw;
+          max-height: 100vh;
+          overflow: hidden;
           font-family: 'Inter', system-ui, -apple-system, sans-serif;
-          background: var(--color-offwhite);
+          position: relative;
+          background-image: linear-gradient(to right, rgba(6, 12, 20, 0.76) 0%, rgba(6, 12, 20, 0.44) 50%, rgba(6, 12, 20, 0.72) 100%), url('/assets/taxwise_auth_abstract_bg.jpg');
+          background-size: cover;
+          background-position: center center;
+          background-repeat: no-repeat;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        /* ── Left showcase ── */
-        .auth-showcase {
-          flex: 1.1;
-          background: radial-gradient(circle at 30% 30%, #162C54 0%, #0F2044 100%);
-          color: white; padding: 64px 8%;
-          display: flex; flex-direction: column; justify-content: space-between;
-          position: relative; overflow: hidden;
-        }
-        .auth-showcase::after {
-          content: ''; position: absolute; inset: 0;
-          background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 0);
-          background-size: 24px 24px; opacity: 0.85; pointer-events: none;
+        .auth-inner {
+          width: 100%;
+          max-width: 1280px;
+          height: 100vh;
+          max-height: 100vh;
+          margin: 0 auto;
+          padding: 36px 36px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 56px;
+          position: relative;
+          z-index: 10;
+          box-sizing: border-box;
+          overflow: hidden;
         }
 
-        /* ── Right form panel ── */
-        .auth-form-panel {
-          flex: 0.9; display: flex; flex-direction: column;
-          justify-content: center; align-items: center;
-          padding: 48px 8%; background: var(--color-offwhite); position: relative;
+        /* ── Left Branded Column (Locked Viewport, Non-Scrolling) ── */
+        .auth-left {
+          flex: 1.15;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          height: calc(100vh - 72px);
+          max-height: calc(100vh - 72px);
+          color: #FFFFFF;
+          max-width: 580px;
+          overflow: hidden;
+          user-select: none;
         }
-        .auth-form-card { width: 100%; max-width: 460px; }
-        .auth-form-content { animation: authFadeIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
 
-        /* ── Back button ── */
-        .auth-back-btn {
-          position: absolute; top: 32px; left: 32px;
-          display: flex; align-items: center; gap: 6px;
-          background: var(--color-white); border: 1px solid var(--color-border);
-          border-radius: 10px; color: var(--color-text);
-          font-size: 0.8rem; font-weight: 600; font-family: inherit;
-          padding: 8px 14px; cursor: pointer;
+        .auth-topbar-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .auth-back-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.12);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          border-radius: 9999px;
+          color: #FFFFFF;
+          font-size: 0.82rem;
+          font-weight: 600;
+          font-family: inherit;
+          padding: 8px 18px;
+          cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 2px 8px rgba(15,32,68,0.02); z-index: 100;
         }
-        .auth-back-btn:hover { background: var(--color-offwhite); transform: translateX(-2px); }
-
-        /* ── Tab switcher ── */
-        .auth-tab-btn {
-          flex: 1; padding: 9px 0; border-radius: 8px; border: none;
-          font-weight: 700; font-size: 0.82rem; cursor: pointer;
-          transition: all 0.2s cubic-bezier(0.16,1,0.3,1); font-family: inherit;
+        .auth-back-pill:hover {
+          background: rgba(255, 255, 255, 0.22);
+          border-color: rgba(255, 255, 255, 0.4);
+          transform: translateX(-2px);
         }
 
-        /* ── Password toggle ── */
-        .pw-toggle {
-          position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-          background: none; border: none; cursor: pointer;
-          color: #9CA3AF; display: flex; align-items: center;
-          padding: 4px; border-radius: 4px; transition: color 0.15s;
-        }
-        .pw-toggle:hover { color: #0F2044; }
-
-        /* ── Strength bar ── */
-        .strength-bar-track {
-          height: 4px; border-radius: 4px; background: #E5E7EB; overflow: hidden; margin-top: 8px;
-        }
-        .strength-bar-fill {
-          height: 100%; border-radius: 4px;
-          transition: width 0.4s cubic-bezier(0.16,1,0.3,1), background 0.3s ease;
-          animation: strengthGrow 0.4s ease forwards;
+        .auth-brand-name {
+          color: #FFFFFF;
         }
 
-        /* ── Forgot / link button ── */
-        .forgot-link {
-          background: none; border: none; cursor: pointer;
-          color: #1A7B6B; font-size: 0.78rem; font-weight: 700;
-          font-family: inherit; padding: 0; transition: opacity 0.15s;
-        }
-        .forgot-link:hover { opacity: 0.7; text-decoration: underline; }
-
-        /* ── Alerts ── */
-        .auth-alert {
-          border-radius: 10px; padding: 12px 16px;
-          font-size: 0.8rem; font-weight: 600;
-          margin-bottom: 18px; line-height: 1.5; animation: authFadeIn 0.25s ease;
-        }
-        .auth-alert-error   { background: #FEE2E2; color: #DC2626; border: 1px solid rgba(220,38,38,0.15); }
-        .auth-alert-success { background: #DCFCE7; color: #16A34A; border: 1px solid rgba(22,163,74,0.15); }
-
-        /* ── Icon circle ── */
-        .auth-icon-circle {
-          width: 72px; height: 72px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          margin: 0 auto 20px;
+        .auth-quote-area {
+          margin: 48px 0;
         }
 
-        /* ── OTP hint row ── */
-        .otp-hint-row {
-          display: flex; align-items: center; gap: 8px;
-          background: #EEF9F7; border: 1px solid rgba(26,123,107,0.15);
-          border-radius: 10px; padding: 12px 16px;
-          font-size: 0.78rem; color: #1A7B6B; font-weight: 600; margin-bottom: 20px;
+        .auth-quote-title {
+          font-family: 'Playfair Display', Georgia, serif;
+          font-size: clamp(2.4rem, 4vw, 3.6rem);
+          line-height: 1.14;
+          font-weight: 700;
+          letter-spacing: -0.015em;
+          color: #FFFFFF;
+          margin-bottom: 18px;
+          text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+        }
+
+        .auth-quote-subtitle {
+          font-size: 1.12rem;
+          color: rgba(255, 255, 255, 0.88);
+          font-weight: 500;
+          line-height: 1.5;
+          text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+        }
+
+        .auth-bottom-badges {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .auth-compliance-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: 12px;
+          padding: 10px 16px;
+          font-size: 0.78rem;
+          color: rgba(255, 255, 255, 0.88);
+          font-weight: 500;
+          max-width: fit-content;
+        }
+
+        /* ── Right Floating Card Container ── */
+        .auth-right {
+          flex: 0.95;
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          max-height: calc(100vh - 48px);
+        }
+
+        .auth-card-sprout {
+          width: 100%;
+          max-width: 440px;
+          background: #FFF7F0;
+          border-radius: 32px;
+          padding: 38px 36px 32px;
+          box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.42), 0 0 1px rgba(0, 0, 0, 0.12);
+          box-sizing: border-box;
+          animation: authFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          max-height: calc(100vh - 56px);
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(74, 164, 27, 0.35) transparent;
+        }
+
+        .auth-card-sprout::-webkit-scrollbar {
+          width: 5px;
+        }
+        .auth-card-sprout::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .auth-card-sprout::-webkit-scrollbar-thumb {
+          background: rgba(74, 164, 27, 0.3);
+          border-radius: 10px;
+        }
+        .auth-card-sprout::-webkit-scrollbar-thumb:hover {
+          background: rgba(74, 164, 27, 0.6);
+        }
+
+        .auth-card-title {
+          font-size: 1.55rem;
+          font-weight: 800;
+          color: #1F1914;
+          letter-spacing: -0.025em;
+          text-align: center;
+          margin-bottom: 6px;
+        }
+
+        .auth-card-subtitle {
+          font-size: 0.84rem;
+          color: #786C62;
+          text-align: center;
+          font-weight: 500;
+          line-height: 1.45;
+          margin-bottom: 24px;
+        }
+
+        /* ── Submit Button (Vibrant Green Pill) ── */
+        .auth-submit-btn {
+          width: 100%;
+          background: #4AA41B;
+          color: #FFFFFF;
+          border: none;
+          border-radius: 9999px;
+          padding: 13px 20px;
+          font-size: 0.92rem;
+          font-weight: 700;
+          font-family: inherit;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 4px 14px rgba(74, 164, 27, 0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          margin-top: 6px;
+        }
+        .auth-submit-btn:hover:not(:disabled) {
+          background: #3F9216;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(74, 164, 27, 0.45);
+        }
+        .auth-submit-btn:active:not(:disabled) {
+          transform: translateY(0);
+        }
+        .auth-submit-btn:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
         }
 
         /* ── Divider ── */
-        .auth-divider {
-          display: flex; align-items: center; gap: 12px;
-          margin: 16px 0; color: #9CA3AF; font-size: 0.72rem; font-weight: 600;
+        .auth-divider-pill {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin: 18px 0;
+          color: #9A8E85;
+          font-size: 0.8rem;
+          font-weight: 600;
         }
-        .auth-divider::before, .auth-divider::after {
-          content: ''; flex: 1; height: 1px; background: #E5E7EB;
+        .auth-divider-pill::before,
+        .auth-divider-pill::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: #E8DFD8;
         }
 
-        /* ── Terms ── */
-        .terms-row {
-          display: flex; align-items: flex-start; gap: 10px;
-          font-size: 0.78rem; color: #6B7280; font-weight: 500; line-height: 1.5;
+        /* ── Google SSO Button ── */
+        .auth-google-btn {
+          width: 100%;
+          background: #FFFFFF;
+          color: #2D241E;
+          border: 1px solid #E8DFD8;
+          border-radius: 9999px;
+          padding: 12px 18px;
+          font-size: 0.88rem;
+          font-weight: 600;
+          font-family: inherit;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
         }
-        .terms-row input[type="checkbox"] {
-          width: 16px; height: 16px; border: 2px solid #D1D5DB;
-          border-radius: 4px; cursor: pointer; flex-shrink: 0; margin-top: 2px;
-          accent-color: #1A7B6B;
+        .auth-google-btn:hover:not(:disabled) {
+          background: #FAF6F0;
+          border-color: #D6CCC2;
+          transform: translateY(-1px);
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
         }
-        .terms-link { color: #1A7B6B; font-weight: 700; text-decoration: none; }
-        .terms-link:hover { text-decoration: underline; }
+        .auth-google-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
 
-        /* ── Step badge ── */
-        .step-badge {
-          display: inline-flex; align-items: center; gap: 6px;
-          background: rgba(26,123,107,0.08); border: 1px solid rgba(26,123,107,0.2);
-          border-radius: 50px; padding: 4px 12px;
-          font-size: 0.7rem; font-weight: 700; color: #1A7B6B;
+        /* ── Bottom Account Switcher ── */
+        .auth-switch-text {
+          text-align: center;
+          margin-top: 22px;
+          font-size: 0.82rem;
+          color: #786C62;
+          font-weight: 500;
+        }
+        .auth-switch-btn {
+          background: none;
+          border: none;
+          color: #4AA41B;
+          font-weight: 700;
+          cursor: pointer;
+          padding: 0;
+          font-size: inherit;
+          font-family: inherit;
+          transition: opacity 0.15s;
+        }
+        .auth-switch-btn:hover {
+          opacity: 0.8;
+          text-decoration: underline;
+        }
+
+        /* ── Strength bar ── */
+        .strength-bar-track {
+          height: 4px;
+          border-radius: 4px;
+          background: #E8DFD8;
+          overflow: hidden;
+          margin-top: 8px;
+        }
+        .strength-bar-fill {
+          height: 100%;
+          border-radius: 4px;
+          transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
+          animation: strengthGrow 0.4s ease forwards;
+        }
+
+        /* ── Alerts ── */
+        .auth-alert {
+          border-radius: 12px;
+          padding: 11px 14px;
+          font-size: 0.8rem;
+          font-weight: 600;
           margin-bottom: 16px;
+          line-height: 1.45;
+          animation: authFadeIn 0.2s ease;
+        }
+        .auth-alert-error {
+          background: #FEE2E2;
+          color: #DC2626;
+          border: 1px solid rgba(220, 38, 38, 0.15);
+        }
+        .auth-alert-success {
+          background: #DCFCE7;
+          color: #16A34A;
+          border: 1px solid rgba(22, 163, 74, 0.15);
         }
 
-        /* ── Responsive ── */
+        /* ── Legal / Disclaimers Footer ── */
+        .auth-legal-footer {
+          margin-top: 22px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          align-items: center;
+        }
+        .auth-legal-links {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          font-size: 0.72rem;
+          color: #9A8E85;
+        }
+        .auth-legal-btn {
+          background: none;
+          border: none;
+          color: #786C62;
+          cursor: pointer;
+          font-size: inherit;
+          padding: 0;
+          text-decoration: underline;
+          font-family: inherit;
+        }
+        .auth-legal-btn:hover {
+          color: #1F1914;
+        }
+
+        /* ── Responsive Mobile Overhaul ── */
         @media (max-width: 992px) {
-          .auth-showcase { display: none !important; }
-          .auth-form-panel {
-            flex: 1 !important; padding: 24px 16px !important;
-            background: radial-gradient(circle at 50% 50%, #162C54 0%, #0F2044 100%) !important;
+          .auth-root {
+            background-image: none !important;
+            background: #FFF7F0 !important;
+            height: auto !important;
+            min-height: 100vh !important;
+            max-height: none !important;
+            overflow-y: auto !important;
+            align-items: flex-start !important;
           }
-          .auth-back-btn {
-            top: 20px; left: 20px;
-            background: rgba(255,255,255,0.08) !important;
-            border: 1px solid rgba(255,255,255,0.15) !important;
-            color: white !important; box-shadow: none !important;
+          .auth-inner {
+            height: auto !important;
+            min-height: 100vh !important;
+            max-height: none !important;
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            padding: 24px 20px 36px !important;
+            gap: 12px !important;
+            overflow: visible !important;
+            max-width: 440px !important;
           }
-          .auth-back-btn:hover { background: rgba(255,255,255,0.15) !important; }
+          .auth-left {
+            height: auto !important;
+            max-height: none !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            overflow: visible !important;
+            margin-bottom: 0 !important;
+          }
+          .auth-topbar-left {
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+          }
+          .auth-back-pill {
+            background: #FFFFFF !important;
+            color: #2D241E !important;
+            border: 1px solid #E8DFD8 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+          }
+          .auth-back-pill:hover {
+            background: #FAF6F0 !important;
+            border-color: #D6CCC2 !important;
+          }
+          .auth-brand-name {
+            color: #1F1914 !important;
+          }
+          .auth-quote-area {
+            display: none !important;
+          }
+          .auth-bottom-badges {
+            display: none !important;
+          }
+          .auth-right {
+            justify-content: center !important;
+            width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+          }
+          .auth-card-sprout {
+            background: #FFF7F0 !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.1) !important;
+            border: 1px solid rgba(0, 0, 0, 0.04) !important;
+            padding: 36px 28px 30px !important;
+            max-width: 100% !important;
+            max-height: none !important;
+            overflow-y: visible !important;
+            border-radius: 28px !important;
+          }
+          .auth-card-title {
+            font-size: 1.45rem !important;
+            margin-bottom: 4px !important;
+          }
+          .auth-card-subtitle {
+            font-size: 0.82rem !important;
+            margin-bottom: 20px !important;
+          }
         }
       `}</style>
 
-      {/* ══════════════════════════════════════════════════════════
-          LEFT — SHOWCASE PANEL
-      ══════════════════════════════════════════════════════════ */}
-      <div className="auth-showcase">
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, position: "relative", zIndex: 10 }}>
-          <a href="#" style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.65rem", color: "white", display: "flex", alignItems: "center", gap: 8, textDecoration: "none", fontWeight: 800 }}>
-            <div style={{ width: 10, height: 10, background: "#C8922A", borderRadius: 3, transform: "rotate(45deg)", flexShrink: 0, boxShadow: "0 0 10px rgba(200,146,42,0.5)" }} />
-            Tax<span style={{ color: "#4DD9C0" }}>Wise</span>
-          </a>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", padding: "5px 12px", borderRadius: 50, fontSize: ".68rem", color: "rgba(255,255,255,0.75)", fontWeight: 600, width: "fit-content", marginTop: 8 }}>
-            <Building2 size={13} style={{ color: "#2DD4BF" }} />
-            <span>Professional Tax Platform</span>
-          </div>
-        </div>
+      <div className="auth-inner">
+        {/* ══════════════════════════════════════════════════════════
+            LEFT — BRANDING & INSPIRING HEADLINE
+        ══════════════════════════════════════════════════════════ */}
+        <div className="auth-left">
+          {/* Top Brand & Back to Home */}
+          <div className="auth-topbar-left">
+            {onBack ? (
+              <button type="button" onClick={onBack} className="auth-back-pill">
+                <ArrowLeft size={14} />
+                <span>Back to Home</span>
+              </button>
+            ) : <div />}
 
-        <div style={{ margin: "48px 0", position: "relative", zIndex: 10 }}>
-          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "clamp(2rem,3.2vw,2.6rem)", lineHeight: 1.15, fontWeight: 700, marginBottom: 28, letterSpacing: "-0.01em" }}>
-            Uganda&apos;s complete <br />
-            <span style={{ color: "#4DD9C0", fontStyle: "italic" }}>tax intelligence</span> platform
-          </h1>
-
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: 24, marginBottom: 32, backdropFilter: "blur(8px)" }}>
-            <p style={{ fontSize: "0.88rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.6, fontStyle: "italic", marginBottom: 16 }}>
-              &quot;TaxWise retrieved a crucial TAT precedent in 4 seconds that would have taken me hours to search for manually. It has completely transformed our tribunal preparation.&quot;
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 34, height: 34, borderRadius: "50%", background: "#1A7B6B", display: "flex", alignItems: "center", justifyContent: "center", fontSize: ".8rem", fontWeight: 700, color: "white" }}>SN</div>
-              <div>
-                <div style={{ fontSize: "0.82rem", fontWeight: 700 }}>Sarah Nakato</div>
-                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>Senior Tax Consultant, Kampala</div>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 10, height: 10, background: "#4AA41B", borderRadius: 2, transform: "rotate(45deg)", boxShadow: "0 0 10px rgba(74, 164, 27, 0.7)" }} />
+              <span className="auth-brand-name" style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.01em" }}>
+                Tax<span style={{ color: "#4AA41B" }}>Wise</span>
+              </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {["Instant TAT Precedents Risk Analyzer", "PAYE, VAT, Corporate & Vehicle Import Calculators", "Up-to-date URA Practice Notes & Statutory Checklists"].map((f) => (
-              <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.85rem", color: "rgba(255,255,255,0.8)" }}>
-                <Check size={14} style={{ color: "#4DD9C0", marginTop: 2, flexShrink: 0 }} />
-                <span>{f}</span>
-              </div>
-            ))}
+          {/* Centerpiece Typography matching user choice */}
+          <div className="auth-quote-area">
+            <h1 className="auth-quote-title">
+              Precision in every precedent,<br />clarity in every tax position
+            </h1>
+            <p className="auth-quote-subtitle">
+              {mode === "login" && "Log in to access your statutory tax intelligence workspace."}
+              {mode === "signup" && "Join leading Ugandan practitioners and start analyzing cases."}
+              {mode === "forgot" && "Enter your email to receive a reset code and link."}
+              {mode === "reset-code" && "Enter your verification code and set your new password."}
+              {mode === "verify-signup" && "Enter your activation code to complete verification."}
+              {mode === "update-password" && "Save your new password to regain access."}
+            </p>
+          </div>
+
+          {/* Bottom Security / Compliance Badges */}
+          <div className="auth-bottom-badges">
+            <div className="auth-compliance-chip">
+              <ShieldCheck size={16} style={{ color: "#4AA41B", flexShrink: 0 }} />
+              <span>URA Tax Procedures Code Act 2014 &amp; TAT Statutory Compliance</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.72)", paddingLeft: 4 }}>
+              <Lock size={12} style={{ color: "#4AA41B", flexShrink: 0 }} />
+              <span>256-Bit SSL Encrypted · Uganda Data Protection &amp; Privacy Act 2019</span>
+            </div>
           </div>
         </div>
+        {/* ══════════════════════════════════════════════════════════
+            RIGHT — WARM IVORY FLOATING CARD
+        ══════════════════════════════════════════════════════════ */}
+        <div className="auth-right">
+          <div className="auth-card-sprout">
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 24, position: "relative", zIndex: 10 }}>
-          <div>
-            <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "white", fontFamily: "'Playfair Display', Georgia, serif" }}>4,200+</div>
-            <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>Cases Analyzed</div>
-          </div>
-          <div>
-            <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "white", fontFamily: "'Playfair Display', Georgia, serif" }}>85%</div>
-            <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>Time Saved vs Manual</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════
-          RIGHT — FORM PANEL
-      ══════════════════════════════════════════════════════════ */}
-      <div className="auth-form-panel">
-        {onBack && (
-          <button onClick={onBack} className="auth-back-btn">← Back to Home</button>
-        )}
-
-        <div className="auth-form-card">
-          <Card style={{ padding: "36px 32px", boxShadow: "0 20px 48px rgba(15,32,68,0.07)", border: "1px solid rgba(15,32,68,0.05)", background: C.white }}>
-
-
-            {/* ════════════════════════════════════════════
-                FORGOT SCREEN — Step 1: enter email
-            ════════════════════════════════════════════ */}
+            {/* ── Mode: Forgot Password Step 1 ── */}
             {mode === "forgot" && (
-              <div className="auth-form-content">
-                <div style={{ marginBottom: 24 }}>
-                  <div className="step-badge">
-                    <span>Step 1 of 2</span>
-                    <span>—</span>
-                    <span>Enter your email</span>
-                  </div>
-                  <div className="auth-icon-circle" style={{ background: "#E6F5F2", color: C.teal, width: 60, height: 60 }}>
-                    <KeyIcon />
-                  </div>
-                  <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: C.navy, letterSpacing: "-0.025em", marginBottom: 6 }}>
-                    Forgot your password?
-                  </h2>
-                  <p style={{ color: C.muted, fontSize: "0.82rem", lineHeight: 1.55, fontWeight: 500 }}>
-                    We&apos;ll email you a <strong>reset link</strong> and a <strong>6-digit code</strong> — use whichever is convenient.
-                  </p>
-                </div>
+              <div>
+                <h2 className="auth-card-title">Forgot your password?</h2>
+                <p className="auth-card-subtitle">
+                  Enter your email address and we&apos;ll send you a reset code &amp; link.
+                </p>
 
-                <FormField label="Email Address" required error={fieldErrors.email}>
+                <FormField label="Email" required error={fieldErrors.email} icon={<Mail size={16} />}>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setFieldErrors(f => ({ ...f, email: undefined })); }}
-                    placeholder="you@example.com"
+                    placeholder="Enter your email"
                     style={inputStyle(!!fieldErrors.email)}
                   />
                 </FormField>
 
                 {globalError && <div className="auth-alert auth-alert-error">{globalError}</div>}
+                {successMsg && <div className="auth-alert auth-alert-success">{successMsg}</div>}
 
-                <Button onClick={handleForgotPassword} disabled={loading} style={{ width: "100%", justifyContent: "center", marginBottom: 16, marginTop: 4 }}>
-                  {loading ? "⟳ Sending..." : "Send Reset Code & Link →"}
-                </Button>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="auth-submit-btn"
+                >
+                  {loading ? "Sending..." : "Send Reset Code & Link"}
+                </button>
 
-                <div style={{ textAlign: "center" }}>
-                  <button onClick={() => switchMode("login")} className="forgot-link">← Back to Sign In</button>
+                <div className="auth-switch-text">
+                  Remembered your password?{" "}
+                  <button type="button" onClick={() => switchMode("login")} className="auth-switch-btn">
+                    Log in
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* ════════════════════════════════════════════
-                RESET-CODE SCREEN — Step 2: code + new pw
-            ════════════════════════════════════════════ */}
+            {/* ── Mode: Reset Code Step 2 ── */}
             {mode === "reset-code" && (
-              <div className="auth-form-content">
-                <div style={{ marginBottom: 22 }}>
-                  <div className="step-badge">
-                    <span>Step 2 of 2</span>
-                    <span>—</span>
-                    <span>Enter code & new password</span>
-                  </div>
-                  <div className="auth-icon-circle" style={{ background: "#E6F5F2", color: C.teal, width: 60, height: 60 }}>
-                    <ShieldIcon />
-                  </div>
-                  <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: C.navy, letterSpacing: "-0.025em", marginBottom: 6 }}>
-                    Reset your password
-                  </h2>
-                  <p style={{ color: C.muted, fontSize: "0.82rem", lineHeight: 1.55, fontWeight: 500 }}>
-                    Code sent to <strong style={{ color: C.navy }}>{email}</strong>. Enter it below along with your new password.
-                  </p>
-                </div>
+              <div>
+                <h2 className="auth-card-title">Reset your password</h2>
+                <p className="auth-card-subtitle">
+                  Enter the 5-digit code sent to <strong style={{ color: "#1F1914" }}>{email}</strong> and set your new password.
+                </p>
 
-                {/* OTP hint */}
-                <div className="otp-hint-row" style={{ marginBottom: 18 }}>
-                  <HelpCircle size={14} style={{ color: C.teal, flexShrink: 0 }} />
-                  <span>You can also click the reset link in your email to reset via browser.</span>
-                </div>
-
-                {/* OTP boxes */}
-                <div style={{ marginBottom: 6 }}>
-                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: C.navy, marginBottom: 10, textAlign: "center" }}>
-                    5-Digit Reset Code <span style={{ color: C.red }}>*</span>
+                <div style={{ marginBottom: 16 }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 8, textAlign: "center" }}>
+                    Verification Code
                   </label>
                   <OtpInput
+                    length={5}
                     value={otpCode}
                     onChange={(v) => { setOtpCode(v); setFieldErrors(f => ({ ...f, otp: undefined })); }}
                     error={fieldErrors.otp}
-                    length={5}
                     alphanumeric={false}
                   />
                 </div>
 
-                {/* Resend link */}
-                <div style={{ textAlign: "center", marginBottom: 20, marginTop: 10 }}>
-                  <span style={{ fontSize: "0.75rem", color: C.muted }}>Didn&apos;t receive it? </span>
+                <div style={{ textAlign: "center", marginBottom: 16, marginTop: 4 }}>
                   <button
-                    className="forgot-link"
-                    style={{ fontSize: "0.75rem" }}
+                    type="button"
+                    className="auth-switch-btn"
+                    style={{ fontSize: "0.78rem" }}
                     onClick={handleResendResetCode}
                     disabled={resendLoading}
                   >
@@ -1118,64 +1372,48 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                 {globalError && <div className="auth-alert auth-alert-error">{globalError}</div>}
                 {successMsg && <div className="auth-alert auth-alert-success">{successMsg}</div>}
 
-                <Button
+                <button
+                  type="button"
                   onClick={handleResetWithCode}
                   disabled={loading || otpCode.length < 5}
-                  style={{ width: "100%", justifyContent: "center", marginBottom: 16 }}
+                  className="auth-submit-btn"
                 >
-                  {loading ? "⟳ Resetting..." : "Reset My Password →"}
-                </Button>
+                  {loading ? "Resetting..." : "Save New Password"}
+                </button>
 
-                <div style={{ textAlign: "center" }}>
-                  <button onClick={() => switchMode("forgot")} className="forgot-link">← Back</button>
+                <div className="auth-switch-text">
+                  <button type="button" onClick={() => switchMode("login")} className="auth-switch-btn">
+                    ← Back to Log In
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* ════════════════════════════════════════════
-                VERIFY-SIGNUP SCREEN — Enter OTP for Signup
-            ════════════════════════════════════════════ */}
+            {/* ── Mode: Verify Signup OTP ── */}
             {mode === "verify-signup" && (
-              <div className="auth-form-content">
-                <div style={{ marginBottom: 22 }}>
-                  <div className="step-badge">
-                    <span>Verify Account</span>
-                    <span>—</span>
-                    <span>Enter 5-digit OTP</span>
-                  </div>
-                  <div className="auth-icon-circle" style={{ background: "#E6F5F2", color: C.teal, width: 60, height: 60 }}>
-                    <ShieldIcon />
-                  </div>
-                  <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: C.navy, letterSpacing: "-0.025em", marginBottom: 6 }}>
-                    Confirm your email
-                  </h2>
-                  <p style={{ color: C.muted, fontSize: "0.82rem", lineHeight: 1.55, fontWeight: 500 }}>
-                    We sent a 5-digit verification code to <strong style={{ color: C.navy }}>{email}</strong>. Enter it below to activate your account.
-                  </p>
-                </div>
+              <div>
+                <h2 className="auth-card-title">Verify your email</h2>
+                <p className="auth-card-subtitle">
+                  We sent a 5-digit verification code to <strong style={{ color: "#1F1914" }}>{email}</strong>.
+                </p>
 
-                {/* OTP boxes */}
-                <div style={{ marginBottom: 6 }}>
-                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: C.navy, marginBottom: 10, textAlign: "center" }}>
-                    5-Digit Verification Code <span style={{ color: C.red }}>*</span>
-                  </label>
+                <div style={{ marginBottom: 16 }}>
                   <OtpInput
+                    length={5}
                     value={otpCode}
                     onChange={(v) => { setOtpCode(v); setFieldErrors(f => ({ ...f, otp: undefined })); }}
                     error={fieldErrors.otp}
-                    length={5}
                     alphanumeric={false}
                   />
                 </div>
 
-                {/* Resend link */}
-                <div style={{ textAlign: "center", marginBottom: 20, marginTop: 10 }}>
-                  <span style={{ fontSize: "0.75rem", color: C.muted }}>Didn&apos;t receive it? </span>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
                   <button
-                    className="forgot-link"
-                    style={{ fontSize: "0.75rem" }}
+                    type="button"
                     onClick={handleResendSignupCode}
                     disabled={resendLoading}
+                    className="auth-switch-btn"
+                    style={{ fontSize: "0.8rem" }}
                   >
                     {resendLoading ? "Sending..." : "Resend code"}
                   </button>
@@ -1184,36 +1422,30 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                 {globalError && <div className="auth-alert auth-alert-error">{globalError}</div>}
                 {successMsg && <div className="auth-alert auth-alert-success">{successMsg}</div>}
 
-                <Button
+                <button
+                  type="button"
                   onClick={handleVerifySignup}
                   disabled={loading || otpCode.length < 5}
-                  style={{ width: "100%", justifyContent: "center", marginBottom: 16 }}
+                  className="auth-submit-btn"
                 >
-                  {loading ? "⟳ Verifying..." : "Verify & Activate Account →"}
-                </Button>
+                  {loading ? "Verifying..." : "Verify & Activate Account"}
+                </button>
 
-                <div style={{ textAlign: "center" }}>
-                  <button onClick={() => switchMode("signup")} className="forgot-link">← Change email / Cancel</button>
+                <div className="auth-switch-text">
+                  <button type="button" onClick={() => switchMode("signup")} className="auth-switch-btn">
+                    ← Change email / Cancel
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* ════════════════════════════════════════════
-                UPDATE-PASSWORD SCREEN — From recovery link
-            ════════════════════════════════════════════ */}
+            {/* ── Mode: Update Password (from link) ── */}
             {mode === "update-password" && (
-              <div className="auth-form-content">
-                <div style={{ marginBottom: 22 }}>
-                  <div className="auth-icon-circle" style={{ background: "#E6F5F2", color: C.teal, width: 60, height: 60 }}>
-                    <KeyIcon />
-                  </div>
-                  <h2 style={{ fontSize: "1.3rem", fontWeight: 800, color: C.navy, letterSpacing: "-0.025em", marginBottom: 6 }}>
-                    Choose new password
-                  </h2>
-                  <p style={{ color: C.muted, fontSize: "0.82rem", lineHeight: 1.55, fontWeight: 500 }}>
-                    Please enter and confirm your new password below.
-                  </p>
-                </div>
+              <div>
+                <h2 className="auth-card-title">Set new password</h2>
+                <p className="auth-card-subtitle">
+                  Please enter and confirm your new password below.
+                </p>
 
                 <PasswordField
                   label="New Password"
@@ -1236,94 +1468,73 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                 {globalError && <div className="auth-alert auth-alert-error">{globalError}</div>}
                 {successMsg && <div className="auth-alert auth-alert-success">{successMsg}</div>}
 
-                <Button
+                <button
+                  type="button"
                   onClick={handleUpdatePasswordOnly}
                   disabled={loading}
-                  style={{ width: "100%", justifyContent: "center", marginBottom: 16 }}
+                  className="auth-submit-btn"
                 >
-                  {loading ? "⟳ Saving..." : "Save New Password →"}
-                </Button>
+                  {loading ? "Saving..." : "Save New Password"}
+                </button>
 
-                <div style={{ textAlign: "center" }}>
-                  <button onClick={() => {
-                    if (onBack) onBack();
-                    else switchMode("login");
-                  }} className="forgot-link">← Cancel</button>
+                <div className="auth-switch-text">
+                  <button type="button" onClick={() => switchMode("login")} className="auth-switch-btn">
+                    ← Cancel
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* ════════════════════════════════════════════
-                LOGIN / SIGNUP
-            ════════════════════════════════════════════ */}
+            {/* ── Mode: Login or Signup ── */}
             {(mode === "login" || mode === "signup") && (
-              <div className="auth-form-content">
-                {/* Header */}
-                <div style={{ marginBottom: 24 }}>
-                  <h2 style={{ fontSize: "1.4rem", fontWeight: 800, color: C.navy, letterSpacing: "-0.025em", marginBottom: 4 }}>
-                    {mode === "login" ? "Welcome back" : "Create Account"}
-                  </h2>
-                  <p style={{ color: C.muted, fontSize: "0.83rem", fontWeight: 500, lineHeight: 1.4 }}>
-                    {mode === "login" ? "Access your dashboard and start analyzing cases." : "Start your 14-day free trial of TaxWise today."}
-                  </p>
-                </div>
+              <div>
+                <h2 className="auth-card-title">
+                  {mode === "login" ? "Log in to your account" : "Create your account"}
+                </h2>
+                <p className="auth-card-subtitle">
+                  {mode === "login"
+                    ? "Welcome back! Please enter your details."
+                    : "Join TaxWise to streamline your statutory tax workflows."}
+                </p>
 
-                {/* Tab Switcher */}
-                <div style={{ display: "flex", marginBottom: 22, background: "var(--color-offwhite)", border: "1px solid var(--color-border)", borderRadius: 10, padding: 4 }}>
-                  {(["login", "signup"] as const).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => switchMode(m)}
-                      className="auth-tab-btn"
-                      style={{
-                        background: mode === m ? "var(--color-white)" : "transparent",
-                        color: mode === m ? "var(--color-navy)" : "var(--color-muted)",
-                        fontWeight: mode === m ? 700 : 600,
-                        boxShadow: mode === m ? "0 2px 6px rgba(15,32,68,.08), 0 1px 2px rgba(15,32,68,.04)" : "none",
-                      }}
-                    >
-                      {m === "login" ? "Sign In" : "Register"}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Full Name */}
+                {/* Signup: Full Name */}
                 {mode === "signup" && (
-                  <FormField label="Full Name" required error={fieldErrors.name}>
+                  <FormField label="Full Name" required error={fieldErrors.name} icon={<User size={16} />}>
                     <input
                       type="text"
                       value={name}
                       onChange={(e) => { setName(e.target.value); setFieldErrors(f => ({ ...f, name: undefined })); }}
-                      placeholder="e.g. Ronald Kakembo"
+                      placeholder="e.g. Brenda Akello"
                       style={inputStyle(!!fieldErrors.name)}
                     />
                   </FormField>
                 )}
 
-                {/* Email */}
-                <FormField label="Email Address" required error={fieldErrors.email}>
+                {/* Email Address */}
+                <FormField label="Email" required error={fieldErrors.email} icon={<Mail size={16} />}>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setFieldErrors(f => ({ ...f, email: undefined })); }}
-                    placeholder="you@example.com"
+                    placeholder="Enter your email"
                     style={inputStyle(!!fieldErrors.email)}
                   />
                 </FormField>
 
-                {/* Password */}
+                {/* Password with Eye toggle & right-aligned Forgot password */}
                 <PasswordField
                   label="Password"
                   value={password}
                   onChange={(v) => { setPassword(v); setFieldErrors(f => ({ ...f, password: undefined })); }}
                   error={fieldErrors.password}
                   required
+                  placeholder="••••••••"
                   showStrength={mode === "signup"}
                   showForgot={mode === "login"}
                   onForgot={() => switchMode("forgot")}
                 />
 
-                {/* Confirm Password */}
+                {/* Signup: Confirm Password */}
                 {mode === "signup" && (
                   <ConfirmPasswordField
                     label="Confirm Password"
@@ -1335,16 +1546,30 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                   />
                 )}
 
-                {/* Role */}
+                {/* Signup: Professional Role */}
                 {mode === "signup" && (
-                  <div style={{ marginBottom: 18 }}>
-                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: C.navy, marginBottom: 6 }}>
-                      Professional Role <span style={{ color: C.red }}>*</span>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+                      Professional Role <span style={{ color: "#E04838" }}>*</span>
                     </label>
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
-                      style={{ width: "100%", border: `1.5px solid ${C.border}`, borderRadius: 8, padding: "11px 14px", fontSize: "0.875rem", fontFamily: "inherit", background: C.offwhite, color: C.text, fontWeight: 600, outline: "none", transition: "all 0.2s ease", boxSizing: "border-box", cursor: "pointer" }}
+                      style={{
+                        width: "100%",
+                        border: "1px solid rgba(0, 0, 0, 0.05)",
+                        borderRadius: 14,
+                        padding: "13px 16px",
+                        fontSize: "0.88rem",
+                        fontFamily: "inherit",
+                        background: "#FFFFFF",
+                        color: "#1F2937",
+                        fontWeight: 500,
+                        outline: "none",
+                        cursor: "pointer",
+                        boxSizing: "border-box",
+                        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
+                      }}
                     >
                       {["Tax Consultant", "Accountant", "Tax Lawyer", "Finance Manager", "Business Owner", "Student"].map((r) => (
                         <option key={r}>{r}</option>
@@ -1353,22 +1578,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                   </div>
                 )}
 
-                {/* Terms */}
+                {/* Signup: Terms agreement */}
                 {mode === "signup" && (
-                  <div style={{ marginBottom: 18 }}>
-                    <div className="terms-row">
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                       <input
                         type="checkbox"
                         id="agreeTerms"
                         checked={agreeTerms}
                         onChange={(e) => { setAgreeTerms(e.target.checked); setFieldErrors(f => ({ ...f, agreeTerms: undefined })); }}
+                        style={{ accentColor: "#4AA41B", marginTop: 2, cursor: "pointer", width: 15, height: 15 }}
                       />
-                      <label htmlFor="agreeTerms" style={{ cursor: "pointer", fontSize: "0.78rem", color: C.muted, fontWeight: 500, lineHeight: 1.5, userSelect: "none" }}>
-                        I agree to the <a href="#" className="terms-link" onClick={(e) => { e.preventDefault(); setLegalTab("terms"); setLegalOpen(true); }}>Terms of Service</a> and <a href="#" className="terms-link" onClick={(e) => { e.preventDefault(); setLegalTab("privacy"); setLegalOpen(true); }}>Privacy Policy</a>
+                      <label htmlFor="agreeTerms" style={{ fontSize: "0.78rem", color: "#6B7280", cursor: "pointer", lineHeight: 1.45 }}>
+                        I agree to the{" "}
+                        <button
+                          type="button"
+                          onClick={() => { setLegalTab("terms"); setLegalOpen(true); }}
+                          style={{ background: "none", border: "none", color: "#4AA41B", fontWeight: 600, cursor: "pointer", padding: 0 }}
+                        >
+                          Terms of Service
+                        </button>{" "}
+                        and{" "}
+                        <button
+                          type="button"
+                          onClick={() => { setLegalTab("privacy"); setLegalOpen(true); }}
+                          style={{ background: "none", border: "none", color: "#4AA41B", fontWeight: 600, cursor: "pointer", padding: 0 }}
+                        >
+                          Privacy Policy
+                        </button>
                       </label>
                     </div>
                     {fieldErrors.agreeTerms && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6, fontSize: "0.75rem", color: C.red, fontWeight: 600, animation: "authFadeIn 0.2s ease" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: "0.74rem", color: "#DC2626", fontWeight: 600 }}>
                         <AlertTriangle size={13} /> {fieldErrors.agreeTerms}
                       </div>
                     )}
@@ -1379,27 +1620,91 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                 {globalError && <div className="auth-alert auth-alert-error">{globalError}</div>}
                 {successMsg && <div className="auth-alert auth-alert-success">{successMsg}</div>}
 
-                {/* Submit */}
-                <Button onClick={handleAuth} disabled={loading} style={{ width: "100%", justifyContent: "center", marginTop: 4 }}>
-                  {loading ? "⟳ Authenticating..." : mode === "login" ? "Sign In →" : "Create My Account →"}
-                </Button>
+                {/* Primary Action Button (Green Pill) */}
+                <button
+                  type="button"
+                  onClick={handleAuth}
+                  disabled={loading}
+                  className="auth-submit-btn"
+                >
+                  {loading ? "Please wait..." : mode === "login" ? "Log in" : "Sign up"}
+                </button>
 
-                {/* Footer */}
-                <div style={{ textAlign: "center", marginTop: 18, fontSize: "0.75rem", color: C.muted, fontWeight: 500, lineHeight: 1.5 }}>
+                {/* Divider */}
+                <div className="auth-divider-pill">
+                  <span>or</span>
+                </div>
+
+                {/* Google SSO Button */}
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="auth-google-btn"
+                >
+                  <GoogleIcon />
+                  <span>Sign in with Google</span>
+                </button>
+
+                {/* Bottom Switcher */}
+                <div className="auth-switch-text">
                   {mode === "login" ? (
                     <>
                       Don&apos;t have an account?{" "}
-                      <button className="forgot-link" onClick={() => switchMode("signup")} style={{ fontSize: "0.75rem" }}>
-                        Register free →
+                      <button
+                        type="button"
+                        onClick={() => switchMode("signup")}
+                        className="auth-switch-btn"
+                      >
+                        Sign up
                       </button>
                     </>
                   ) : (
-                    "Free 14-day trial · No credit card required · Cancel anytime"
+                    <>
+                      Already have an account?{" "}
+                      <button
+                        type="button"
+                        onClick={() => switchMode("login")}
+                        className="auth-switch-btn"
+                      >
+                        Log in
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
             )}
-          </Card>
+
+            {/* Legal / Disclaimers Footer */}
+            <div className="auth-legal-footer">
+              <div className="auth-legal-links">
+                <button
+                  type="button"
+                  onClick={() => { setLegalTab("terms"); setLegalOpen(true); }}
+                  className="auth-legal-btn"
+                >
+                  Terms
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => { setLegalTab("privacy"); setLegalOpen(true); }}
+                  className="auth-legal-btn"
+                >
+                  Privacy
+                </button>
+                <span>·</span>
+                <button
+                  type="button"
+                  onClick={() => { setLegalTab("blog"); setLegalOpen(true); }}
+                  className="auth-legal-btn"
+                >
+                  Legal Disclaimers
+                </button>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
       <LegalPortal isOpen={legalOpen} onClose={() => setLegalOpen(false)} initialTab={legalTab} />

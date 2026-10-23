@@ -1,62 +1,44 @@
-# Implementation Plan: App-Wide Layout, Typography, Breadcrumb Cleanup & Content Fit (Completed & Verified)
+# Implementation Plan — Refined Brand Quote & Optimized Mobile Auth Form
 
-## 1. User Feedback & Problem Diagnosis
-- **Breadcrumb Overload**: Two duplicate back links (`Back to Dashboard` and `← ← Back to Know Your Taxes Overview`) were stacked on top of each other.
-- **Content Cut-Off**:
-  - Questionnaire options and the action bar ("Back", "Next") were pushed below the viewport fold due to tall option button heights and excessive paddings.
-  - In Results View, a rigid `gridTemplateColumns: "1fr 320px"` grid pushed the sidebar off the right screen edge on typical laptop displays and split-screen previews. Top KPI numbers were clipped against the viewport top.
-- **Typography & Font**: Platform previously defaulted to generic `Inter`, while `Plus Jakarta Sans` is loaded in Google Fonts.
-- **Navigation & Layout**: Dashboard had an unnecessary nested popup with redundant links.
+Upgrade the authentication screen (`src/components/AuthPage.tsx`) with an authoritative, brand-aligned showcase quote and a dedicated mobile layout that drops the background image in favor of a clean, well-proportioned warm ivory form.
 
 ---
 
-## 2. Changes Implemented & Verified
+## 1. Updated Showcase Quote & Subtitles
 
-### A. Unified Breadcrumb Trail
-- In `src/features/know-your-taxes/components/KnowYourTaxesPortal.tsx`:
-  - Replaced the stacked back buttons with a single unified breadcrumb row:
-    `Dashboard / Know Your Taxes` (or `... / Statutory Questionnaire` or `... / Assessment Results`).
-  - Removed duplicate back buttons from `Questionnaire.tsx` and `ResultsView.tsx`.
-
-### B. Viewport Fit & Compact Questionnaire
-- In `src/features/know-your-taxes/components/Questionnaire.tsx`:
-  - Reduced outer card padding from `32px` to `20px 24px`.
-  - Reduced option button padding from `14px 18px` to `10px 14px`, and gap from `10px` to `8px`.
-  - Reduced progress bar height from `8px` to `6px` and vertical margins.
-  - The entire card, prompt, choices, and action buttons now fit cleanly on screen without awkward cut-off.
-
-### C. Responsive Grid & Overflow Protection in Results View
-- In `src/app/globals.css`:
-  - Added `.kyt-responsive-grid`: uses `minmax(0, 1fr) 320px` for desktop and `@media (max-width: 1080px)` stacking for tablet/laptop split-screen.
-- In `src/features/know-your-taxes/components/ResultsView.tsx`:
-  - Left column uses `minWidth: 0` to prevent wide text or calculations from blowing out the grid.
-  - Right sidebar uses `width: "100%", minWidth: 0`.
-  - Worked calculations box includes `wordBreak: "break-word"`, `whiteSpace: "pre-wrap"`, and `overflowX: "auto"`.
-  - Top margin and container padding tuned to give KPI summary cards clear top headroom.
-
-### D. Typography Upgrade Across Platform
-- In `src/app/globals.css`:
-  - Body and root font set to `'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`.
-  - Added tabular numbers (`.tabular-nums`) and smooth anti-aliasing.
-- In all components: standardized to `'Plus Jakarta Sans', sans-serif`.
-
-### E. Header & Navigation Refinement
-- In `src/app/page.tsx`:
-  - Replaced the awkward nested "Dashboard" popup with a direct, high-contrast navigation button.
-  - Decreased main scroll container vertical padding from 32px/64px to 18px/48px, reclaiming ~40px of screen space.
-
-### F. Grammar & Legal Title Polish
-- In `src/features/know-your-taxes/rules/seed-rules.ts`:
-  - Capitalized obligation titles to standard legal title case:
-    - "Taxpayer Identification Number (TIN) Registration"
-    - "Presumptive Tax (Small Business Taxpayers)"
-    - "Corporate Income Tax (CIT)"
-    - "Rental Income Tax (Individuals)"
-    - "Rental Income Tax (Companies & Non-Individuals)"
+- **Primary Display Headline**:
+  - Replace *"Every big practice starts small"* with:
+    **"Precision in every precedent,<br />clarity in every tax position"**
+  - Font: `'Playfair Display', Georgia, serif`, with graceful line-height, letter-spacing, and subtle text shadow for high readability against the abstract background.
+- **Dynamic Mode Subtitles**:
+  - Login: *"Log in to access your statutory tax intelligence workspace."*
+  - Signup: *"Join leading Ugandan practitioners and start analyzing cases."*
+  - Forgot / Reset: *"Verify your credentials and regain access to your workspace."*
+  - Verify Email: *"Enter your activation code to complete verification."*
 
 ---
 
-## 3. Verification & Validation
-- **`compile_applet`**: Build succeeded (0 errors).
-- **`lint_applet`**: 0 ESLint errors across all files.
-- **Dev Server**: Fresh server restarted on port 3000.
+## 2. Mobile Responsive Overhaul (< 992px)
+
+- **Complete Background Image Removal**:
+  - For viewports `@media (max-width: 992px)`:
+    - Set `.auth-root` to `background-image: none !important; background: #FFF7F0 !important; min-height: 100vh; height: auto;`.
+    - No background image will load or display on mobile screens, saving bandwidth and creating a clean, professional native-like interface.
+- **Top Brand & Back Navigation on Mobile**:
+  - Invert text colors from white to deep slate (`#1F1914`) for mobile:
+    - Back button: warm pill button with dark text and subtle warm border (`background: #FFFFFF; color: #2D241E; border: 1px solid #E8DFD8;`).
+    - Logo: "TaxWise" in rich dark obsidian with the signature green accent.
+- **Well-Sized Form Card on Mobile**:
+  - On mobile, eliminate double-shadowing or awkward nested boxes by styling `.auth-card-sprout` seamlessly with the `#FFF7F0` background:
+    - `background: transparent; box-shadow: none; border: none; padding: 20px 4px; max-width: 420px; width: 100%;`.
+  - Maintain the crisp white pill inputs (`#FFFFFF` background, `#E8DFD8` subtle border, 13px padding) which pop beautifully against the `#FFF7F0` background.
+  - Buttons (`#4AA41B` green CTA, Google SSO) remain full-width with comfortable 48px touch targets for mobile usability.
+  - Form spacing and typography scaled proportionally for mobile (`1.4rem` card title, compact error and success alerts).
+
+---
+
+## 3. Verification & Build Confirmation
+
+- Verify `src/components/AuthPage.tsx` with `lint_applet` to confirm 0 lint issues.
+- Build with `compile_applet` to ensure 0 TypeScript or Next.js build errors.
+- Confirm both desktop (abstract wave background + locked viewport) and mobile (clean ivory, no background, well-sized form) render as expected.

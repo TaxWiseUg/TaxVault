@@ -354,7 +354,7 @@ export default function TaxWiseSaaS() {
   const advisoryItems: GroupedNavItem[] = [
     { id: "know-your-taxes", label: "Know Your Taxes", badge: "2026", desc: "Guided statutory obligation assessment" },
     { id: "analyzer", label: "Case Analyzer", desc: "AI-assisted TAT objection briefs & ratio" },
-    { id: "calculators", label: "Tax Calculators", desc: "PAYE, VAT, WHT & Vehicle customs duties" },
+    { id: "calculators", label: "Tax Calculators", desc: "PAYE, Corporate Tax, WHT & Vehicle customs duties" },
   ];
 
   const legalItems: GroupedNavItem[] = [
@@ -962,42 +962,7 @@ export default function TaxWiseSaaS() {
                 )}
               </div>
 
-              {/* Pricing Direct Link */}
-              <button
-                type="button"
-                onClick={() => setPage("pricing")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 13px",
-                  borderRadius: 8,
-                  border: isPricingActive ? "1.5px solid rgba(26, 123, 107, 0.45)" : "1px solid transparent",
-                  background: isPricingActive ? "rgba(26, 123, 107, 0.12)" : "transparent",
-                  color: isPricingActive ? "#0E7C5A" : C.navy,
-                  fontWeight: 800,
-                  fontSize: "0.84rem",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  fontFamily: "inherit",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isPricingActive) {
-                    e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
-                    e.currentTarget.style.color = C.navy;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isPricingActive) {
-                    e.currentTarget.style.background = "transparent";
-                    e.currentTarget.style.color = C.navy;
-                  }
-                }}
-              >
-                <CreditCard size={14} style={{ color: isPricingActive ? C.teal : "#7A889B" }} />
-                <span>Pricing</span>
-              </button>
+
             </nav>
           )}
 
