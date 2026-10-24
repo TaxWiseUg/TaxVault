@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { supabase, DEFAULT_TAT_CASES } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { Badge, Card, Modal } from "./UI";
+import { WorkspacePageHero } from "./WorkspacePageHero";
 import { Search, FolderOpen, Calendar, Sparkles, BookOpen } from "lucide-react";
 
 interface TatCase {
@@ -100,17 +101,13 @@ export const CaseLibrary: React.FC = () => {
 
   return (
     <motion.div
+      className="workspace-feature-page workspace-case-library"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={itemVariants} style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.85rem", color: C.navy, marginBottom: 6, fontWeight: 800 }}>
-          TAT Case Precedents
-        </h1>
-        <p style={{ color: C.muted, fontSize: "0.92rem", fontWeight: 500 }}>
-          Search and explore historic Tax Appeals Tribunal (TAT) rulings. Click on any ruling to access statutory analysis &amp; legal commentary.
-        </p>
+      <motion.div variants={itemVariants}>
+        <WorkspacePageHero eyebrow="LEGAL · CASE RESEARCH" title="TAT Case Precedents" description="Search and explore historic Tax Appeals Tribunal (TAT) rulings. Open a ruling to review its statutory analysis and legal commentary." />
       </motion.div>
 
       <motion.div variants={itemVariants}>

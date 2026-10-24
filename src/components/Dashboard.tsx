@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useInView, useReducedMotion } from "motion/react";
 import { C } from "../lib/constants";
 import { 
   Calendar as CalendarIcon, 
@@ -55,6 +55,33 @@ interface DeadlineItem {
   taxType: string;
 }
 
+const DashboardCountUp: React.FC<{ value: number; suffix?: string }> = ({ value, suffix = "" }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, amount: 0.8 });
+  const reducedMotion = useReducedMotion();
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    if (reducedMotion) {
+      setCurrent(value);
+      return;
+    }
+    let frame = 0;
+    let startedAt: number | null = null;
+    const tick = (now: number) => {
+      if (startedAt === null) startedAt = now;
+      const progress = Math.min((now - startedAt) / 1500, 1);
+      setCurrent(Math.round(value * (1 - Math.pow(1 - progress, 3))));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [inView, reducedMotion, value]);
+
+  return <span ref={ref}>{current.toLocaleString("en-UG")}{suffix}</span>;
+};
+
 const INITIAL_DEADLINES: DeadlineItem[] = [
   { id: "dl-1", date: "15 OCT", dayNumber: 15, monthIndex: 9, year: 2026, title: "Monthly returns — September 2026", sub: "PAYE · WHT · VAT", badge: "Due today", highlight: true, taxType: "Monthly Returns" },
   { id: "dl-2", date: "15 NOV", dayNumber: 15, monthIndex: 10, year: 2026, title: "Monthly returns — October 2026", sub: "PAYE · WHT · VAT", badge: "31 days", taxType: "Monthly Returns" },
@@ -85,14 +112,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>(INITIAL_DEADLINES);
   
   // Dynamic Calendar Navigation state (defaults to October 2026)
-  const [calYear, setCalYear] = useState(2026);
-  const [calMonth, setCalMonth] = useState(9); // 0-indexed: 9 is October
-  const [selectedDay, setSelectedDay] = useState<number | null>(15);
+  const [calYear, setCalYear] = useState(() => new Date().getFullYear());
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth());
+  const [selectedDay, setSelectedDay] = useState<number | null>(() => new Date().getDate());
 
   // Modal for Adding Custom Deadline
   const [isAddDeadlineOpen, setIsAddDeadlineOpen] = useState(false);
   const [newDeadlineTitle, setNewDeadlineTitle] = useState("");
-  const [newDeadlineDate, setNewDeadlineDate] = useState("2026-10-31");
+  const [newDeadlineDate, setNewDeadlineDate] = useState(() => {
+    const date = new Date();
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  });
   const [newDeadlineTax, setNewDeadlineTax] = useState("PAYE");
 
   // Pinned Calculators State
@@ -189,16 +219,38 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.05 }
+      transition: { staggerChildren: 0.075, delayChildren: 0.08 }
     }
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 380, damping: 24 } }
+    hidden: { opacity: 0, y: 18, scale: 0.99 },
+    show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.58, ease: [0.22, 1, 0.36, 1] as const } }
   };
 
+  const metricsVariants = {
+    hidden: { opacity: 1 },
+    show: { opacity: 1, transition: { staggerChildren: 0.18, delayChildren: 0.18 } }
+  };
+
+  const today = new Date();
+  const greeting = today.getHours() < 12 ? "Good morning" : today.getHours() < 17 ? "Good afternoon" : "Good evening";
   const userName = user.full_name?.split(" ")[0] || "Tax";
+  const currentDateLabel = today.toLocaleDateString("en-UG", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const filingDeadline = deadlines.find((deadline) => deadline.id === "dl-1") || INITIAL_DEADLINES[0];
+  const filingDeadlineDate = new Date(filingDeadline.year, filingDeadline.monthIndex, filingDeadline.dayNumber);
+  const filingDeadlineLabel = filingDeadlineDate.toLocaleDateString("en-UG", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const filingDeadlineMonth = filingDeadlineDate.toLocaleDateString("en-UG", { month: "short" }).toUpperCase();
 
   // Google Calendar Link Generator
   const openGoogleCalendar = (title: string, details: string, dateStr: string) => {
@@ -318,9 +370,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
   };
 
   const goToToday = () => {
-    setCalYear(2026);
-    setCalMonth(9);
-    setSelectedDay(15);
+    const currentDate = new Date();
+    setCalYear(currentDate.getFullYear());
+    setCalMonth(currentDate.getMonth());
+    setSelectedDay(currentDate.getDate());
   };
 
   // Days calculation for current month
@@ -337,25 +390,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
   return (
     <motion.div
+      className="dashboard-page"
       variants={containerVariants}
       initial="hidden"
       animate="show"
       style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1400, margin: "0 auto", width: "100%", paddingBottom: 40 }}
     >
       {/* 1. Greeting & Search / CTA Header */}
-      <motion.div variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+      <motion.div className="dashboard-heading" variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
         <div>
           <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2rem", color: C.navy, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>
-            Good afternoon, {userName}
+            {greeting}, {userName}
           </h1>
           <p style={{ color: "#64748B", fontSize: "0.85rem", fontWeight: 500 }}>
-            Thu, 15 Oct 2026 · {isSeptemberFiled ? "September returns filed" : "1 filing due in the next 7 days"} · 1 case waiting for your review
+            {currentDateLabel} · {isSeptemberFiled ? "September returns filed" : timeLeft.isLate ? "1 overdue filing needs attention" : "1 filing due soon"} · 1 case waiting for your review
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div className="dashboard-heading-actions" style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           {/* Interactive Search Box */}
-          <div style={{ position: "relative", minWidth: 320 }}>
+          <div className="dashboard-search" style={{ position: "relative", minWidth: 320 }}>
             <Search size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94A3B8" }} />
             <input
               ref={searchInputRef}
@@ -519,7 +573,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
       </motion.div>
 
       {/* 2. Urgent Statutory Filing Deadline Banner (Prominent Standout Card with Dynamic Duration Colors) */}
-      <motion.div variants={itemVariants}>
+      <motion.div className="dashboard-deadline" variants={itemVariants}>
         {(() => {
           const totalHoursLeft = (timeLeft.days * 24) + timeLeft.hours;
           let bannerBg = "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)";
@@ -571,7 +625,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
           }
 
           return (
-            <div style={{ 
+            <div className={`dashboard-deadline-card ${isSeptemberFiled ? "is-filed" : timeLeft.isLate ? "is-overdue" : "is-upcoming"}`} style={{
               background: bannerBg, 
               borderRadius: 16, 
               padding: "24px 28px", 
@@ -598,10 +652,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   flexShrink: 0
                 }}>
                   <div style={{ fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    {isSeptemberFiled ? "DONE" : "OCT"}
+                    {isSeptemberFiled ? "DONE" : filingDeadlineMonth}
                   </div>
                   <div style={{ fontSize: "1.4rem", fontWeight: 900, lineHeight: 1, marginTop: 2 }}>
-                    {isSeptemberFiled ? "✓" : "15"}
+                    {isSeptemberFiled ? "✓" : filingDeadline.dayNumber}
                   </div>
                 </div>
 
@@ -610,7 +664,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                     {isSeptemberFiled ? "Statutory Obligation Completed" : "URA Statutory Filing Obligation"}
                   </div>
                   <div style={{ fontSize: "1.05rem", fontWeight: 800, color: C.navy, marginBottom: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span>Monthly returns — September 2026</span>
+                    <span>{filingDeadline.title}</span>
                     {isSeptemberFiled && (
                       <span style={{ fontSize: "0.7rem", background: "rgba(22,163,74,0.2)", color: "#15803D", padding: "2px 8px", borderRadius: 99, fontWeight: 800 }}>
                         Filed Successfully
@@ -621,8 +675,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                     {isSeptemberFiled 
                       ? "September 2026 PAYE, withholding tax and VAT returns recorded as successfully filed with URA."
                       : (timeLeft.isLate || timeLeft.isCountUp
-                          ? "Deadline of Thursday 15 October 2026 before midnight has passed. Returns are currently overdue — prompt filing is advised to mitigate escalating statutory penalties & interest."
-                          : "File and pay PAYE, withholding tax and VAT before Thursday 15 October 2026 before midnight to avoid penalties & interest.")}
+                          ? `Deadline of ${filingDeadlineLabel} before midnight has passed. Returns are currently overdue — prompt filing is advised to mitigate escalating statutory penalties & interest.`
+                          : `File and pay PAYE, withholding tax and VAT before ${filingDeadlineLabel} before midnight to avoid penalties & interest.`)}
                   </p>
                 </div>
               </div>
@@ -671,8 +725,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   <button
                     type="button"
                     onClick={() => {
-                      setNewDeadlineTitle("Monthly returns — September 2026 (PAYE, WHT, VAT)");
-                      setNewDeadlineDate("2026-10-15");
+                      setNewDeadlineTitle(`${filingDeadline.title} (PAYE, WHT, VAT)`);
+                      setNewDeadlineDate(`${filingDeadline.year}-${String(filingDeadline.monthIndex + 1).padStart(2, "0")}-${String(filingDeadline.dayNumber).padStart(2, "0")}`);
                       setNewDeadlineTax("VAT");
                       setIsAddDeadlineOpen(true);
                     }}
@@ -734,10 +788,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
       </motion.div>
 
       {/* 3. 4 Interactive KPI Metric Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+      <motion.div className="dashboard-metrics" variants={metricsVariants} initial="hidden" animate="show" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         {/* Card 1: Active cases */}
         <motion.div variants={itemVariants}>
-          <div 
+          <div className="dashboard-metric-card"
             onClick={() => onNavigate("analyzer")}
             style={{ 
               background: "#FFFFFF", 
@@ -759,7 +813,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <Scale size={16} style={{ color: C.teal }} />
             </div>
             <div style={{ fontSize: "2rem", fontWeight: 800, color: C.navy, fontFamily: "'Playfair Display', Georgia, serif", lineHeight: 1, marginBottom: 8 }}>
-              3
+              <DashboardCountUp value={3} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
               <span><span style={{ color: "#D97706", fontWeight: 700 }}>1 needs review</span> · 2 in progress</span>
@@ -770,7 +824,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
         {/* Card 2: Reports generated */}
         <motion.div variants={itemVariants}>
-          <div 
+          <div className="dashboard-metric-card"
             onClick={() => onNavigate("compliance")}
             style={{ 
               background: "#FFFFFF", 
@@ -792,7 +846,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <ShieldCheck size={16} style={{ color: C.teal }} />
             </div>
             <div style={{ fontSize: "2rem", fontWeight: 800, color: C.navy, fontFamily: "'Playfair Display', Georgia, serif", lineHeight: 1, marginBottom: 8 }}>
-              2
+              <DashboardCountUp value={2} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
               <span>Last: Mukwano PAYE review</span>
@@ -803,7 +857,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
         {/* Card 3: Learning progress */}
         <motion.div variants={itemVariants}>
-          <div 
+          <div className="dashboard-metric-card"
             onClick={() => onNavigate("education")}
             style={{ 
               background: "#FFFFFF", 
@@ -825,7 +879,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <BookOpen size={16} style={{ color: C.teal }} />
             </div>
             <div style={{ fontSize: "2rem", fontWeight: 800, color: C.navy, fontFamily: "'Playfair Display', Georgia, serif", lineHeight: 1, marginBottom: 8 }}>
-              4 <span style={{ fontSize: "1.1rem", fontWeight: 600, color: "#64748B" }}>lessons</span>
+              <DashboardCountUp value={4} /> <span style={{ fontSize: "1.1rem", fontWeight: 600, color: "#64748B" }}>lessons</span>
             </div>
             <div style={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600, marginBottom: 8 }}>
               Advanced VAT course · 4 of 12
@@ -838,7 +892,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
         {/* Card 4: Compliance score */}
         <motion.div variants={itemVariants}>
-          <div 
+          <div className="dashboard-metric-card"
             onClick={() => onNavigate("compliance")}
             style={{ 
               background: "#FFFFFF", 
@@ -873,24 +927,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   <circle cx="18" cy="18" r="15.5" fill="none" stroke="#E2E8F0" strokeWidth="3.5" />
                   <circle cx="18" cy="18" r="15.5" fill="none" stroke={C.teal} strokeWidth="3.5" strokeDasharray="100" strokeDashoffset="12" strokeLinecap="round" />
                 </svg>
-                <span style={{ position: "absolute", fontSize: "0.75rem", fontWeight: 800, color: C.navy }}>88%</span>
+                <span style={{ position: "absolute", fontSize: "0.75rem", fontWeight: 800, color: C.navy }}><DashboardCountUp value={88} suffix="%" /></span>
               </div>
             </div>
           </div>
         </motion.div>
-      </div>
-
-      {/* Know Your Taxes Feature Banner */}
-      <motion.div variants={itemVariants}>
-        <KnowYourTaxesCard onStart={() => onNavigate("know-your-taxes")} />
       </motion.div>
 
       {/* 4. Main Section Split: Left (Your cases) & Right (Filing calendar) */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 24, alignItems: "start" }}>
+      <div className="dashboard-workbench" style={{ display: "grid", gridTemplateColumns: "1fr 1.15fr", gap: 24, alignItems: "start" }}>
         
         {/* Left: Your cases */}
         <motion.div variants={itemVariants}>
-          <div style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
+          <div className="dashboard-panel dashboard-cases-panel" style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
               <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: C.navy, margin: 0 }}>Your cases</h3>
               <button
@@ -903,8 +952,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
             </div>
 
             {/* Cases Table */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "8px 0", borderBottom: `1px solid ${C.border}`, fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <div className="dashboard-case-table" style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+              <div className="dashboard-case-row dashboard-case-heading" style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "8px 0", borderBottom: `1px solid ${C.border}`, fontSize: "0.72rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 <div>Case</div>
                 <div>Tax</div>
                 <div>Status</div>
@@ -914,6 +963,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               {/* Row 1: Uganda Clays */}
               <div 
                 onClick={() => onNavigate("analyzer")}
+                className="dashboard-case-row"
                 style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "14px 0", borderBottom: `1px solid ${C.border}`, alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(15,32,68,0.02)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}
@@ -940,6 +990,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               {/* Row 2: Mukwano */}
               <div 
                 onClick={() => onNavigate("analyzer")}
+                className="dashboard-case-row"
                 style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "14px 0", borderBottom: `1px solid ${C.border}`, alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(15,32,68,0.02)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}
@@ -966,6 +1017,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               {/* Row 3: EFRIS */}
               <div 
                 onClick={() => onNavigate("compliance")}
+                className="dashboard-case-row"
                 style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "14px 0", alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(15,32,68,0.02)"}
                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}
@@ -994,7 +1046,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
         {/* Right: Filing calendar with Interactive Month Engine */}
         <motion.div variants={itemVariants}>
-          <div style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
+          <div className="dashboard-panel dashboard-calendar-panel" style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ fontSize: "1.05rem", fontWeight: 800, color: C.navy, margin: 0 }}>Filing calendar</h3>
               <div style={{ display: "flex", gap: 8 }}>
@@ -1069,7 +1121,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                 const dayNum = idx + 1;
                 // Check if this date has a statutory or custom deadline
                 const hasDeadline = deadlines.some(dl => dl.dayNumber === dayNum && dl.monthIndex === calMonth && dl.year === calYear);
-                const isToday = dayNum === 15 && calMonth === 9 && calYear === 2026;
+                const isToday = dayNum === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
                 const isSelected = selectedDay === dayNum;
 
                 let bg = "transparent";
@@ -1115,7 +1167,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
             </div>
 
             {/* Legend */}
-            <div style={{ display: "flex", gap: 16, fontSize: "0.72rem", color: "#64748B", fontWeight: 600, marginBottom: 16 }}>
+            <div className="dashboard-calendar-legend" style={{ display: "flex", gap: 16, fontSize: "0.72rem", color: "#64748B", fontWeight: 600, marginBottom: 16 }}>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#C8922A" }} /> Due Today</span>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: C.teal }} /> Upcoming</span>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#16A34A" }} /> Completed</span>
@@ -1140,8 +1192,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
             {/* Coming Up Collapsible Section */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <div style={{ fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Coming up {!isComingUpExpanded && `(${deadlines.length - 1} more)`}
+              <div className="dashboard-filing-schedule-label" style={{ fontSize: "0.7rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                Filing schedule {!isComingUpExpanded && `(${deadlines.length} deadlines)`}
               </div>
               <button
                 type="button"
@@ -1165,19 +1217,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {deadlines.slice(0, isComingUpExpanded ? deadlines.length : 1).map((item) => (
-                <div key={item.id} style={{ 
+              {deadlines.slice(0, isComingUpExpanded ? deadlines.length : 1).map((item) => {
+                const dueDate = new Date(item.year, item.monthIndex, item.dayNumber);
+                const currentDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const daysUntilDue = Math.round((dueDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+                const isOverdue = !item.completed && daysUntilDue < 0;
+                const deadlineBadge = item.completed
+                  ? "Completed"
+                  : isOverdue
+                    ? `${Math.abs(daysUntilDue)} days overdue`
+                    : daysUntilDue === 0
+                      ? "Due today"
+                      : `Due in ${daysUntilDue} days`;
+
+                return (
+                <div
+                  key={item.id}
+                  className="dashboard-filing-row"
+                  data-state={item.completed ? "completed" : isOverdue ? "overdue" : item.highlight ? "highlight" : "upcoming"}
+                  style={{
                   display: "flex", 
                   justifyContent: "space-between", 
                   alignItems: "center", 
                   padding: "10px 12px", 
-                  background: item.completed ? "#F0FDF4" : item.highlight ? "rgba(200, 146, 42, 0.08)" : C.offwhite, 
+                  background: item.completed ? "#F0FDF4" : isOverdue ? "#FEF2F2" : item.highlight ? "rgba(200, 146, 42, 0.08)" : C.offwhite,
                   borderRadius: 8,
-                  border: `1px solid ${item.completed ? "rgba(34,197,94,0.3)" : item.highlight ? "rgba(200, 146, 42, 0.25)" : C.border}`,
+                  border: `1px solid ${item.completed ? "rgba(34,197,94,0.3)" : isOverdue ? "rgba(220,38,38,0.2)" : item.highlight ? "rgba(200,146,42,0.25)" : C.border}`,
                   transition: "all 0.15s ease"
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: "0.72rem", fontWeight: 800, color: item.completed ? "#16A34A" : item.highlight ? "#C8922A" : "#64748B", minWidth: 46 }}>
+                    <span style={{ fontSize: "0.72rem", fontWeight: 800, color: item.completed ? "#16A34A" : isOverdue ? "#DC2626" : item.highlight ? "#C8922A" : "#64748B", minWidth: 46 }}>
                       {item.completed ? "DONE" : item.date}
                     </span>
                     <div>
@@ -1193,8 +1262,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: "0.72rem", fontWeight: 700, color: item.completed ? "#16A34A" : item.highlight ? "#D97706" : "#64748B" }}>
-                      {item.completed ? "Completed" : item.badge}
+                    <span style={{ fontSize: "0.72rem", fontWeight: 700, color: item.completed ? "#16A34A" : isOverdue ? "#DC2626" : item.highlight ? "#D97706" : "#64748B" }}>
+                      {deadlineBadge}
                     </span>
                     
                     {/* Interactive Checkbox */}
@@ -1229,7 +1298,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
           </div>
@@ -1237,12 +1307,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
       </div>
 
+      {/* Know Your Taxes Feature Banner */}
+      <motion.div className="dashboard-know-taxes" variants={itemVariants}>
+        <KnowYourTaxesCard onStart={() => onNavigate("know-your-taxes")} />
+      </motion.div>
+
       {/* 5. Lower Section Split: Left ("Intelligence for you") & Right ("Quick calculators") */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 24, alignItems: "start" }}>
+      <div className="dashboard-secondary-grid" style={{ display: "grid", gridTemplateColumns: "1.15fr 1fr", gap: 24, alignItems: "start" }}>
         
         {/* Left: Intelligence for you */}
         <motion.div variants={itemVariants}>
-          <div style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
+          <div className="dashboard-panel" style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Sparkles size={16} style={{ color: C.teal }} />
@@ -1305,7 +1380,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
         {/* Right: Quick calculators */}
         <motion.div variants={itemVariants}>
-          <div style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
+          <div className="dashboard-panel" style={{ background: "#FFFFFF", borderRadius: 12, padding: "22px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Calculator size={16} style={{ color: C.teal }} />
@@ -1372,8 +1447,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
       </div>
 
       {/* 6. Official Portals Footer Section */}
-      <motion.div variants={itemVariants}>
-        <div style={{ background: "#FFFFFF", borderRadius: 12, padding: "20px 24px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
+      <motion.div className="dashboard-portals" variants={itemVariants}>
+        <div className="dashboard-panel" style={{ background: "#FFFFFF", borderRadius: 12, padding: "20px 24px", border: `1px solid ${C.border}`, boxShadow: "0 2px 6px rgba(15,32,68,0.02)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
             <h3 style={{ fontSize: "1rem", fontWeight: 800, color: C.navy, margin: 0 }}>Official portals</h3>
             <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>Open in a new tab · Verified official Uganda portals</span>

@@ -13,7 +13,6 @@ import {
   RefreshCw,
   Scale,
   Shield,
-  ArrowLeft,
 } from "lucide-react";
 
 interface AssessmentSummary {
@@ -25,12 +24,10 @@ interface AssessmentSummary {
 
 interface KnowYourTaxesPortalProps {
   initialAssessmentId?: string;
-  onNavigateHome?: () => void;
 }
 
 export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
   initialAssessmentId,
-  onNavigateHome,
 }) => {
   const [viewState, setViewState] = useState<"intro" | "questionnaire" | "result">("intro");
   const [activeAssessmentId, setActiveAssessmentId] = useState<string | null>(
@@ -96,6 +93,7 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
 
   return (
     <div
+      className="workspace-feature-page workspace-know-taxes"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -106,87 +104,14 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
     >
-      {/* Unified Sleek Breadcrumb Bar */}
-      <nav
-        aria-label="Breadcrumb"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          fontSize: "0.82rem",
-          fontWeight: 600,
-          color: "#64748B",
-          padding: "2px 0",
-        }}
-      >
-        <button
-          type="button"
-          onClick={onNavigateHome || (() => setViewState("intro"))}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: C.navy,
-            cursor: "pointer",
-            fontWeight: 700,
-            padding: 0,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            fontFamily: "inherit",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = C.teal; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = C.navy; }}
-        >
-          <ArrowLeft size={14} style={{ color: C.teal }} />
-          <span>Dashboard</span>
-        </button>
-
-        <span style={{ color: "#CBD5E1", fontSize: "0.85rem" }}>/</span>
-
-        {viewState === "intro" ? (
-          <span style={{ color: C.teal, fontWeight: 700 }}>Know Your Taxes</span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setViewState("intro")}
-            style={{
-              background: "transparent",
-              border: "none",
-              color: C.navy,
-              cursor: "pointer",
-              fontWeight: 600,
-              padding: 0,
-              fontFamily: "inherit",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = C.teal; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = C.navy; }}
-          >
-            Know Your Taxes
-          </button>
-        )}
-
-        {viewState === "questionnaire" && (
-          <>
-            <span style={{ color: "#CBD5E1", fontSize: "0.85rem" }}>/</span>
-            <span style={{ color: C.teal, fontWeight: 700 }}>Statutory Questionnaire</span>
-          </>
-        )}
-
-        {viewState === "result" && (
-          <>
-            <span style={{ color: "#CBD5E1", fontSize: "0.85rem" }}>/</span>
-            <span style={{ color: C.teal, fontWeight: 700 }}>Assessment Results</span>
-          </>
-        )}
-      </nav>
-
       {/* Intro Overview Screen */}
       {viewState === "intro" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <KnowYourTaxesCard onStart={() => setViewState("questionnaire")} />
 
           {/* Historical Saved Assessments */}
-          {history.length > 0 && (
+          <section className="kyt-history-panel">
+          {history.length > 0 ? (
             <div
               style={{
                 background: "#FFFFFF",
@@ -318,7 +243,53 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
                 ))}
               </div>
             </div>
+          ) : (
+            <div className="kyt-history-empty">
+              <div className="kyt-history-empty-icon"><History size={20} /></div>
+              <div>
+                <h3>Your previous assessments</h3>
+                <p>Completed obligation assessments will appear here so you can review your filing requirements again.</p>
+              </div>
+              <button type="button" onClick={() => setViewState("questionnaire")}>
+                <Plus size={15} /> Start an assessment
+              </button>
+            </div>
           )}
+          </section>
+
+          <section className="kyt-how-it-works" aria-labelledby="kyt-how-heading">
+            <div className="kyt-section-heading">
+              <span>YOUR NEXT STEPS</span>
+              <h2 id="kyt-how-heading">A clear path from profile to filing</h2>
+              <p>Answer a short set of questions, review the rules that apply, then use the results to plan your next filing actions.</p>
+            </div>
+            <div className="kyt-steps-grid">
+              {[
+                ["01", "Tell us about your activity", "Share the basics about your work, business, or rental income."],
+                ["02", "Review matched obligations", "See the taxes, thresholds, deadlines, and records identified by the rules engine."],
+                ["03", "Plan your next filing", "Use the grounded explanations and statutory sources to prepare your next step."],
+              ].map(([step, title, description]) => (
+                <article className="kyt-step-card" key={step}>
+                  <span className="kyt-step-number">{step}</span>
+                  <h3>{title}</h3>
+                  <p>{description}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="kyt-obligations-preview" aria-labelledby="kyt-obligations-heading">
+            <div className="kyt-section-heading">
+              <span>RULES COVERED</span>
+              <h2 id="kyt-obligations-heading">Explore the areas the assessment checks</h2>
+              <p>The questionnaire uses your answers to identify relevant obligations across these tax areas.</p>
+            </div>
+            <div className="kyt-obligation-grid">
+              {["Employment income · PAYE and NSSF", "Business activity · VAT and presumptive tax", "Rental income · individual and company obligations", "Company profits · corporate income tax"].map((item) => (
+                <div className="kyt-obligation-item" key={item}><Shield size={17} /><span>{item}</span></div>
+              ))}
+            </div>
+          </section>
 
           {/* 3 Key Feature Cards */}
           <div

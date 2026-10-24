@@ -6,6 +6,7 @@ import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { Card, Button } from "./UI";
 import { AlertTriangle, User, Lock, Key, CreditCard, Trash2, Check, CheckCircle2, Monitor, Sun, Moon } from "lucide-react";
+import { WorkspacePageHero } from "./WorkspacePageHero";
 import { getInitialTheme, applyTheme, ThemeMode } from "../lib/theme";
 
 interface DbProfile {
@@ -19,11 +20,10 @@ interface DbProfile {
 interface ProfileSettingsProps {
   user: DbProfile;
   onRefreshUser: () => void;
-  onNavigateToPricing: () => void;
   onAccountDeleted: () => void;
 }
 
-export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefreshUser, onNavigateToPricing, onAccountDeleted }) => {
+export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefreshUser, onAccountDeleted }) => {
   // Personal Info States
   const [fullName, setFullName] = useState(user.full_name || "");
   const [role, setRole] = useState(user.role || "Student");
@@ -288,16 +288,12 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
 
   return (
     <>
-      <div style={{ display: "flex", flexDirection: "column", gap: 32, animation: "fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
-        {/* Title Header */}
-        <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: C.navy, letterSpacing: "-0.02em", marginBottom: 6 }}>
-            Profile &amp; Settings
-          </h1>
-          <p style={{ color: C.muted, fontSize: "0.875rem", fontWeight: 500 }}>
-            Manage your personal details, secure your account, and view subscription status.
-          </p>
-        </div>
+      <div className="workspace-settings" style={{ display: "flex", flexDirection: "column", gap: 32, animation: "fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
+        <WorkspacePageHero
+          eyebrow="ACCOUNT · PREFERENCES"
+          title="Profile & Settings"
+          description="Manage your personal details, security, and account preferences."
+        />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24 }}>
           

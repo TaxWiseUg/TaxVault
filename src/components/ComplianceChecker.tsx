@@ -30,7 +30,7 @@ export const ComplianceChecker: React.FC<ComplianceCheckerProps> = ({ user }) =>
   };
 
   return (
-    <div className="w-full">
+    <div className="workspace-feature-page workspace-compliance w-full">
       {activeMode === "overview" ? (
         <ComplianceOverview
           user={user}

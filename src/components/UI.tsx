@@ -82,7 +82,7 @@ export const Button: React.FC<ButtonProps> = ({
     outline: {
       background: hovered ? "rgba(15, 32, 68, 0.03)" : "transparent",
       color: C.navy,
-      border: `2.5px solid ${C.navy}`,
+      border: `1.25px solid ${C.navy}`,
       padding: small ? "6px 14px" : "9px 22px",
       fontSize: small ? "0.8rem" : "0.9rem",
     },
@@ -135,21 +135,21 @@ interface CardProps {
 export const Card: React.FC<CardProps> = ({ children, style = {}, hover, onClick, className }) => {
   const [hov, setHov] = useState(false);
   
-  const cardShadow = hov 
-    ? "0 14px 36px rgba(15, 32, 68, 0.09), 0 4px 14px rgba(15, 32, 68, 0.03)" 
-    : "0 4px 16px rgba(15, 32, 68, 0.03), 0 1px 3px rgba(15, 32, 68, 0.01)";
+  const cardShadow = hov
+    ? "0 12px 28px rgba(15, 32, 68, 0.09), 0 3px 8px rgba(15, 32, 68, 0.03)"
+    : "0 4px 16px rgba(15, 32, 68, 0.035), 0 1px 3px rgba(15, 32, 68, 0.025)";
 
   return (
     <motion.div
       onMouseEnter={() => hover && setHov(true)}
       onMouseLeave={() => setHov(false)}
       onClick={onClick}
-      className={className}
-      whileHover={hover && !onClick ? { y: -4 } : hover && onClick ? { y: -4, scale: 1.005 } : {}}
+      className={["tw-ui-card", className].filter(Boolean).join(" ")}
+      whileHover={hover && !onClick ? { y: -2 } : hover && onClick ? { y: -2, scale: 1.003 } : {}}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       style={{
         background: C.white,
-        borderRadius: 16,
+        borderRadius: 15,
         border: `1px solid rgba(15, 32, 68, 0.06)`,
         boxShadow: cardShadow,
         cursor: onClick ? "pointer" : "default",

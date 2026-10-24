@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { C } from "../lib/constants";
 import { Card } from "./UI";
+import { WorkspacePageHero } from "./WorkspacePageHero";
 
 const intelligenceTabs = [
   {
@@ -69,6 +70,7 @@ export const IntelligencePortal: React.FC = () => {
 
   return (
     <motion.div 
+      className="workspace-feature-page workspace-intelligence"
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -76,14 +78,7 @@ export const IntelligencePortal: React.FC = () => {
     >
       <div style={{ width: "100%", maxWidth: 1020, display: "flex", flexDirection: "column", gap: 24 }}>
         <motion.div variants={itemVariants} style={{ display: "grid", gap: 14 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2rem", color: C.navy, margin: 0, fontWeight: 800 }}>
-              Intelligence hub
-            </h1>
-            <p style={{ color: C.muted, fontSize: "1rem", margin: 0, maxWidth: 680 }}>
-              Browse practical guidance, appeals thinking, and compliance updates in one place.
-            </p>
-          </div>
+          <WorkspacePageHero eyebrow="LEGAL · TAX INSIGHTS" title="Intelligence hub" description="Browse practical guidance, appeals thinking, and compliance updates in one place." />
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
             {intelligenceTabs.map((tab) => {
               const isActive = activeTab === tab.id;

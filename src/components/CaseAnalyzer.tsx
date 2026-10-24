@@ -10,7 +10,8 @@ import {
   SUPPORTED_DOCUMENT_ACCEPT,
 } from "../lib/documentTypes";
 import { Badge, Button, Card } from "./UI";
-import { BookOpen, X, Search, FolderOpen, Calendar, Scale, FileText, Paperclip, Sparkles, AlertTriangle, BarChart2, Download, RefreshCw, BookmarkCheck, ArrowUpRight } from "lucide-react";
+import { WorkspacePageHero } from "./WorkspacePageHero";
+import { BookOpen, X, Search, FolderOpen, Calendar, Scale, FileText, Paperclip, Sparkles, AlertTriangle, BarChart2, Download, RefreshCw, BookmarkCheck, ArrowUpRight, ArrowLeft } from "lucide-react";
 import { CitationViewerModal, TATPrecedentSearchModal, resolveCitationItem, CitationItem } from "./TATCitationModal";
 
 interface CaseAnalyzerProps {
@@ -743,6 +744,7 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
   const [fileName, setFileName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [reports, setReports] = useState<CaseRecord[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [tatSearchOpen, setTatSearchOpen] = useState(false);
@@ -792,6 +794,8 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
     } catch (err) {
       console.error("Error fetching past reports:", err);
       setReports(DEFAULT_CASES as unknown as CaseRecord[]);
+    } finally {
+      setReportsLoading(false);
     }
   }, []);
 
@@ -968,24 +972,19 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
 
   return (
     <motion.div
+      className="workspace-feature-page workspace-case-analyzer"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
-      {/* Page Header */}
-      <motion.div variants={itemVariants} style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.85rem", color: C.navy, marginBottom: 6, fontWeight: 800 }}>
-          Case Analyzer
-        </h1>
-        <p style={{ color: C.muted, fontSize: "0.92rem", fontWeight: 500 }}>
-          Upload a scanned PDF, Word document, image, or text file and paste dispute details. The engine extracts structured legal analysis instantly.
-        </p>
+      <motion.div variants={itemVariants}>
+        <WorkspacePageHero eyebrow="ADVISORY · CASE WORK" title="Case Analyzer" description="Upload a scanned PDF, Word document, image, or text file and paste dispute details. The engine extracts structured legal analysis instantly." />
       </motion.div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr", gap: 28, alignItems: "start" }}>
+      <div className="case-analyzer-workspace" style={{ display: "grid", gap: 24, alignItems: "start" }}>
         {/* ── Left: Input Card ── */}
         <motion.div variants={itemVariants}>
-          <Card style={{ padding: 28 }}>
+        <Card className="case-analyzer-input-card" style={{ padding: 28 }}>
             <div style={{ fontWeight: 800, color: C.navy, marginBottom: 20, fontSize: "0.98rem", display: "flex", alignItems: "center", gap: 8 }}>
               <FileText size={18} style={{ color: C.teal }} />
               <span>Document & Details Input</span>
@@ -1157,38 +1156,72 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
 
       {/* ── Right: Analysis Findings Card ── */}
       <motion.div variants={itemVariants}>
-        <Card style={{ padding: 28, minHeight: 460, display: "flex", flexDirection: "column" }}>
+        <Card className="case-analyzer-findings-card" style={{ padding: 24, minHeight: 460, display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, borderBottom: "1px solid rgba(15,32,68,0.05)", paddingBottom: 16 }}>
             <div style={{ fontWeight: 800, color: C.navy, fontSize: "0.98rem", display: "flex", alignItems: "center", gap: 8 }}>
               <Sparkles size={18} style={{ color: C.gold }} />
               <span>Analysis Findings</span>
             </div>
-            {result && !result.error && (
-              <Button onClick={downloadReport} small variant="outline" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Download size={14} />
-                <span>Download PDF</span>
-              </Button>
-            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+              {result && (
+                <Button onClick={() => setResult(null)} small variant="outline" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <ArrowLeft size={14} />
+                  <span>Back to recent cases</span>
+                </Button>
+              )}
+              {result && !result.error && (
+                <Button onClick={downloadReport} small variant="outline" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <Download size={14} />
+                  <span>Download PDF</span>
+                </Button>
+              )}
+            </div>
           </div>
 
           {!result && !loading && (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                flex: 1,
-                color: C.muted,
-                gap: 12,
-                padding: "40px 0"
-              }}
-            >
-              <BarChart2 size={48} style={{ color: C.muted, opacity: 0.25 }} />
-              <div style={{ fontSize: "0.9rem", fontWeight: 600 }}>Ready for case analysis</div>
-              <p style={{ fontSize: "0.78rem", color: C.muted, textAlign: "center", maxWidth: 240 }}>
-                Upload your document or paste the content on the left to see findings.
-              </p>
+            <div className="case-analyzer-recent">
+              <div className="case-analyzer-recent-heading">
+                <div>
+                  <div className="case-analyzer-recent-title">Recently added cases</div>
+                  <div className="case-analyzer-recent-subtitle">Open a saved analysis to continue where you left off.</div>
+                </div>
+                <span className="case-analyzer-recent-count">{reportsLoading ? "…" : reports.length}</span>
+              </div>
+
+              {reportsLoading ? (
+                <div className="case-analyzer-recent-skeleton" aria-label="Loading recent cases">
+                  {[0, 1, 2].map((item) => <span key={item} />)}
+                </div>
+              ) : reports.length > 0 ? (
+                <div className="case-analyzer-recent-list">
+                  {reports.slice(0, 4).map((report) => (
+                    <button
+                      key={report.id}
+                      type="button"
+                      className="case-analyzer-recent-item"
+                      onClick={() => loadPastReport(report)}
+                      aria-label={`Open saved analysis: ${report.title}`}
+                    >
+                      <span className="case-analyzer-recent-icon"><FileText size={16} /></span>
+                      <span className="case-analyzer-recent-copy">
+                        <span className="case-analyzer-recent-case-title">{report.title}</span>
+                        <span className="case-analyzer-recent-meta">
+                          <span>{new Date(report.created_at).toLocaleDateString("en-UG", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          <span className="case-analyzer-recent-dot" />
+                          <span className="case-analyzer-risk" data-risk={report.risk_level}>{report.risk_level || "Unrated"} risk</span>
+                        </span>
+                      </span>
+                      <ArrowUpRight className="case-analyzer-recent-arrow" size={16} />
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="case-analyzer-recent-empty">
+                  <BarChart2 size={22} />
+                  <span>No saved analyses yet. Start with a document or browse the case library.</span>
+                  <button type="button" onClick={() => setLibraryOpen(true)}>Browse case library <ArrowUpRight size={13} /></button>
+                </div>
+              )}
             </div>
           )}
 
@@ -1515,14 +1548,14 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
     </div>
 
     {/* Recent Analyses */}
-    {reports.length > 0 && (
+    {reports.length > 4 && (
       <motion.div variants={itemVariants} style={{ marginTop: 36 }}>
         <div style={{ fontWeight: 800, color: C.navy, marginBottom: 16, fontSize: "0.98rem", display: "flex", alignItems: "center", gap: 8 }}>
           <FolderOpen size={18} style={{ color: C.teal }} />
-          <span>Recent Analyses Reports</span>
+          <span>Older analysis reports</span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-          {reports.map((r) => (
+          {reports.slice(4).map((r) => (
             <Card
               key={r.id}
               style={{ padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%", gap: 12 }}

@@ -385,6 +385,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
 
   return (
     <div
+      className="workspace-feature-page workspace-compliance-overview"
       style={{
         width: "100%",
         color: "var(--cx-ink, #101E30)",
@@ -393,6 +394,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
     >
       {/* ── Top Header Section ── */}
       <div
+        className="workspace-compliance-header"
         style={{
           display: "flex",
           flexWrap: "wrap",
@@ -417,7 +419,7 @@ export const ComplianceOverview: React.FC<ComplianceOverviewProps> = ({
               gap: 8,
             }}
           >
-            <span>DASHBOARD</span>
+            <span>COMPLIANCE MONITORING</span>
             <span style={{ opacity: 0.5 }}>•</span>
             <span>
               {new Date().toLocaleDateString("en-GB", {

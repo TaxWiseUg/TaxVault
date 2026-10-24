@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { supabase } from "../lib/supabaseClient";
 import { 
   LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
@@ -11,10 +11,11 @@ import {
 import { LegalPortal } from "./LegalPortal";
 
 // Animated Counting Number Component
-const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value, duration = 1500 }) => {
+const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value, duration = 1900 }) => {
   const [current, setCurrent] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const numericString = value.replace(/[^0-9]/g, "");
   const target = parseInt(numericString, 10) || 0;
@@ -47,6 +48,10 @@ const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value,
 
   useEffect(() => {
     if (!isVisible) return;
+    if (prefersReducedMotion) {
+      setCurrent(target);
+      return;
+    }
     let startTimestamp: number | null = null;
     
     const step = (timestamp: number) => {
@@ -64,7 +69,7 @@ const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value,
     };
     
     requestAnimationFrame(step);
-  }, [isVisible, target, duration]);
+  }, [isVisible, target, duration, prefersReducedMotion]);
 
   const formatNumber = (num: number) => {
     if (hasCommas) {
@@ -214,6 +219,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [copiedObjection, setCopiedObjection] = useState<boolean>(false);
 
   const menuBtnRef = useRef<HTMLButtonElement>(null);
+  const heroSectionRef = useRef<HTMLElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: heroSectionRef,
+    offset: ["start start", "end start"],
+  });
+  const heroParallax = useTransform(heroScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : 170]);
+  const heroParallaxReverse = useTransform(heroScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : -115]);
+  const heroCardParallax = useTransform(heroScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : -55]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -233,9 +247,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         el.scrollIntoView({ behavior: "smooth" });
         return;
       }
-    }
-    if (id === "pricing" && onNavigate) {
-      onNavigate("pricing");
     }
   };
 
@@ -273,7 +284,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       "VAT Calculator": "calculators",
       "WHT Rates Tool": "calculators",
       "Import Duty": "calculators",
-      "Pricing Plans": "pricing",
       "Knowledge Base": "education"
     };
 
@@ -443,7 +453,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   ];
 
   return (
-    <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", background: "var(--landing-bg)", color: "var(--landing-text)", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
+    <div className="tw-landing-page" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", background: "var(--landing-bg)", color: "var(--landing-text)", lineHeight: 1.6, WebkitFontSmoothing: "antialiased" }}>
 
       {/* DYNAMIC SCROLL PROGRESS BAR */}
       <div style={{ position: "fixed", top: 0, left: 0, height: "3.5px", background: "#1A7B6B", width: `${scrollProgress}%`, zIndex: 1000, transition: "width 0.1s ease-out", pointerEvents: "none" }} />
@@ -479,7 +489,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           transition: "all 0.25s ease"
         }}
       >
-        <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 5%", display: "flex", alignItems: "center", justifyContent: "space-between", height: 72 }}>
+        <div className="tw-landing-nav-inner" style={{ maxWidth: 1240, margin: "0 auto", padding: "0 5%", display: "flex", alignItems: "center", justifyContent: "space-between", height: 72 }}>
           {/* Logo */}
           <button 
             type="button"
@@ -491,13 +501,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </button>
 
           {/* Desktop Nav Links */}
-          <div className="tw-nav-desktop" style={{ display: "flex", alignItems: "center", flex: 1, gap: 4, marginLeft: 8 }}>
+          <div className="tw-nav-desktop tw-landing-nav-links" style={{ display: "flex", alignItems: "center", flex: 1, gap: 4, marginLeft: 8 }}>
             {/* Dynamic Home ⇄ Dashboard Dropdown */}
-            <div className="tw-dd" style={{ position: "relative" }} onMouseLeave={() => setHomeDropdownOpen(false)}>
+            <div className="tw-dd" style={{ position: "relative" }} onMouseEnter={() => setHomeDropdownOpen(true)} onMouseLeave={() => setHomeDropdownOpen(false)}>
               <button
                 type="button"
                 className="tw-nav-link"
-                onClick={() => setHomeDropdownOpen(prev => !prev)}
+                onFocus={() => setHomeDropdownOpen(true)}
+                aria-haspopup="menu"
+                aria-expanded={homeDropdownOpen}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -536,39 +548,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   ...(homeDropdownOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0)", pointerEvents: "auto" } : {})
                 }}
               >
-                <div style={{ padding: "6px 10px 8px", borderBottom: "1px solid var(--landing-border)", marginBottom: 4 }}>
-                  <div style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--landing-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Currently Viewing</div>
-                  <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--landing-text)" }}>TaxWise Public Portal</div>
-                </div>
                 <button 
                   type="button"
+                  title="Enter the dashboard workspace"
                   onClick={() => {
                     setHomeDropdownOpen(false);
                     if (onNavigate) onNavigate("dashboard");
                     else onGetStarted();
                   }} 
-                  style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
+                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
                   onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
                   onMouseOut={e => { e.currentTarget.style.background = "none"; }}
                 >
                   <LayoutDashboard size={18} style={{ color: "#1A7B6B", marginTop: 2, flexShrink: 0 }} />
                   <div>
                     <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>Dashboard</div>
-                    <div style={{ fontSize: ".71rem", color: "var(--landing-muted)", marginTop: 2, lineHeight: 1.3 }}>Enter executive workspace &amp; tax intelligence portal</div>
                   </div>
                 </button>
               </div>
             </div>
 
             {/* Grouped Tax Tools Menu */}
-            <div className="tw-dd" style={{ position: "relative" }} onMouseLeave={() => setTaxToolsOpen(false)}>
+            <div className="tw-dd" style={{ position: "relative" }} onMouseEnter={() => setTaxToolsOpen(true)} onMouseLeave={() => setTaxToolsOpen(false)}>
               <button
                 type="button"
                 className="tw-nav-link"
-                onClick={() => setTaxToolsOpen(prev => !prev)}
+                onFocus={() => setTaxToolsOpen(true)}
+                aria-haspopup="menu"
+                aria-expanded={taxToolsOpen}
                 style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
               >
-                <span>Tax Tools</span>
+                <span>Tools</span>
                 <ChevronDown size={13} style={{ transform: taxToolsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
               </button>
               <div 
@@ -580,7 +590,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   background: "var(--landing-surface)", 
                   borderRadius: "0 0 10px 10px", 
                   boxShadow: "0 16px 36px rgba(0,0,0,0.12)", 
-                  minWidth: 290, 
+                  minWidth: 220,
                   zIndex: 400, 
                   border: "1px solid var(--landing-border)", 
                   borderTop: "3px solid #1A7B6B", 
@@ -597,19 +607,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <button 
                     key={t.name} 
                     type="button"
+                    title={t.desc}
                     onClick={() => {
                       setTaxToolsOpen(false);
                       if (onNavigate) onNavigate(t.page);
                       else onGetStarted();
                     }} 
-                    style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
                     onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
                     onMouseOut={e => { e.currentTarget.style.background = "none"; }}
                   >
                     <span style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 }}>{t.icon}</span>
                     <div>
                       <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>{t.name}</div>
-                      <div style={{ fontSize: ".71rem", color: "var(--landing-muted)", marginTop: 2, lineHeight: 1.3 }}>{t.desc}</div>
                     </div>
                   </button>
                 ))}
@@ -622,7 +632,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => scrollToId("precedents-section")}
               style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
             >
-              TAT Precedents
+              Precedents
             </button>
 
             {/* Direct Workflow Link */}
@@ -631,7 +641,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={() => scrollToId("workflow-section")}
               style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
             >
-              3-Step Workflow
+              Workflow
             </button>
 
             {/* Direct Calculators Link */}
@@ -646,7 +656,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Desktop Nav Actions */}
-          <div className="tw-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 14, marginLeft: "auto" }}>
+          <div className="tw-nav-desktop tw-landing-nav-actions" style={{ display: "flex", alignItems: "center", gap: 14, marginLeft: "auto" }}>
             {dbUser ? (
               <div className="tw-dd" style={{ position: "relative" }}>
                 <button
@@ -730,7 +740,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="tw-nav-link" 
                   style={{ color: "var(--landing-text)", fontSize: ".835rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
                 >
-                  Sign In
+                  Open Sandbox
                 </button>
                 <button 
                   onClick={onGetStarted} 
@@ -850,12 +860,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {[
-            { label: "Case Analyzer", page: "analyzer" },
-            { label: "TAT Case Precedents Library", page: "library" },
-            { label: "Tax & Customs Calculators", page: "calculators" },
-            { label: "Uganda Tax Intelligence", page: "intelligence" },
-            { label: "Compliance Checklists", page: "compliance" },
-            { label: "Learning & Education Hub", page: "education" },
+            { label: "Analyzer", page: "analyzer" },
+            { label: "Cases", page: "library" },
+            { label: "Calculators", page: "calculators" },
+            { label: "Intelligence", page: "intelligence" },
+            { label: "Compliance", page: "compliance" },
+            { label: "Learning", page: "education" },
           ].map(item => (
             <button 
               key={item.label} 
@@ -876,7 +886,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={() => { setMobileOpen(false); onSignIn(); }} 
                 style={{ display: "block", padding: "11px 16px", color: "var(--landing-text)", background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
               >
-                Sign In
+                Open Sandbox
               </button>
               <button 
                 onClick={() => { setMobileOpen(false); onGetStarted(); }} 
@@ -900,19 +910,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* ══════════════════════════════════════════════════════════════
           1. SPLIT HERO SECTION (PROPOSITION ON LEFT, CALCULATOR ON RIGHT)
       ══════════════════════════════════════════════════════════════ */}
-      <section className="tw-section" style={{ padding: "64px 5% 72px", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)", position: "relative", overflow: "hidden" }}>
+      <section ref={heroSectionRef} className="tw-section" style={{ padding: "64px 5% 72px", background: "var(--landing-bg)", borderBottom: "1px solid var(--landing-border)", position: "relative", overflow: "hidden" }}>
         {/* Subtle decorative background gradient */}
-        <div style={{ position: "absolute", top: "-100px", right: "-50px", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(26, 123, 107, 0.06) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-50px", left: "10%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(200, 146, 42, 0.05) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" }} />
+        <motion.div aria-hidden="true" style={{ y: heroParallax, position: "absolute", top: "-100px", right: "-50px", width: "500px", height: "500px", background: "radial-gradient(circle, rgba(26, 123, 107, 0.09) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none", willChange: "transform" }} />
+        <motion.div aria-hidden="true" style={{ y: heroParallaxReverse, position: "absolute", bottom: "-50px", left: "10%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(200, 146, 42, 0.07) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none", willChange: "transform" }} />
 
         <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative", zIndex: 10 }}>
           <div className="tw-split-hero">
             
             {/* LEFT COLUMN: Authority Proposition & Proof */}
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.9, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
               style={{ display: "flex", flexDirection: "column", gap: 20 }}
             >
               {/* Pill Tag */}
@@ -981,8 +991,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <motion.div
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.95, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
               style={{
+                y: heroCardParallax,
                 background: "var(--landing-surface)",
                 border: "1px solid var(--landing-border)",
                 borderRadius: 20,
@@ -1037,7 +1048,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.22, ease: "easeOut" }}
+                  transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                 >
                   {/* TAB 1 - LIVE PAYE */}
                   {heroCalcTab === "paye" && (
@@ -2262,7 +2273,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onClick={onSignIn}
                   style={{ background: "var(--landing-surface)", color: "var(--landing-text)", padding: "14px 28px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "1.5px solid var(--landing-border)", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", transition: "all 0.2s" }}
                 >
-                  Sign In
+                  Open Sandbox
                 </button>
               </>
             )}
@@ -2357,7 +2368,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 Support & Contact
               </h5>
               <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10, padding: 0, margin: 0 }}>
-                {["Knowledge Base", "Pricing Plans", "Contact Us"].map(link => (
+                {["Knowledge Base", "Contact Us"].map(link => (
                   <li key={link}>
                     <button 
                       onClick={() => handleFooterLinkClick(link)} 

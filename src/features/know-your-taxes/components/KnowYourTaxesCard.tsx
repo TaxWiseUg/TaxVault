@@ -11,6 +11,7 @@ interface KnowYourTaxesCardProps {
 export const KnowYourTaxesCard: React.FC<KnowYourTaxesCardProps> = ({ onStart, style }) => {
   return (
     <section
+      className="workspace-page-hero workspace-page-hero-taxes"
       style={{
         position: "relative",
         overflow: "hidden",

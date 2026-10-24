@@ -2091,7 +2091,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
   // ─── Layout ───────────────────────────────────────────────────────────────
 
   return (
-    <div>
+    <div className="workspace-feature-page workspace-admin-portal">
       <style>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
@@ -2102,7 +2102,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         }
       `}</style>
       {/* Header */}
-      <div style={{ marginBottom: 28 }}>
+      <div className="workspace-admin-header" style={{ marginBottom: 28 }}>
         {onNavigate && (
           <button
             onClick={() => onNavigate("dashboard")}

@@ -6,6 +6,7 @@ import { supabase, DEFAULT_COURSES } from "../lib/supabaseClient";
 import { IMPORTED_ENROLLMENTS } from "../lib/importedData";
 import { C, levelColors } from "../lib/constants";
 import { Badge, Button, Card, ProgressBar } from "./UI";
+import { WorkspacePageHero } from "./WorkspacePageHero";
 import { Clock, Check, Sparkles, BookOpen, GraduationCap, Scale, Award, RefreshCw } from "lucide-react";
 
 const getCourseIcon = (iconName: string, size = 32, color?: string) => {
@@ -258,6 +259,7 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
 
     return (
       <motion.div
+        className="workspace-feature-page workspace-learning-hub"
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -466,6 +468,7 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
 
     return (
       <motion.div
+        className="workspace-feature-page workspace-learning-hub"
         variants={containerVariants}
         initial="hidden"
         animate="show"
@@ -563,17 +566,13 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
 
   return (
     <motion.div
+      className="workspace-feature-page workspace-learning-hub"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
-      <motion.div variants={itemVariants} style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.85rem", color: C.navy, marginBottom: 6, fontWeight: 800 }}>
-          Learning Hub
-        </h1>
-        <p style={{ color: C.muted, fontSize: "0.92rem", fontWeight: 500 }}>
-          Structured, CPD-eligible Uganda tax courses — from foundations to TAT dispute litigation.
-        </p>
+      <motion.div variants={itemVariants}>
+        <WorkspacePageHero eyebrow="LEGAL · LEARNING" title="Learning Hub" description="Structured, CPD-eligible Uganda tax courses — from foundations to TAT dispute litigation." />
       </motion.div>
 
       <motion.div variants={itemVariants} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24 }}>

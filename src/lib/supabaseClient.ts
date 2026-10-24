@@ -208,7 +208,7 @@ function triggerCallbacks(event: string, session: any) {
 // Mock query builder mimicking Supabase postgrest syntax
 class MockQueryBuilder {
   private tableName: string;
-  private filters: { col: string; val: any; op: "eq" | "gte" }[] = [];
+  private filters: { col: string; val: any; op: "eq" | "gte" | "in" }[] = [];
   private orderField: string | null = null;
   private orderAscending: boolean = true;
   private limitCount: number | null = null;
@@ -263,6 +263,10 @@ class MockQueryBuilder {
     this.filters.push({ col, val, op: "gte" });
     return this;
   }
+  in(col: string, values: any[]) {
+    this.filters.push({ col, val: values, op: "in" });
+    return this;
+  }
   lte(col: string, val: any) { return this; }
   like(col: string, val: any) { return this; }
   ilike(col: string, val: any) { return this; }
@@ -298,6 +302,9 @@ class MockQueryBuilder {
           if (itemVal === undefined) return false;
           if (f.op === "gte") {
             return String(itemVal) >= String(f.val);
+          }
+          if (f.op === "in") {
+            return Array.isArray(f.val) && f.val.some(value => String(itemVal).toLowerCase() === String(value).toLowerCase());
           }
           return String(itemVal).toLowerCase() === String(f.val).toLowerCase();
         });

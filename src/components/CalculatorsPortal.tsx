@@ -4,6 +4,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { C } from "../lib/constants";
 import { Card } from "./UI";
+import { WorkspacePageHero } from "./WorkspacePageHero";
 import { supabase } from "../lib/supabaseClient";
 import { CorporateTaxCalculator } from "./CorporateTaxCalculator";
 import { PayeCalculator } from "./PayeCalculator";
@@ -169,6 +170,7 @@ export const CalculatorsPortal: React.FC = () => {
 
   return (
     <motion.div 
+      className="workspace-feature-page workspace-calculators"
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -176,14 +178,7 @@ export const CalculatorsPortal: React.FC = () => {
     >
       <div style={{ width: "100%", maxWidth: 1120, display: "flex", flexDirection: "column", gap: 24 }}>
         <motion.div variants={itemVariants} style={{ display: "grid", gap: 12 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2rem", color: C.navy, margin: 0, fontWeight: 800 }}>
-              Tax calculators
-            </h1>
-            <p style={{ color: C.muted, fontSize: "1rem", margin: 0, maxWidth: 700 }}>
-              Switch between practical calculators for payroll, VAT, corporate planning, and rental income tax.
-            </p>
-          </div>
+          <WorkspacePageHero eyebrow="ADVISORY · PLANNING TOOLS" title="Tax calculators" description="Estimate payroll, corporate, and rental tax with practical calculators grounded in Ugandan tax schedules." />
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
             {calculatorTabs.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -257,7 +252,7 @@ export const CalculatorsPortal: React.FC = () => {
             </Card>
           ) : (
             <Card style={{ padding: 24 }} hover>
-              <div style={{ display: "grid", gap: 20, gridTemplateColumns: "1.8fr 1fr" }}>
+              <div className="calculator-result-layout" style={{ display: "grid", gap: 20, gridTemplateColumns: "1.8fr 1fr" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
                     <div style={{ width: 12, height: 12, borderRadius: "50%", background: activeCalculator.accent, marginTop: 6 }} />

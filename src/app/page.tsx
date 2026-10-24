@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { User } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, 
@@ -8,7 +9,6 @@ import {
   BookOpen, 
   Calculator, 
   GraduationCap, 
-  CreditCard, 
   Shield, 
   LogOut, 
   ChevronDown,
@@ -33,7 +33,6 @@ import { CaseAnalyzer } from "../components/CaseAnalyzer";
 import { CaseLibrary } from "../components/CaseLibrary";
 import { EducationHub } from "../components/EducationHub";
 import { ComplianceChecker } from "../components/ComplianceChecker";
-import { PricingPage } from "../components/PricingPage";
 import { AdminPortal } from "../components/AdminPortal";
 import { ProfileSettings } from "../components/ProfileSettings";
 import { CalculatorsPortal } from "../components/CalculatorsPortal";
@@ -49,7 +48,7 @@ interface DbProfile {
   plan: string;
 }
 
-export const SANDBOX_USER: DbProfile = {
+const SANDBOX_USER: DbProfile = {
   id: "f8174d44-d81a-4e70-9f4b-64744f969d09",
   email: "taxwiseplatform@gmail.com",
   full_name: "TaxWise Practitioner",
@@ -67,7 +66,6 @@ const getNavItemIcon = (id: string, size = 15) => {
     case "calculators": return <Calculator size={size} />;
     case "intelligence": return <Sparkles size={size} />;
     case "education": return <GraduationCap size={size} />;
-    case "pricing": return <CreditCard size={size} />;
     case "admin": return <Shield size={size} />;
     default: return <LayoutDashboard size={size} />;
   }
@@ -91,25 +89,27 @@ const TopNavItem = ({
   return (
     <button
       type="button"
+      className="tw-nav-link"
       onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
-        padding: "7px 12px",
-        borderRadius: 8,
-        border: "1.5px solid",
-        borderColor: isActive ? "rgba(26, 123, 107, 0.45)" : "transparent",
+        gap: 7,
+        padding: "9px 13px",
+        borderRadius: 10,
+        border: "1px solid",
+        borderColor: isActive ? "rgba(26, 123, 107, 0.18)" : "transparent",
         background: isActive 
-          ? "rgba(26, 123, 107, 0.12)" 
+          ? "rgba(26, 123, 107, 0.09)"
           : "transparent",
-        color: isActive ? "#0E7C5A" : C.navy,
-        fontWeight: isActive ? 800 : 700,
-        fontSize: "0.84rem",
+        color: isActive ? C.teal : "#475569",
+        fontWeight: isActive ? 750 : 600,
+        fontSize: "0.8rem",
         cursor: "pointer",
         whiteSpace: "nowrap",
         fontFamily: "inherit",
-        transition: "all 0.15s ease",
+        transition: "all 0.18s ease",
         position: "relative",
         flexShrink: 0,
       }}
@@ -150,20 +150,6 @@ const TopNavItem = ({
           {item.badge}
         </span>
       )}
-      {isActive && (
-        <span
-          style={{
-            position: "absolute",
-            bottom: -6,
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: 26,
-            height: 3,
-            borderRadius: 99,
-            background: C.teal,
-          }}
-        />
-      )}
     </button>
   );
 };
@@ -182,10 +168,14 @@ export default function TaxWiseSaaS() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const intendedPageRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress: workspaceScrollProgress } = useScroll({ container: scrollContainerRef });
+  const workspaceParallaxBack = useTransform(workspaceScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : 260]);
+  const workspaceParallaxFront = useTransform(workspaceScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : -170]);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024);
+      setIsMobile(window.innerWidth < 1180);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -202,10 +192,85 @@ export default function TaxWiseSaaS() {
   }, [isMobile, isMobileMenuOpen]);
 
   useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
     }
   }, [page]);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const appScrollRoot = view === "app" ? scrollContainerRef.current : null;
+    const scanRoot: ParentNode | null = appScrollRoot ?? document.querySelector(".tw-landing-page");
+    if (!scanRoot) return;
+
+    const observed = new Set<HTMLElement>();
+    const delayByGroup = new Map<Element, number>();
+    const candidatesSelector = "article, div, li";
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        target.classList.toggle("scroll-reveal-in-view", isIntersecting);
+      });
+    }, {
+      root: appScrollRoot,
+      threshold: 0.12,
+      rootMargin: "-5% 0px -8% 0px",
+    });
+
+    const registerCard = (element: HTMLElement) => {
+      if (observed.has(element) || element.closest("[data-scroll-reveal]") && element.closest("[data-scroll-reveal]") !== element) return;
+
+      const rect = element.getBoundingClientRect();
+      if (rect.width < 180 || rect.height < 90) return;
+
+      const style = window.getComputedStyle(element);
+      const radius = Number.parseFloat(style.borderTopLeftRadius) || 0;
+      const hasBackground = (style.backgroundColor !== "transparent" && style.backgroundColor !== "rgba(0, 0, 0, 0)") || style.backgroundImage !== "none";
+      const hasBorder = style.borderTopStyle !== "none" && Number.parseFloat(style.borderTopWidth) > 0;
+      const hasCardClass = /card|panel|tile|metric|finding|score|client|summary|stat/i.test(element.className.toString());
+      if (radius < 10 || !(hasBackground || hasBorder || style.boxShadow !== "none" || hasCardClass)) return;
+
+      const group = element.closest(".dashboard-metrics, .dashboard-workbench, [class*='grid'], [class*='list'], [class*='cards'], section") ?? element.parentElement ?? element;
+      const order = delayByGroup.get(group) ?? 0;
+      delayByGroup.set(group, order + 1);
+
+      element.dataset.scrollReveal = "true";
+      element.style.setProperty("--scroll-reveal-delay", `${Math.min(order * 110, 330)}ms`);
+      observed.add(element);
+      intersectionObserver.observe(element);
+    };
+
+    const scan = (scope: ParentNode) => {
+      if (scope instanceof HTMLElement && scope.matches(candidatesSelector)) registerCard(scope);
+      scope.querySelectorAll<HTMLElement>(candidatesSelector).forEach(registerCard);
+    };
+
+    scan(scanRoot);
+    const mutationObserver = new MutationObserver((records) => {
+      records.forEach((record) => record.addedNodes.forEach((node) => {
+        if (node instanceof HTMLElement) scan(node);
+      }));
+    });
+    mutationObserver.observe(scanRoot, { childList: true, subtree: true });
+
+    return () => {
+      mutationObserver.disconnect();
+      intersectionObserver.disconnect();
+      observed.forEach((element) => {
+        delete element.dataset.scrollReveal;
+        element.classList.remove("scroll-reveal-in-view");
+        element.style.removeProperty("--scroll-reveal-delay");
+      });
+    };
+  }, [page, view]);
 
   const refreshUser = async () => {
     try {
@@ -281,17 +346,12 @@ export default function TaxWiseSaaS() {
     setThemeMode(initial);
     applyTheme(initial);
 
-    // Failsafe timer: loading state MUST clear within 1200ms so the UI is immediately responsive
-    const failsafeTimer = setTimeout(() => {
-      setLoading(false);
-    }, 1200);
-
+    const failsafeTimer = setTimeout(() => setLoading(false), 1200);
     refreshUser().finally(() => {
       clearTimeout(failsafeTimer);
       setLoading(false);
     });
-    
-    // Subscribe to auth state updates (login, logout, token refresh, password recovery)
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecovering(true);
@@ -312,15 +372,6 @@ export default function TaxWiseSaaS() {
     setThemeMode(next);
     applyTheme(next);
   };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("page") === "pricing" || params.get("status")) {
-        setPage("pricing");
-      }
-    }
-  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -352,7 +403,8 @@ export default function TaxWiseSaaS() {
   }
 
   const advisoryItems: GroupedNavItem[] = [
-    { id: "know-your-taxes", label: "Know Your Taxes", badge: "2026", desc: "Guided statutory obligation assessment" },
+    { id: "know-your-taxes", label: "Know Your Taxes", desc: "Guided statutory obligation assessment" },
+    { id: "compliance", label: "Compliance Center", desc: "Filing health checks and audit reports" },
     { id: "analyzer", label: "Case Analyzer", desc: "AI-assisted TAT objection briefs & ratio" },
     { id: "calculators", label: "Tax Calculators", desc: "PAYE, Corporate Tax, WHT & Vehicle customs duties" },
   ];
@@ -378,7 +430,6 @@ export default function TaxWiseSaaS() {
   const allNavItems: NavItemDef[] = [...primaryNavItems, ...secondaryNavItems];
   const isAdvisoryActive = advisoryItems.some(i => i.id === page);
   const isLegalActive = legalItems.some(i => i.id === page);
-  const isPricingActive = page === "pricing";
   const isDashboardActive = page === "dashboard";
 
   // Dynamic page title helper and document title effect
@@ -399,7 +450,7 @@ export default function TaxWiseSaaS() {
       case "dashboard":
         return <Dashboard user={activeUser} onNavigate={setPage} />;
       case "know-your-taxes":
-        return <KnowYourTaxesPortal onNavigateHome={() => setPage("dashboard")} />;
+        return <KnowYourTaxesPortal />;
       case "analyzer":
         return <CaseAnalyzer user={activeUser} />;
       case "library":
@@ -412,10 +463,8 @@ export default function TaxWiseSaaS() {
         return <EducationHub user={activeUser} />;
       case "compliance":
         return <ComplianceChecker user={activeUser} />;
-      case "pricing":
-        return <PricingPage user={activeUser} onRefreshUser={refreshUser} />;
       case "settings":
-        return <ProfileSettings user={activeUser} onRefreshUser={refreshUser} onNavigateToPricing={() => setPage("pricing")} onAccountDeleted={handleSignOut} />;
+        return <ProfileSettings user={activeUser} onRefreshUser={refreshUser} onAccountDeleted={handleSignOut} />;
       case "admin":
         return <AdminPortal onNavigate={setPage} currentAdminId={activeUser.id} />;
       default:
@@ -465,7 +514,22 @@ export default function TaxWiseSaaS() {
     );
   }
 
-  // Show update-password screen if user clicked recovery link
+  // Show landing page if requested
+  if (view === "landing") {
+    return (
+      <LandingPage
+        onGetStarted={() => {
+          setPage("dashboard");
+          setView("app");
+        }}
+        onSignIn={() => setView("auth")}
+        onNavigate={handleNavigation}
+        dbUser={dbUser}
+        onSignOut={handleSignOut}
+      />
+    );
+  }
+
   if (isRecovering) {
     return (
       <AuthPage
@@ -483,30 +547,13 @@ export default function TaxWiseSaaS() {
     );
   }
 
-  // Show landing page if requested
-  if (view === "landing") {
-    return (
-      <LandingPage
-        onGetStarted={() => {
-          setPage("dashboard");
-          setView("app");
-        }}
-        onSignIn={() => setView("auth")}
-        onNavigate={handleNavigation}
-        dbUser={dbUser}
-        onSignOut={handleSignOut}
-      />
-    );
-  }
-
-  // Show auth page if requested
   if (view === "auth") {
     return (
-      <AuthPage 
+      <AuthPage
         onLoginSuccess={() => {
           refreshUser();
           setView("app");
-        }} 
+        }}
         onBack={() => setView("landing")}
       />
     );
@@ -530,11 +577,12 @@ export default function TaxWiseSaaS() {
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif", background: C.offwhite }}>
+    <div className="tw-app-shell" style={{ display: "flex", flexDirection: "column", height: "100vh", minHeight: 0, overflow: "hidden", fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif", background: C.offwhite }}>
       {/* Mobile Drawer Backdrop */}
       {isMobile && isMobileMenuOpen && (
         <div 
           onClick={() => setIsMobileMenuOpen(false)}
+          aria-hidden="true"
           style={{
             position: "fixed",
             inset: 0,
@@ -549,33 +597,40 @@ export default function TaxWiseSaaS() {
 
       {/* TOP STICKY NAVIGATION BAR */}
       <header
+        className="tw-app-header"
         style={{
           position: "sticky",
           top: 0,
           zIndex: 100,
-          background: "#FFFFFF",
+          background: "var(--color-white)",
           borderTop: `3px solid ${C.teal}`,
-          borderBottom: "1.5px solid rgba(15, 32, 68, 0.12)",
-          boxShadow: "0 4px 20px -2px rgba(15, 32, 68, 0.08)",
+          borderBottom: "1px solid var(--color-border)",
+          boxShadow: "0 8px 24px -18px rgba(15, 32, 68, 0.28)",
         }}
       >
         <div
+          className="tw-app-header-inner"
           style={{
-            maxWidth: 1440,
+            maxWidth: 1600,
             margin: "0 auto",
             padding: isMobile ? "0 14px" : "0 22px",
-            height: 64,
+            height: 72,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 12,
+            gap: 20,
           }}
         >
           {/* LEFT: BRAND & WORKSPACE */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div className="tw-header-brand" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {isMobile && (
               <button
+                className="tw-mobile-menu-trigger"
+                type="button"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-navigation-drawer"
                 style={{
                   background: "transparent",
                   border: "none",
@@ -619,19 +674,9 @@ export default function TaxWiseSaaS() {
                 TW
               </div>
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.3rem", color: C.navy, fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1.1, whiteSpace: "nowrap" }}>
-                    Tax<span style={{ color: C.teal }}>Wise</span>
-                  </span>
-                  <span style={{ fontSize: "0.62rem", fontWeight: 800, background: "rgba(200,146,42,0.15)", color: C.gold, border: "1px solid rgba(200,146,42,0.3)", padding: "1px 5px", borderRadius: 4, letterSpacing: "0.04em" }}>
-                    2026
-                  </span>
-                </div>
-                {!isMobile && (
-                  <div style={{ fontSize: "0.62rem", color: "#64748B", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
-                    Uganda Tax &amp; Compliance Platform
-                  </div>
-                )}
+                <span className="tw-wordmark">
+                  Tax<span>Wise</span>
+                </span>
               </div>
             </div>
 
@@ -640,16 +685,18 @@ export default function TaxWiseSaaS() {
           {/* CENTER: DROPDOWNS & NAVIGATION (DESKTOP) */}
           {!isMobile && (
             <nav 
+              className="tw-desktop-primary-nav"
               style={{ 
                 display: "flex", 
                 alignItems: "center", 
-                gap: 6, 
+                gap: 3,
                 flexShrink: 1,
                 minWidth: 0,
               }}
             >
               {/* Return to Landing Button */}
               <button
+                className="tw-nav-home"
                 type="button"
                 onClick={() => setView("landing")}
                 style={{
@@ -673,14 +720,15 @@ export default function TaxWiseSaaS() {
                 onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
                 title="Return to public landing page"
               >
-                <Home size={14} style={{ color: C.teal }} />
                 <span>Home</span>
               </button>
 
               {/* Direct Dashboard Button */}
               <button
+                className="tw-nav-dashboard"
                 type="button"
                 onClick={() => setPage("dashboard")}
+                aria-current={isDashboardActive ? "page" : undefined}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -713,15 +761,21 @@ export default function TaxWiseSaaS() {
                   }
                 }}
               >
-                <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#4C5C68" }} />
                 <span>Dashboard</span>
               </button>
 
               {/* Advisory & Tools Dropdown */}
-              <div style={{ position: "relative" }}>
+              <div
+                style={{ position: "relative" }}
+                onMouseEnter={() => setOpenNavDropdown("advisory")}
+                onMouseLeave={() => setOpenNavDropdown(null)}
+              >
                 <button
                   type="button"
-                  onClick={() => setOpenNavDropdown(openNavDropdown === "advisory" ? null : "advisory")}
+                  onFocus={() => setOpenNavDropdown("advisory")}
+                  aria-current={isAdvisoryActive ? "page" : undefined}
+                  aria-haspopup="menu"
+                  aria-expanded={openNavDropdown === "advisory"}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -755,8 +809,7 @@ export default function TaxWiseSaaS() {
                     }
                   }}
                 >
-                  <ShieldCheck size={15} style={{ color: isAdvisoryActive ? C.teal : "#64748B" }} />
-                  <span>Advisory &amp; Tools</span>
+                  <span>Advisory</span>
                   <ChevronDown 
                     size={13} 
                     style={{ 
@@ -768,17 +821,15 @@ export default function TaxWiseSaaS() {
                 </button>
 
                 {openNavDropdown === "advisory" && (
-                  <>
-                    <div 
-                      onClick={() => setOpenNavDropdown(null)} 
-                      style={{ position: "fixed", inset: 0, zIndex: 110 }} 
-                    />
                     <div
+                      className="tw-nav-dropdown-menu"
+                      role="menu"
+                      aria-label="Advisory navigation"
                       style={{
                         position: "absolute",
                         top: "calc(100% + 8px)",
                         left: 0,
-                        width: 290,
+                        width: 220,
                         background: "#FFFFFF",
                         borderRadius: 10,
                         border: `1px solid ${C.border}`,
@@ -794,6 +845,8 @@ export default function TaxWiseSaaS() {
                           <button
                             key={item.id}
                             type="button"
+                            role="menuitem"
+                            title={item.desc}
                             onClick={() => {
                               setPage(item.id);
                               setOpenNavDropdown(null);
@@ -801,7 +854,7 @@ export default function TaxWiseSaaS() {
                             style={{
                               width: "100%",
                               display: "flex",
-                              alignItems: "flex-start",
+                              alignItems: "center",
                               gap: 10,
                               padding: "9px 10px",
                               borderRadius: 7,
@@ -829,25 +882,26 @@ export default function TaxWiseSaaS() {
                                   </span>
                                 )}
                               </div>
-                              {item.desc && (
-                                <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>
-                                  {item.desc}
-                                </div>
-                              )}
                             </div>
                           </button>
                         );
                       })}
                     </div>
-                  </>
                 )}
               </div>
 
               {/* Legal & Insights Dropdown */}
-              <div style={{ position: "relative" }}>
+              <div
+                style={{ position: "relative" }}
+                onMouseEnter={() => setOpenNavDropdown("legal")}
+                onMouseLeave={() => setOpenNavDropdown(null)}
+              >
                 <button
                   type="button"
-                  onClick={() => setOpenNavDropdown(openNavDropdown === "legal" ? null : "legal")}
+                  onFocus={() => setOpenNavDropdown("legal")}
+                  aria-current={isLegalActive ? "page" : undefined}
+                  aria-haspopup="menu"
+                  aria-expanded={openNavDropdown === "legal"}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
@@ -881,8 +935,7 @@ export default function TaxWiseSaaS() {
                     }
                   }}
                 >
-                  <BookOpen size={15} style={{ color: isLegalActive ? C.teal : "#64748B" }} />
-                  <span>Legal &amp; Insights</span>
+                  <span>Legal</span>
                   <ChevronDown 
                     size={13} 
                     style={{ 
@@ -894,17 +947,15 @@ export default function TaxWiseSaaS() {
                 </button>
 
                 {openNavDropdown === "legal" && (
-                  <>
-                    <div 
-                      onClick={() => setOpenNavDropdown(null)} 
-                      style={{ position: "fixed", inset: 0, zIndex: 110 }} 
-                    />
                     <div
+                      className="tw-nav-dropdown-menu"
+                      role="menu"
+                      aria-label="Legal navigation"
                       style={{
                         position: "absolute",
                         top: "calc(100% + 8px)",
                         left: 0,
-                        width: 290,
+                        width: 220,
                         background: "#FFFFFF",
                         borderRadius: 10,
                         border: `1px solid ${C.border}`,
@@ -920,6 +971,8 @@ export default function TaxWiseSaaS() {
                           <button
                             key={item.id}
                             type="button"
+                            role="menuitem"
+                            title={item.desc}
                             onClick={() => {
                               setPage(item.id);
                               setOpenNavDropdown(null);
@@ -927,7 +980,7 @@ export default function TaxWiseSaaS() {
                             style={{
                               width: "100%",
                               display: "flex",
-                              alignItems: "flex-start",
+                              alignItems: "center",
                               gap: 10,
                               padding: "9px 10px",
                               borderRadius: 7,
@@ -948,17 +1001,11 @@ export default function TaxWiseSaaS() {
                               <div style={{ fontSize: "0.82rem", fontWeight: isActive ? 700 : 600, color: isActive ? C.teal : C.navy }}>
                                 {item.label}
                               </div>
-                              {item.desc && (
-                                <div style={{ fontSize: "0.7rem", color: C.muted, marginTop: 1, lineHeight: 1.3 }}>
-                                  {item.desc}
-                                </div>
-                              )}
                             </div>
                           </button>
                         );
                       })}
                     </div>
-                  </>
                 )}
               </div>
 
@@ -967,9 +1014,11 @@ export default function TaxWiseSaaS() {
           )}
 
           {/* RIGHT: DATE STATUS & USER PROFILE */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <div className="tw-header-actions" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
             {!dbUser && (
               <button
+                className="tw-header-sign-in"
+                type="button"
                 onClick={() => setView("auth")}
                 style={{
                   background: C.white,
@@ -980,7 +1029,7 @@ export default function TaxWiseSaaS() {
                   color: C.navy,
                   fontWeight: 600,
                   cursor: "pointer",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)"
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
                 }}
               >
                 Sign In
@@ -1024,6 +1073,7 @@ export default function TaxWiseSaaS() {
             {/* Profile Dropdown Chip */}
             <div style={{ position: "relative", flexShrink: 0 }}>
               <button
+                className="tw-profile-trigger"
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 style={{
                   display: "flex",
@@ -1078,6 +1128,7 @@ export default function TaxWiseSaaS() {
                     style={{ position: "fixed", inset: 0, zIndex: 110 }}
                   />
                   <div
+                    className="tw-profile-dropdown"
                     style={{
                       position: "absolute",
                       top: "calc(100% + 8px)",
@@ -1127,35 +1178,6 @@ export default function TaxWiseSaaS() {
                     >
                       <UserIcon size={14} style={{ color: C.teal }} />
                       <span>Profile &amp; Settings</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setPage("pricing");
-                        setIsProfileMenuOpen(false);
-                      }}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        border: "none",
-                        background: page === "pricing" ? "rgba(26,123,107,0.08)" : "transparent",
-                        color: C.navy,
-                        fontSize: "0.82rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        textAlign: "left",
-                        fontFamily: "inherit",
-                        transition: "background 0.15s",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = page === "pricing" ? "rgba(26,123,107,0.08)" : "transparent"; }}
-                    >
-                      <CreditCard size={14} style={{ color: C.gold }} />
-                      <span>Subscription &amp; Plans</span>
                     </button>
 
                     <button
@@ -1227,12 +1249,23 @@ export default function TaxWiseSaaS() {
         {/* MOBILE SLIDE-DOWN DRAWER */}
         {isMobile && isMobileMenuOpen && (
           <div
+            id="mobile-navigation-drawer"
+            className="tw-mobile-nav-drawer"
+            role="dialog"
+            aria-label="Main navigation"
             style={{
-              borderTop: `1px solid ${C.border}`,
-              background: "#FFFFFF",
+              position: "fixed",
+              top: 72,
+              bottom: 0,
+              left: 0,
+              width: "min(88vw, 360px)",
+              overflowY: "auto",
+              borderRight: `1px solid ${C.border}`,
+              background: "var(--color-white)",
               padding: "16px",
-              boxShadow: "0 12px 24px rgba(15, 32, 68, 0.08)",
-              animation: "fadeInDown 0.2s ease-out",
+              boxShadow: "0 20px 48px rgba(15, 32, 68, 0.20)",
+              zIndex: 120,
+              animation: "mobileDrawerIn 0.2s ease-out",
             }}
           >
             {/* Dynamic Home ⇄ Dashboard Switcher in Mobile */}
@@ -1373,30 +1406,6 @@ export default function TaxWiseSaaS() {
                   </button>
                 );
               })}
-              <button
-                onClick={() => {
-                  setPage("pricing");
-                  setIsMobileMenuOpen(false);
-                }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "9px 12px",
-                  borderRadius: 8,
-                  border: isPricingActive ? "1px solid rgba(26,123,107,0.3)" : `1px solid ${C.border}`,
-                  background: isPricingActive ? "rgba(26, 123, 107, 0.08)" : C.white,
-                  color: isPricingActive ? C.teal : C.navy,
-                  fontWeight: isPricingActive ? 700 : 500,
-                  fontSize: "0.8rem",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  fontFamily: "inherit",
-                }}
-              >
-                <CreditCard size={15} style={{ color: isPricingActive ? C.teal : C.muted }} />
-                <span>Pricing &amp; Plans</span>
-              </button>
             </div>
 
             <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1462,20 +1471,32 @@ export default function TaxWiseSaaS() {
         className="main-scroll-container" 
         style={{ 
           flex: 1, 
+          minHeight: 0,
           overflowY: "auto",
-          background: C.offwhite,
+          overflowX: "hidden",
+          overscrollBehaviorY: "contain",
+          position: "relative",
+          isolation: "isolate",
+          background: "var(--color-offwhite)",
+          backgroundImage: "radial-gradient(ellipse at 50% -15%, rgba(26,123,107,0.075), transparent 58%)",
         }}
       >
+        <div aria-hidden="true" style={{ position: "sticky", top: 0, height: 0, zIndex: 0, pointerEvents: "none", overflow: "visible" }}>
+          <motion.div style={{ y: workspaceParallaxBack, position: "absolute", top: "12vh", right: "-8vw", width: "min(48vw, 620px)", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,123,107,0.12), rgba(26,123,107,0.035) 46%, transparent 72%)", willChange: "transform" }} />
+          <motion.div style={{ y: workspaceParallaxFront, position: "absolute", top: "58vh", left: "-12vw", width: "min(42vw, 540px)", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle, rgba(200,146,42,0.11), rgba(200,146,42,0.025) 48%, transparent 73%)", willChange: "transform" }} />
+        </div>
         <main 
           key={page} 
-          className="page-fade-in" 
+          className="page-fade-in workspace-page-shell"
           style={{ 
-            maxWidth: 1400, 
+            position: "relative",
+            zIndex: 1,
+            maxWidth: 1480,
             margin: "0 auto", 
-            padding: isMobile ? "14px 12px 36px" : "18px 24px 48px" 
+            padding: isMobile ? "20px 16px 40px" : "28px 36px 56px"
           }}
         >
-          {renderActivePage()}
+          <div className="workspace-page-content">{renderActivePage()}</div>
         </main>
       </div>
     </div>
