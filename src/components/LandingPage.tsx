@@ -553,8 +553,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   title="Enter the dashboard workspace"
                   onClick={() => {
                     setHomeDropdownOpen(false);
-                    if (onNavigate) onNavigate("dashboard");
-                    else onGetStarted();
+                    if (dbUser) {
+                      if (onNavigate) onNavigate("dashboard");
+                      else onGetStarted();
+                    } else {
+                      onSignIn();
+                    }
                   }} 
                   style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
                   onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
@@ -562,7 +566,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   <LayoutDashboard size={18} style={{ color: "#1A7B6B", marginTop: 2, flexShrink: 0 }} />
                   <div>
-                    <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>Dashboard</div>
+                    <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>{dbUser ? "Dashboard" : "Login"}</div>
                   </div>
                 </button>
               </div>
@@ -740,7 +744,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="tw-nav-link" 
                   style={{ color: "var(--landing-text)", fontSize: ".835rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
                 >
-                  Open Sandbox
+                  Login
                 </button>
                 <button 
                   onClick={onGetStarted} 
@@ -836,8 +840,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               type="button"
               onClick={() => {
                 setMobileOpen(false);
-                if (onNavigate) onNavigate("dashboard");
-                else onGetStarted();
+                if (dbUser) {
+                  if (onNavigate) onNavigate("dashboard");
+                  else onGetStarted();
+                } else {
+                  onSignIn();
+                }
               }}
               style={{
                 display: "flex",
@@ -855,7 +863,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               }}
             >
               <LayoutDashboard size={15} style={{ color: "#1A7B6B" }} />
-              <span>Dashboard</span>
+              <span>{dbUser ? "Dashboard" : "Login"}</span>
             </button>
           </div>
 
@@ -886,7 +894,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={() => { setMobileOpen(false); onSignIn(); }} 
                 style={{ display: "block", padding: "11px 16px", color: "var(--landing-text)", background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
               >
-                Open Sandbox
+                Login
               </button>
               <button 
                 onClick={() => { setMobileOpen(false); onGetStarted(); }} 
@@ -2273,7 +2281,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   onClick={onSignIn}
                   style={{ background: "var(--landing-surface)", color: "var(--landing-text)", padding: "14px 28px", borderRadius: 8, fontWeight: 700, fontSize: ".92rem", border: "1.5px solid var(--landing-border)", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.03)", transition: "all 0.2s" }}
                 >
-                  Open Sandbox
+                  Login
                 </button>
               </>
             )}
