@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { User } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, 
@@ -169,7 +169,7 @@ export default function TaxWiseSaaS() {
   const intendedPageRef = useRef<string | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
-  const { scrollYProgress: workspaceScrollProgress } = useScroll({ container: scrollContainerRef });
+  const workspaceScrollProgress = useMotionValue(0);
   const workspaceParallaxBack = useTransform(workspaceScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : 260]);
   const workspaceParallaxFront = useTransform(workspaceScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : -170]);
 
@@ -205,6 +205,31 @@ export default function TaxWiseSaaS() {
       scrollContainerRef.current.scrollTop = 0;
     }
   }, [page]);
+
+  useEffect(() => {
+    if (view !== "app") return;
+
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const updateProgress = () => {
+      const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+      workspaceScrollProgress.set(maxScroll > 0 ? scrollContainer.scrollTop / maxScroll : 0);
+    };
+
+    updateProgress();
+    scrollContainer.addEventListener("scroll", updateProgress, { passive: true });
+
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateProgress);
+    resizeObserver?.observe(scrollContainer);
+    const pageContent = scrollContainer.querySelector("main");
+    if (pageContent) resizeObserver?.observe(pageContent);
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", updateProgress);
+      resizeObserver?.disconnect();
+    };
+  }, [page, view, workspaceScrollProgress]);
 
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
