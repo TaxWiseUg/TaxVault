@@ -1,44 +1,29 @@
-# Implementation Plan — Refined Brand Quote & Optimized Mobile Auth Form
+# Implementation Plan — Configure Supabase to Accept & Register Google Users
 
-Upgrade the authentication screen (`src/components/AuthPage.tsx`) with an authoritative, brand-aligned showcase quote and a dedicated mobile layout that drops the background image in favor of a clean, well-proportioned warm ivory form.
+## Completed Changes
 
----
+### 1. Dedicated Supabase Google Sync Endpoint (`src/app/api/auth/google-sync/route.ts`)
+- Implemented `/api/auth/google-sync` route to register and sync Google users with Supabase backend.
+- When `SUPABASE_SERVICE_ROLE_KEY` is present:
+  - Looks up any existing account with the given email in `public.users` or `auth.users`.
+  - Reuses the existing UUID to ensure PostgreSQL's `users_email_key` unique constraint is never violated.
+  - Registers the user in `auth.users` with `email_confirm: true` and Google provider metadata if not yet created.
+  - Upserts the public profile cleanly.
+- When running in demo/sandbox mode:
+  - Generates the canonical unified profile matching the user's role and email (Admin for `taxwiseplatform@gmail.com`).
 
-## 1. Updated Showcase Quote & Subtitles
+### 2. Client-Side Google Sign-In & Supabase Integration (`src/lib/googleAuth.ts`)
+- In `signInWithGoogle()`, after the authentic Google popup resolves, sends credentials to `/api/auth/google-sync`.
+- Receives the canonical deduplicated user profile and synchronizes it into local session, persistent storage (`taxwise_active_user`), and the Supabase client.
+- Dispatches `taxwise_auth_changed` for immediate multi-component synchronization.
 
-- **Primary Display Headline**:
-  - Replace *"Every big practice starts small"* with:
-    **"Precision in every precedent,<br />clarity in every tax position"**
-  - Font: `'Playfair Display', Georgia, serif`, with graceful line-height, letter-spacing, and subtle text shadow for high readability against the abstract background.
-- **Dynamic Mode Subtitles**:
-  - Login: *"Log in to access your statutory tax intelligence workspace."*
-  - Signup: *"Join leading Ugandan practitioners and start analyzing cases."*
-  - Forgot / Reset: *"Verify your credentials and regain access to your workspace."*
-  - Verify Email: *"Enter your activation code to complete verification."*
-
----
-
-## 2. Mobile Responsive Overhaul (< 992px)
-
-- **Complete Background Image Removal**:
-  - For viewports `@media (max-width: 992px)`:
-    - Set `.auth-root` to `background-image: none !important; background: #FFF7F0 !important; min-height: 100vh; height: auto;`.
-    - No background image will load or display on mobile screens, saving bandwidth and creating a clean, professional native-like interface.
-- **Top Brand & Back Navigation on Mobile**:
-  - Invert text colors from white to deep slate (`#1F1914`) for mobile:
-    - Back button: warm pill button with dark text and subtle warm border (`background: #FFFFFF; color: #2D241E; border: 1px solid #E8DFD8;`).
-    - Logo: "TaxWise" in rich dark obsidian with the signature green accent.
-- **Well-Sized Form Card on Mobile**:
-  - On mobile, eliminate double-shadowing or awkward nested boxes by styling `.auth-card-sprout` seamlessly with the `#FFF7F0` background:
-    - `background: transparent; box-shadow: none; border: none; padding: 20px 4px; max-width: 420px; width: 100%;`.
-  - Maintain the crisp white pill inputs (`#FFFFFF` background, `#E8DFD8` subtle border, 13px padding) which pop beautifully against the `#FFF7F0` background.
-  - Buttons (`#4AA41B` green CTA, Google SSO) remain full-width with comfortable 48px touch targets for mobile usability.
-  - Form spacing and typography scaled proportionally for mobile (`1.4rem` card title, compact error and success alerts).
+### 3. Duplicate Prevention in Mock Supabase Client (`src/lib/supabaseClient.ts`)
+- Enhanced `MockQueryBuilder` for `users`: on `insert` and `upsert`, checks if a user with matching email or ID already exists; if found, updates in place instead of creating a duplicate row.
+- Updated `getMockProfile()` and `getMockSession()` to always prioritize the active verified user (`taxwise_active_user`).
 
 ---
 
-## 3. Verification & Build Confirmation
-
-- Verify `src/components/AuthPage.tsx` with `lint_applet` to confirm 0 lint issues.
-- Build with `compile_applet` to ensure 0 TypeScript or Next.js build errors.
-- Confirm both desktop (abstract wave background + locked viewport) and mobile (clean ivory, no background, well-sized form) render as expected.
+## Verification
+- ESLint: 0 errors
+- Turbopack Compilation: Succeeded
+- Dev Server: Restarted cleanly

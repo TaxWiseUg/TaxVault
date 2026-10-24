@@ -1,6 +1,6 @@
 {
-  "summary":  "Implementation plan for updating the showcase quote to 'Precision in every precedent, clarity in every tax position' and completely dropping the background on smaller screens with a warm ivory, well-sized mobile form.",
-  "updatedAt":  "2026-10-23T08:55:17.493725938Z",
+  "summary":  "Supabase configuration and deduplication for Google users:\n1. Created `/api/auth/google-sync` server route to safely register, link, and sync Google users into Supabase Auth and `public.users` table without violating unique email constraints.\n2. Enhanced MockQueryBuilder in `src/lib/supabaseClient.ts` to perform in-place upsert by email/id for `users`, preventing duplicate rows in demo/sandbox modes.\n3. Updated `getMockProfile()` and `getMockSession()` to immediately reflect the canonical `taxwise_active_user`.\n4. Connected `signInWithGoogle()` in `src/lib/googleAuth.ts` to `/api/auth/google-sync` so authentic Google logins establish a unified, verified account.",
+  "updatedAt":  "2026-10-24T13:28:56.057938907Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

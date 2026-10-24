@@ -23,7 +23,9 @@ import {
   Home,
   Compass,
 } from "lucide-react";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, safeStorage } from "../lib/supabaseClient";
+import { auth, getGoogleUserProfile, getCurrentUserProfile, signOutGoogle } from "../lib/googleAuth";
+import { onAuthStateChanged } from "firebase/auth";
 import { C } from "../lib/constants";
 import { getInitialTheme, applyTheme, ThemeMode } from "../lib/theme";
 import { AuthPage } from "../components/AuthPage";
@@ -48,13 +50,15 @@ interface DbProfile {
   plan: string;
 }
 
-const SANDBOX_USER: DbProfile = {
-  id: "f8174d44-d81a-4e70-9f4b-64744f969d09",
-  email: "taxwiseplatform@gmail.com",
-  full_name: "TaxWise Practitioner",
-  role: "Admin",
-  plan: "professional",
+const FREE_TRIAL_USER: DbProfile = {
+  id: "guest-free-trial-practitioner",
+  email: "trial.practitioner@taxwise.ug",
+  full_name: "Free Trial Practitioner",
+  role: "Tax Consultant",
+  plan: "trial",
 };
+
+
 
 const getNavItemIcon = (id: string, size = 15) => {
   switch (id) {
@@ -160,6 +164,7 @@ export default function TaxWiseSaaS() {
   const [page, setPage] = useState("dashboard");
   const [loading, setLoading] = useState(false);
   const [view, setView] = useState<"landing" | "app" | "auth">("landing");
+  const [isTrialSession, setIsTrialSession] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -299,15 +304,40 @@ export default function TaxWiseSaaS() {
 
   const refreshUser = async () => {
     try {
-      // Race getSession with a 5000ms timeout so it never hangs in iframe or offline contexts
+      // 1. Check authentic Google user profile (Firebase Auth / persistent profile)
+      const googleProfile = getCurrentUserProfile();
+      if (googleProfile && googleProfile.email) {
+        setDbUser(googleProfile);
+        setUser({
+          id: googleProfile.id,
+          email: googleProfile.email,
+          user_metadata: {
+            full_name: googleProfile.full_name,
+            role: googleProfile.role,
+          },
+          app_metadata: { provider: "google" },
+          aud: "authenticated",
+          created_at: new Date().toISOString(),
+        } as unknown as User);
+        setIsTrialSession(false);
+
+        if (intendedPageRef.current) {
+          setPage(intendedPageRef.current);
+          intendedPageRef.current = null;
+        }
+        return;
+      }
+
+      // 2. Race Supabase getSession with a 3000ms timeout
       const sessionPromise = supabase.auth.getSession();
       const sessionTimeout = new Promise<{ data: { session: null }; error: null }>((resolve) =>
-        setTimeout(() => resolve({ data: { session: null }, error: null }), 5000)
+        setTimeout(() => resolve({ data: { session: null }, error: null }), 3000)
       );
       const { data: { session } } = await Promise.race([sessionPromise, sessionTimeout]);
       
-      if (session?.user) {
+      if (session?.user && session.user.email) {
         setUser(session.user);
+        setIsTrialSession(false);
         
         // Fetch public user profile from postgres with timeout
         try {
@@ -317,38 +347,39 @@ export default function TaxWiseSaaS() {
             .eq("id", session.user.id)
             .single();
           const profileTimeout = new Promise<{ data: null; error: unknown }>((resolve) =>
-            setTimeout(() => resolve({ data: null, error: new Error("Profile timeout") }), 5000)
+            setTimeout(() => resolve({ data: null, error: new Error("Profile timeout") }), 3000)
           );
-          const { data, error } = await Promise.race([profilePromise, profileTimeout]);
-
-          if (error && (error as Error)?.message !== "Profile timeout") {
-            console.warn("Could not load database profile, falling back to auth metadata:", error);
-          }
+          const { data } = await Promise.race([profilePromise, profileTimeout]);
 
           if (data) {
             setDbUser(data as DbProfile);
           } else {
-            // Fallback to auth metadata if public profile record sync is delayed
-            setDbUser({
+            const email = session.user.email;
+            const isAdmin = email.toLowerCase() === "taxwiseplatform@gmail.com";
+            const prof: DbProfile = {
               id: session.user.id,
-              email: session.user.email || "",
-              full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
-              role: session.user.user_metadata?.role || (session.user.email === "taxwiseplatform@gmail.com" ? "Admin" : "Student"),
-              plan: "free",
-            });
+              email: email,
+              full_name: session.user.user_metadata?.full_name || email.split("@")[0] || "User",
+              role: session.user.user_metadata?.role || (isAdmin ? "Admin" : "Tax Consultant"),
+              plan: "professional",
+            };
+            setDbUser(prof);
+            safeStorage.setItem("taxwise_active_user", JSON.stringify(prof));
           }
-        } catch (profileErr) {
-          console.warn("Profile fetch error, using auth metadata:", profileErr);
-          setDbUser({
+        } catch {
+          const email = session.user.email;
+          const isAdmin = email.toLowerCase() === "taxwiseplatform@gmail.com";
+          const prof: DbProfile = {
             id: session.user.id,
-            email: session.user.email || "",
-            full_name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
-            role: session.user.user_metadata?.role || (session.user.email === "taxwiseplatform@gmail.com" ? "Admin" : "Student"),
-            plan: "free",
-          });
+            email: email,
+            full_name: session.user.user_metadata?.full_name || email.split("@")[0] || "User",
+            role: session.user.user_metadata?.role || (isAdmin ? "Admin" : "Tax Consultant"),
+            plan: "professional",
+          };
+          setDbUser(prof);
+          safeStorage.setItem("taxwise_active_user", JSON.stringify(prof));
         }
 
-        // If there's an intended page (from nav dropdown), navigate to it after login
         if (intendedPageRef.current) {
           setPage(intendedPageRef.current);
           intendedPageRef.current = null;
@@ -377,6 +408,20 @@ export default function TaxWiseSaaS() {
       setLoading(false);
     });
 
+    // 1. Listen to Firebase Google Auth state
+    const unsubscribeFirebase = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const prof = getGoogleUserProfile(firebaseUser);
+        if (prof) {
+          setDbUser(prof);
+          setIsTrialSession(false);
+          safeStorage.setItem("taxwise_active_user", JSON.stringify(prof));
+        }
+      }
+      refreshUser();
+    });
+
+    // 2. Listen to Supabase Auth state (password / magic link)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecovering(true);
@@ -386,9 +431,21 @@ export default function TaxWiseSaaS() {
       }
     });
 
+    // 3. Listen to immediate custom window auth sync event
+    const handleCustomAuth = () => {
+      refreshUser();
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("taxwise_auth_changed", handleCustomAuth);
+    }
+
     return () => {
       clearTimeout(failsafeTimer);
+      unsubscribeFirebase();
       subscription.unsubscribe();
+      if (typeof window !== "undefined") {
+        window.removeEventListener("taxwise_auth_changed", handleCustomAuth);
+      }
     };
   }, []);
 
@@ -401,20 +458,28 @@ export default function TaxWiseSaaS() {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut();
+      await signOutGoogle();
     } catch (err) {
       console.warn("Sign out error:", err);
     } finally {
+      safeStorage.removeItem("taxwise_active_user");
+      safeStorage.removeItem("mock_supabase_session");
+      safeStorage.removeItem("mock_profile");
       setUser(null);
       setDbUser(null);
+      setIsTrialSession(false);
       setPage("dashboard");
       setView("landing");
       setLoading(false);
     }
   };
 
-  const activeUser = dbUser || SANDBOX_USER;
+  const activeUser: DbProfile = dbUser || (isTrialSession ? FREE_TRIAL_USER : FREE_TRIAL_USER);
 
   const handleNavigation = (pageId: string) => {
+    if (!dbUser) {
+      setIsTrialSession(true);
+    }
     setPage(pageId);
     setView("app");
   };
@@ -544,6 +609,7 @@ export default function TaxWiseSaaS() {
     return (
       <LandingPage
         onGetStarted={() => {
+          setIsTrialSession(true);
           setPage("dashboard");
           setView("app");
         }}
@@ -576,6 +642,7 @@ export default function TaxWiseSaaS() {
     return (
       <AuthPage
         onLoginSuccess={() => {
+          setIsTrialSession(false);
           refreshUser();
           setView("app");
         }}
@@ -1234,6 +1301,35 @@ export default function TaxWiseSaaS() {
                       <span>{themeMode === "dark" ? "Light Mode" : "Dark Mode"}</span>
                     </button>
 
+                    {!dbUser && (
+                      <button
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          setView("auth");
+                        }}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: "rgba(26,123,107,0.08)",
+                          color: C.teal,
+                          fontSize: "0.82rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontFamily: "inherit",
+                          marginBottom: 4,
+                        }}
+                      >
+                        <ShieldCheck size={14} style={{ color: C.teal }} />
+                        <span>Sign In / Create Account</span>
+                      </button>
+                    )}
+
                     <div style={{ height: 1, background: C.border, margin: "6px 0" }} />
 
                     <button
@@ -1250,19 +1346,19 @@ export default function TaxWiseSaaS() {
                         borderRadius: 8,
                         border: "none",
                         background: "transparent",
-                        color: "#EF4444",
+                        color: "#DC2626",
                         fontSize: "0.82rem",
                         fontWeight: 600,
                         cursor: "pointer",
                         textAlign: "left",
                         fontFamily: "inherit",
-                        transition: "all 0.15s",
+                        transition: "background 0.15s",
                       }}
                       onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       <LogOut size={14} />
-                      <span>Sign Out</span>
+                      <span>{dbUser ? "Sign Out" : "Exit Free Trial"}</span>
                     </button>
                   </div>
                 </>

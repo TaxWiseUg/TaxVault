@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { supabase, safeStorage } from "../lib/supabaseClient";
+import { signInWithGoogle } from "../lib/googleAuth";
 import { C } from "../lib/constants";
 import { LegalPortal } from "./LegalPortal";
 import { AlertTriangle, ArrowLeft, ShieldCheck, Lock, Mail, User, Eye, EyeOff } from "lucide-react";
@@ -377,6 +379,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
   const [globalError, setGlobalError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+
+
   // ── Clean mode switch ──
   const switchMode = (next: AuthMode) => {
     setMode(next);
@@ -744,17 +748,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
-        },
-      });
-      if (error) {
-        setGlobalError(error.message);
+      setGlobalError("");
+      const result = await signInWithGoogle();
+      if (result?.user) {
+        onLoginSuccess();
       }
     } catch (err: unknown) {
-      setGlobalError((err as Error).message || "Google sign-in is currently unavailable.");
+      const msg = err instanceof Error ? err.message : String(err || "");
+      if (msg.includes("popup-closed-by-user") || msg.includes("cancelled-popup-request")) {
+        return;
+      }
+      setGlobalError(err instanceof Error ? err.message : "Failed to sign in with Google.");
     } finally {
       setLoading(false);
     }
@@ -1374,6 +1378,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
           .auth-mode-panel { animation: none; }
           .auth-root *, .auth-root *::before, .auth-root *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
         }
+        .auth-mobile-topbar {
+          display: none;
+        }
         @media (max-width: 992px) {
           .auth-root {
             height: auto !important;
@@ -1386,56 +1393,95 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
             background: var(--auth-bg) !important;
           }
           .auth-inner {
+            display: flex !important;
+            flex-direction: column !important;
             width: min(100%, 560px) !important;
             min-height: 100dvh !important;
             height: auto !important;
             max-height: none !important;
-            padding: 18px 16px 30px !important;
-            gap: 16px !important;
+            padding: 16px 14px 36px !important;
+            gap: 14px !important;
             overflow: visible !important;
           }
+          .auth-mobile-topbar {
+            display: flex !important;
+            order: 1 !important;
+            width: 100% !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 4px 4px 6px !important;
+          }
+          .auth-right {
+            display: flex !important;
+            order: 2 !important;
+            width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            justify-content: center !important;
+          }
           .auth-left {
+            display: flex !important;
+            order: 3 !important;
             width: 100% !important;
             min-height: 0 !important;
             height: auto !important;
             max-height: none !important;
             max-width: none !important;
-            padding: 20px !important;
-            border-radius: 16px !important;
+            padding: 24px 20px !important;
+            border-radius: 20px !important;
             overflow: hidden !important;
+            margin-top: 10px !important;
           }
-          .auth-topbar-left { justify-content: space-between !important; }
-          .auth-back-pill { padding: 8px 10px !important; font-size: 0.76rem !important; }
+          .auth-left .auth-topbar-left {
+            display: none !important;
+          }
+          .auth-back-pill { padding: 8px 12px !important; font-size: 0.78rem !important; }
           .auth-brand-name { color: #FFFFFF !important; }
-          .auth-quote-area { display: block !important; margin: 24px 0 8px !important; }
-          .auth-quote-title { font-size: clamp(1.65rem, 7vw, 2.15rem) !important; line-height: 1.15 !important; margin-bottom: 9px !important; }
+          .auth-quote-area { display: block !important; margin: 6px 0 16px !important; }
+          .auth-quote-title { font-size: clamp(1.65rem, 6.5vw, 2.15rem) !important; line-height: 1.15 !important; margin-bottom: 9px !important; }
           .auth-quote-subtitle { font-size: 0.9rem !important; }
-          .auth-bottom-badges { display: flex !important; gap: 7px !important; margin-top: 18px !important; }
+          .auth-bottom-badges { display: flex !important; gap: 7px !important; margin-top: 16px !important; }
           .auth-compliance-chip { padding: 8px 10px !important; font-size: 0.68rem !important; }
           .auth-bottom-badges > div:last-child { font-size: 0.66rem !important; }
-          .auth-right { width: 100% !important; height: auto !important; max-height: none !important; justify-content: center !important; }
           .auth-card-sprout {
             width: 100% !important;
             max-width: none !important;
             max-height: none !important;
             overflow: visible !important;
-            padding: 26px 22px 22px !important;
-            border-radius: 16px !important;
+            padding: 28px 22px 24px !important;
+            border-radius: 20px !important;
             background: var(--auth-surface) !important;
             border: 1px solid var(--auth-border) !important;
             box-shadow: 0 12px 30px rgba(15, 32, 68, 0.08) !important;
           }
-          .auth-card-title { font-size: 1.4rem !important; margin-bottom: 5px !important; }
-          .auth-card-subtitle { font-size: 0.82rem !important; margin-bottom: 20px !important; }
+          .auth-card-title { font-size: 1.45rem !important; margin-bottom: 5px !important; }
+          .auth-card-subtitle { font-size: 0.83rem !important; margin-bottom: 20px !important; }
         }
       `}</style>
 
       <div className="auth-inner">
+        {/* ── Mobile Topbar (Shown strictly on small screens at top) ── */}
+        <div className="auth-mobile-topbar">
+          {onBack ? (
+            <button type="button" onClick={onBack} className="auth-back-pill">
+              <ArrowLeft size={14} />
+              <span>Back to Home</span>
+            </button>
+          ) : <div />}
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 10, height: 10, background: "#35B49A", borderRadius: 2, transform: "rotate(45deg)", boxShadow: "0 0 10px rgba(53, 180, 154, 0.45)" }} />
+            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.01em", color: "var(--auth-text)" }}>
+              Tax<span style={{ color: "#147D6C" }}>Wise</span>
+            </span>
+          </div>
+        </div>
+
         {/* ══════════════════════════════════════════════════════════
-            LEFT — BRANDING & INSPIRING HEADLINE
+            LEFT / BOTTOM — BRANDING & INSPIRING TEXT CARD
         ══════════════════════════════════════════════════════════ */}
         <div className="auth-left">
-          {/* Top Brand & Back to Home */}
+          {/* Top Brand & Back to Home (Desktop only) */}
           <div className="auth-topbar-left">
             {onBack ? (
               <button type="button" onClick={onBack} className="auth-back-pill">
@@ -1480,11 +1526,19 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
           </div>
         </div>
         {/* ══════════════════════════════════════════════════════════
-            RIGHT — WARM IVORY FLOATING CARD
+            RIGHT / TOP — AUTHENTICATION CARD
         ══════════════════════════════════════════════════════════ */}
         <div className="auth-right">
           <div className="auth-card-sprout">
-            <div key={mode} className="auth-mode-panel">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={mode}
+                initial={{ opacity: 0, y: 12, filter: "blur(2px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -12, filter: "blur(2px)" }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                style={{ width: "100%" }}
+              >
 
             {/* ── Mode: Forgot Password Step 1 ── */}
             {mode === "forgot" && (
@@ -1882,7 +1936,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
               </div>
             )}
 
-            </div>
+              </motion.div>
+            </AnimatePresence>
+
             {/* Legal / Disclaimers Footer */}
             <div className="auth-legal-footer">
               <div className="auth-legal-links">
@@ -1915,6 +1971,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
           </div>
         </div>
       </div>
+
       <LegalPortal isOpen={legalOpen} onClose={() => setLegalOpen(false)} initialTab={legalTab} />
     </div>
   );

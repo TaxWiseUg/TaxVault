@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { supabase } from "../lib/supabaseClient";
+import { supabase, safeStorage } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { Card, Button } from "./UI";
 import { AlertTriangle, User, Lock, Key, CreditCard, Trash2, Check, CheckCircle2, Monitor, Sun, Moon } from "lucide-react";
@@ -66,12 +66,18 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
     }
   }, [showDeleteModal]);
 
+  React.useEffect(() => {
+    setFullName(user.full_name || "");
+    setRole(user.role || "Tax Consultant");
+  }, [user.full_name, user.role]);
+
   const roles = [
     "Tax Consultant",
     "Lawyer",
     "Student",
     "Business Owner",
     "Accountant",
+    "Admin",
     "Other"
   ];
 
@@ -100,14 +106,27 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
       if (dbError) throw dbError;
 
       // 2. Update Supabase Auth metadata
-      const { error: authError } = await supabase.auth.updateUser({
+      await supabase.auth.updateUser({
         data: {
           full_name: fullName.trim(),
           role: role
         }
       });
 
-      if (authError) throw authError;
+      // 3. Update persistent active user in safeStorage
+      const updatedProfile = {
+        ...user,
+        full_name: fullName.trim(),
+        role: role,
+      };
+      safeStorage.setItem("taxwise_active_user", JSON.stringify(updatedProfile));
+      safeStorage.setItem("mock_profile", JSON.stringify(updatedProfile));
+
+      if (typeof window !== "undefined") {
+        try {
+          window.dispatchEvent(new CustomEvent("taxwise_auth_changed", { detail: updatedProfile }));
+        } catch {}
+      }
 
       setProfileSuccess("Profile updated successfully!");
       onRefreshUser();

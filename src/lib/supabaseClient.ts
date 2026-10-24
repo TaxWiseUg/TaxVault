@@ -65,6 +65,31 @@ export const safeStorage = {
 // Helpers for mock authentication and local persistence
 function getMockSession() {
   if (typeof window === "undefined") return null;
+  const activeUserRaw = safeStorage.getItem("taxwise_active_user");
+  if (activeUserRaw) {
+    try {
+      const activeUser = JSON.parse(activeUserRaw);
+      if (activeUser?.email) {
+        return {
+          access_token: "google-synced-token",
+          token_type: "bearer",
+          expires_in: 3600,
+          refresh_token: "google-synced-refresh",
+          user: {
+            id: activeUser.id || "f8174d44-d81a-4e70-9f4b-64744f969d09",
+            email: activeUser.email,
+            user_metadata: {
+              full_name: activeUser.full_name,
+              role: activeUser.role,
+            },
+            app_metadata: { provider: "google" },
+            aud: "authenticated",
+            created_at: new Date().toISOString(),
+          }
+        };
+      }
+    } catch {}
+  }
   const sessionData = safeStorage.getItem("mock_supabase_session");
   if (!sessionData) {
     // In sandbox demo mode, provide an active mock session for the current user
@@ -77,7 +102,7 @@ function getMockSession() {
         id: "f8174d44-d81a-4e70-9f4b-64744f969d09",
         email: "taxwiseplatform@gmail.com",
         user_metadata: {
-          full_name: "TaxWise Practitioner",
+          full_name: "TaxWise Platform",
           role: "Admin",
         },
         app_metadata: {},
@@ -96,13 +121,20 @@ function getMockSession() {
 
 function getMockProfile() {
   if (typeof window === "undefined") return null;
+  const activeUserRaw = safeStorage.getItem("taxwise_active_user");
+  if (activeUserRaw) {
+    try {
+      const activeUser = JSON.parse(activeUserRaw);
+      if (activeUser?.email) return activeUser;
+    } catch {}
+  }
   const profile = safeStorage.getItem("mock_profile");
   if (!profile) {
     // Default admin mock user so all dashboards are accessible in preview
     const defaultProfile = {
       id: "f8174d44-d81a-4e70-9f4b-64744f969d09",
       email: "taxwiseplatform@gmail.com",
-      full_name: "TaxWise Practitioner",
+      full_name: "TaxWise Platform",
       role: "Admin",
       plan: "professional",
       created_at: "2026-07-04 11:36:52.408438+00"
@@ -323,6 +355,25 @@ class MockQueryBuilder {
             } else {
               data.push(row);
               insertedRows.push(row);
+            }
+          });
+        } else if (this.tableName === "users") {
+          inputRows.forEach((row: any) => {
+            const idx = data.findIndex((item: any) => 
+              (row.email && item.email && String(item.email).toLowerCase() === String(row.email).toLowerCase()) ||
+              (row.id && item.id && item.id === row.id)
+            );
+            if (idx > -1) {
+              data[idx] = { ...data[idx], ...row };
+              insertedRows.push(data[idx]);
+            } else {
+              const newRow = {
+                id: row.id || (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2)),
+                created_at: row.created_at || new Date().toISOString(),
+                ...row
+              };
+              data.unshift(newRow);
+              insertedRows.push(newRow);
             }
           });
         } else {
