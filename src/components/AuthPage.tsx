@@ -149,12 +149,12 @@ const OtpInput: React.FC<OtpInputProps> = ({ value, onChange, error, length = 6,
               fontFamily: "'Inter', monospace",
               border: `2px solid ${error ? C.red : digits[i] ? C.teal : C.border}`,
               borderRadius: 10,
-              background: digits[i] ? "#E6F5F2" : C.offwhite,
-              color: C.navy,
+              background: digits[i] ? "var(--auth-otp-filled)" : "var(--auth-field)",
+              color: "var(--auth-text)",
               outline: "none",
               transition: "all 0.15s ease",
               boxSizing: "border-box",
-              caretColor: C.teal,
+              caretColor: "var(--auth-accent)",
             }}
           />
         ))}
@@ -172,12 +172,12 @@ const OtpInput: React.FC<OtpInputProps> = ({ value, onChange, error, length = 6,
 
 const FormField: React.FC<{ label: string; required?: boolean; error?: string; icon?: React.ReactNode; children: React.ReactNode }> = ({ label, required, error, icon, children }) => (
   <div style={{ marginBottom: 16 }}>
-    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--auth-label)", marginBottom: 6 }}>
       {label}{required && <span style={{ color: "#E04838" }}> *</span>}
     </label>
     <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
       {icon && (
-        <span style={{ position: "absolute", left: 14, color: "#8C7E72", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
+        <span style={{ position: "absolute", left: 14, color: "var(--auth-muted)", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
           {icon}
         </span>
       )}
@@ -209,26 +209,26 @@ const PasswordField: React.FC<{
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    border: error ? "1.5px solid #EF4444" : "1px solid rgba(0, 0, 0, 0.05)",
-    borderRadius: 14,
+    border: error ? "1.5px solid #EF4444" : "1px solid var(--auth-border)",
+    borderRadius: 10,
     padding: "13px 44px 13px 42px",
     fontSize: "0.88rem",
     fontFamily: "inherit",
     outline: "none",
-    background: "#FFFFFF",
-    color: "#1F2937",
+    background: "var(--auth-field)",
+    color: "var(--auth-text)",
     boxSizing: "border-box",
     transition: "all 0.2s ease",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
+    boxShadow: "0 1px 2px rgba(15, 32, 68, 0.04)",
   };
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--auth-label)", marginBottom: 6 }}>
         {label}{required && <span style={{ color: "#E04838" }}> *</span>}
       </label>
       <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-        <span style={{ position: "absolute", left: 14, color: "#8C7E72", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
+        <span style={{ position: "absolute", left: 14, color: "var(--auth-muted)", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
           <Lock size={16} />
         </span>
         <input
@@ -243,7 +243,7 @@ const PasswordField: React.FC<{
           onClick={() => setShow(!show)}
           tabIndex={-1}
           aria-label={show ? "Hide password" : "Show password"}
-          style={{ position: "absolute", right: 14, background: "none", border: "none", color: "#8C7E72", cursor: "pointer", display: "flex", alignItems: "center", padding: 0 }}
+          style={{ position: "absolute", right: 14, background: "none", border: "none", color: "var(--auth-muted)", cursor: "pointer", display: "flex", alignItems: "center", padding: 0 }}
         >
           {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -253,7 +253,7 @@ const PasswordField: React.FC<{
           <button
             type="button"
             onClick={onForgot}
-            style={{ background: "none", border: "none", color: "#2B221B", fontSize: "0.76rem", fontWeight: 600, cursor: "pointer", padding: 0 }}
+            style={{ background: "none", border: "none", color: "var(--auth-label)", fontSize: "0.76rem", fontWeight: 600, cursor: "pointer", padding: 0 }}
           >
             Forgot your password?
           </button>
@@ -269,7 +269,7 @@ const PasswordField: React.FC<{
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
             <span style={{ fontSize: "0.72rem", color: pwStrength.color, fontWeight: 700 }}>{pwStrength.label}</span>
-            <span style={{ fontSize: "0.7rem", color: "#8C7E72", fontWeight: 500 }}>
+            <span style={{ fontSize: "0.7rem", color: "var(--auth-muted)", fontWeight: 500 }}>
               {pwStrength.score < 3 ? "Add uppercase, numbers & symbols" : "Great password!"}
             </span>
           </div>
@@ -299,26 +299,26 @@ const ConfirmPasswordField: React.FC<{
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    border: error ? "1.5px solid #EF4444" : matches ? "1.5px solid #16A34A" : "1px solid rgba(0, 0, 0, 0.05)",
-    borderRadius: 14,
+    border: error ? "1.5px solid #EF4444" : matches ? "1.5px solid var(--auth-success)" : "1px solid var(--auth-border)",
+    borderRadius: 10,
     padding: "13px 44px 13px 42px",
     fontSize: "0.88rem",
     fontFamily: "inherit",
     outline: "none",
-    background: "#FFFFFF",
-    color: "#1F2937",
+    background: "var(--auth-field)",
+    color: "var(--auth-text)",
     boxSizing: "border-box",
     transition: "all 0.2s ease",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
+    boxShadow: "0 1px 2px rgba(15, 32, 68, 0.04)",
   };
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+      <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--auth-label)", marginBottom: 6 }}>
         {label}{required && <span style={{ color: "#E04838" }}> *</span>}
       </label>
       <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-        <span style={{ position: "absolute", left: 14, color: "#8C7E72", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
+        <span style={{ position: "absolute", left: 14, color: "var(--auth-muted)", display: "flex", alignItems: "center", pointerEvents: "none", zIndex: 2 }}>
           <Lock size={16} />
         </span>
         <input
@@ -333,7 +333,7 @@ const ConfirmPasswordField: React.FC<{
           onClick={() => setShow(!show)}
           tabIndex={-1}
           aria-label={show ? "Hide password" : "Show password"}
-          style={{ position: "absolute", right: 14, background: "none", border: "none", color: "#8C7E72", cursor: "pointer", display: "flex", alignItems: "center", padding: 0 }}
+          style={{ position: "absolute", right: 14, background: "none", border: "none", color: "var(--auth-muted)", cursor: "pointer", display: "flex", alignItems: "center", padding: 0 }}
         >
           {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
@@ -762,17 +762,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
 
   const inputStyle = (hasError?: boolean): React.CSSProperties => ({
     width: "100%",
-    border: hasError ? "1.5px solid #EF4444" : "1px solid rgba(0, 0, 0, 0.05)",
-    borderRadius: 14,
+    border: hasError ? "1.5px solid #EF4444" : "1px solid var(--auth-border)",
+    borderRadius: 10,
     padding: "13px 16px 13px 44px",
     fontSize: "0.88rem",
     fontFamily: "inherit",
     outline: "none",
-    background: "#FFFFFF",
-    color: "#1F2937",
+    background: "var(--auth-field)",
+    color: "var(--auth-text)",
     boxSizing: "border-box",
     transition: "all 0.2s ease",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
+    boxShadow: "0 1px 2px rgba(15, 32, 68, 0.04)",
   });
 
   // ─── JSX ────────────────────────────────────────────────────────────────────
@@ -1222,6 +1222,212 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
             margin-bottom: 20px !important;
           }
         }
+
+        /* TaxWise auth refresh */
+        .auth-root {
+          --auth-bg: #F3F6F5;
+          --auth-surface: #FFFFFF;
+          --auth-text: #10213C;
+          --auth-label: #35445B;
+          --auth-muted: #68778D;
+          --auth-border: #DCE4E8;
+          --auth-field: #FFFFFF;
+          --auth-accent: #147D6C;
+          --auth-accent-hover: #106858;
+          --auth-success: #16805F;
+          --auth-otp-filled: #E8F5F1;
+          min-height: 100dvh;
+          height: auto;
+          width: 100%;
+          max-height: none;
+          overflow-x: hidden;
+          overflow-y: auto;
+          background: var(--auth-bg);
+          background-image: radial-gradient(ellipse at 16% 18%, rgba(20, 125, 108, 0.08), transparent 34%);
+        }
+        .dark .auth-root {
+          --auth-bg: #080F1D;
+          --auth-surface: #111B2C;
+          --auth-text: #ECF2FA;
+          --auth-label: #C5D1E0;
+          --auth-muted: #91A0B5;
+          --auth-border: #2A394D;
+          --auth-field: #0C1524;
+          --auth-accent: #35B49A;
+          --auth-accent-hover: #27977F;
+          --auth-success: #4CC9A6;
+          --auth-otp-filled: #153B38;
+        }
+        .auth-inner {
+          width: min(100%, 1440px);
+          max-width: 1440px;
+          min-height: 100dvh;
+          height: auto;
+          max-height: none;
+          padding: clamp(20px, 3.5vw, 48px);
+          gap: clamp(24px, 5vw, 72px);
+          justify-content: center;
+          overflow: visible;
+        }
+        .auth-left {
+          position: relative;
+          isolation: isolate;
+          flex: 1.15;
+          max-width: none;
+          min-height: min(700px, calc(100dvh - 72px));
+          height: auto;
+          max-height: none;
+          padding: clamp(28px, 4vw, 54px);
+          box-sizing: border-box;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 24px;
+          background: linear-gradient(145deg, #102447 0%, #0E2A3C 56%, #105B52 100%);
+          box-shadow: 0 24px 64px rgba(15, 32, 68, 0.18);
+        }
+        .auth-left::before,
+        .auth-left::after {
+          content: "";
+          position: absolute;
+          z-index: 0;
+          pointer-events: none;
+          border-radius: 999px;
+        }
+        .auth-left::before {
+          width: 460px;
+          height: 460px;
+          right: -210px;
+          top: -180px;
+          border: 1px solid rgba(111, 218, 190, 0.18);
+          box-shadow: 0 0 0 34px rgba(111, 218, 190, 0.035), 0 0 0 78px rgba(111, 218, 190, 0.025);
+        }
+        .auth-left::after {
+          width: 360px;
+          height: 360px;
+          left: -220px;
+          bottom: -250px;
+          background: radial-gradient(circle, rgba(20, 125, 108, 0.3), transparent 70%);
+        }
+        .auth-left > * { position: relative; z-index: 1; }
+        .auth-topbar-left { justify-content: space-between; gap: 14px; }
+        .auth-back-pill { border-radius: 9px; padding: 9px 13px; }
+        .auth-quote-area { max-width: 580px; margin: 38px 0; }
+        .auth-quote-title {
+          max-width: 570px;
+          font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+          font-size: clamp(2.2rem, 3.3vw, 3.35rem);
+          line-height: 1.12;
+          letter-spacing: -0.045em;
+          text-shadow: none;
+        }
+        .auth-quote-subtitle { max-width: 500px; font-size: 1rem; color: rgba(241, 247, 251, 0.82); text-shadow: none; }
+        .auth-compliance-chip { border-radius: 9px; background: rgba(255,255,255,0.07); }
+        .auth-right { flex: 0.95; width: min(100%, 500px); max-height: none; justify-content: center; }
+        .auth-card-sprout {
+          max-width: 500px;
+          max-height: calc(100dvh - 64px);
+          padding: clamp(30px, 3vw, 42px);
+          border: 1px solid var(--auth-border);
+          border-radius: 20px;
+          background: var(--auth-surface);
+          color: var(--auth-text);
+          box-shadow: 0 20px 56px rgba(15, 32, 68, 0.12), 0 2px 8px rgba(15, 32, 68, 0.04);
+          scrollbar-color: rgba(20, 125, 108, 0.35) transparent;
+        }
+        .auth-card-title { color: var(--auth-text); font-size: 1.55rem; text-align: left; letter-spacing: -0.035em; }
+        .auth-card-subtitle { color: var(--auth-muted); text-align: left; margin-bottom: 26px; }
+        .auth-root input:not([type="checkbox"]),
+        .auth-root select { background-color: var(--auth-field) !important; color: var(--auth-text) !important; }
+        .auth-root input::placeholder { color: var(--auth-muted); opacity: 0.78; }
+        .auth-root label { color: var(--auth-label) !important; }
+        .auth-root button:focus-visible,
+        .auth-root input:focus-visible,
+        .auth-root select:focus-visible { outline: 3px solid rgba(20, 125, 108, 0.3); outline-offset: 2px; }
+        .dark .auth-root button:focus-visible,
+        .dark .auth-root input:focus-visible,
+        .dark .auth-root select:focus-visible { outline-color: rgba(53, 180, 154, 0.42); }
+        .auth-submit-btn {
+          border-radius: 10px;
+          background: var(--auth-accent);
+          box-shadow: 0 6px 16px rgba(20, 125, 108, 0.2);
+          transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .auth-submit-btn:hover:not(:disabled) { background: var(--auth-accent-hover); box-shadow: 0 9px 20px rgba(20, 125, 108, 0.24); }
+        .auth-google-btn { border-radius: 10px; border-color: var(--auth-border); background: var(--auth-surface); color: var(--auth-text); }
+        .auth-google-btn:hover:not(:disabled) { background: var(--auth-bg); border-color: var(--auth-muted); }
+        .auth-switch-text { color: var(--auth-muted); }
+        .auth-switch-btn,
+        .auth-legal-btn { color: var(--auth-accent); }
+        .auth-legal-footer { border-top: 1px solid var(--auth-border); padding-top: 17px; }
+        .auth-legal-links,
+        .auth-divider-pill { color: var(--auth-muted); }
+        .dark .auth-alert-error { background: #3B2028; color: #FFB4B4; border-color: #69313A; }
+        .dark .auth-alert-success { background: #153B32; color: #8BE0BF; border-color: #23634F; }
+        .auth-divider-pill::before,
+        .auth-divider-pill::after { background: var(--auth-border); }
+        .strength-bar-track { background: var(--auth-border); }
+        .auth-mode-panel { animation: authModeEnter 380ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+        @keyframes authModeEnter {
+          from { opacity: 0; transform: translateY(12px); filter: blur(2px); }
+          to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .auth-mode-panel { animation: none; }
+          .auth-root *, .auth-root *::before, .auth-root *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+        }
+        @media (max-width: 992px) {
+          .auth-root {
+            height: auto !important;
+            min-height: 100dvh !important;
+            max-height: none !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            align-items: stretch !important;
+            background: var(--auth-bg) !important;
+          }
+          .auth-inner {
+            width: min(100%, 560px) !important;
+            min-height: 100dvh !important;
+            height: auto !important;
+            max-height: none !important;
+            padding: 18px 16px 30px !important;
+            gap: 16px !important;
+            overflow: visible !important;
+          }
+          .auth-left {
+            width: 100% !important;
+            min-height: 0 !important;
+            height: auto !important;
+            max-height: none !important;
+            max-width: none !important;
+            padding: 20px !important;
+            border-radius: 16px !important;
+            overflow: hidden !important;
+          }
+          .auth-topbar-left { justify-content: space-between !important; }
+          .auth-back-pill { padding: 8px 10px !important; font-size: 0.76rem !important; }
+          .auth-brand-name { color: #FFFFFF !important; }
+          .auth-quote-area { display: block !important; margin: 24px 0 8px !important; }
+          .auth-quote-title { font-size: clamp(1.65rem, 7vw, 2.15rem) !important; line-height: 1.15 !important; margin-bottom: 9px !important; }
+          .auth-quote-subtitle { font-size: 0.9rem !important; }
+          .auth-bottom-badges { display: flex !important; gap: 7px !important; margin-top: 18px !important; }
+          .auth-compliance-chip { padding: 8px 10px !important; font-size: 0.68rem !important; }
+          .auth-bottom-badges > div:last-child { font-size: 0.66rem !important; }
+          .auth-right { width: 100% !important; height: auto !important; max-height: none !important; justify-content: center !important; }
+          .auth-card-sprout {
+            width: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            overflow: visible !important;
+            padding: 26px 22px 22px !important;
+            border-radius: 16px !important;
+            background: var(--auth-surface) !important;
+            border: 1px solid var(--auth-border) !important;
+            box-shadow: 0 12px 30px rgba(15, 32, 68, 0.08) !important;
+          }
+          .auth-card-title { font-size: 1.4rem !important; margin-bottom: 5px !important; }
+          .auth-card-subtitle { font-size: 0.82rem !important; margin-bottom: 20px !important; }
+        }
       `}</style>
 
       <div className="auth-inner">
@@ -1239,9 +1445,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
             ) : <div />}
 
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 10, height: 10, background: "#4AA41B", borderRadius: 2, transform: "rotate(45deg)", boxShadow: "0 0 10px rgba(74, 164, 27, 0.7)" }} />
+              <div style={{ width: 10, height: 10, background: "#35B49A", borderRadius: 2, transform: "rotate(45deg)", boxShadow: "0 0 10px rgba(53, 180, 154, 0.45)" }} />
               <span className="auth-brand-name" style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.25rem", fontWeight: 800, letterSpacing: "-0.01em" }}>
-                Tax<span style={{ color: "#4AA41B" }}>Wise</span>
+                Tax<span style={{ color: "#62D2B5" }}>Wise</span>
               </span>
             </div>
           </div>
@@ -1264,11 +1470,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
           {/* Bottom Security / Compliance Badges */}
           <div className="auth-bottom-badges">
             <div className="auth-compliance-chip">
-              <ShieldCheck size={16} style={{ color: "#4AA41B", flexShrink: 0 }} />
+              <ShieldCheck size={16} style={{ color: "#62D2B5", flexShrink: 0 }} />
               <span>URA Tax Procedures Code Act 2014 &amp; TAT Statutory Compliance</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.72)", paddingLeft: 4 }}>
-              <Lock size={12} style={{ color: "#4AA41B", flexShrink: 0 }} />
+              <Lock size={12} style={{ color: "#62D2B5", flexShrink: 0 }} />
               <span>256-Bit SSL Encrypted · Uganda Data Protection &amp; Privacy Act 2019</span>
             </div>
           </div>
@@ -1278,6 +1484,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
         ══════════════════════════════════════════════════════════ */}
         <div className="auth-right">
           <div className="auth-card-sprout">
+            <div key={mode} className="auth-mode-panel">
 
             {/* ── Mode: Forgot Password Step 1 ── */}
             {mode === "forgot" && (
@@ -1323,7 +1530,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
               <div>
                 <h2 className="auth-card-title">Reset your password</h2>
                 <p className="auth-card-subtitle">
-                  Enter the 5-digit code sent to <strong style={{ color: "#1F1914" }}>{email}</strong> and set your new password.
+                  Enter the 5-digit code sent to <strong style={{ color: "var(--auth-text)" }}>{email}</strong> and set your new password.
                 </p>
 
                 <div style={{ marginBottom: 16 }}>
@@ -1394,7 +1601,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
               <div>
                 <h2 className="auth-card-title">Verify your email</h2>
                 <p className="auth-card-subtitle">
-                  We sent a 5-digit verification code to <strong style={{ color: "#1F1914" }}>{email}</strong>.
+                  We sent a 5-digit verification code to <strong style={{ color: "var(--auth-text)" }}>{email}</strong>.
                 </p>
 
                 <div style={{ marginBottom: 16 }}>
@@ -1549,7 +1756,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                 {/* Signup: Professional Role */}
                 {mode === "signup" && (
                   <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#4B4037", marginBottom: 6 }}>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "var(--auth-label)", marginBottom: 6 }}>
                       Professional Role <span style={{ color: "#E04838" }}>*</span>
                     </label>
                     <select
@@ -1587,14 +1794,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                         id="agreeTerms"
                         checked={agreeTerms}
                         onChange={(e) => { setAgreeTerms(e.target.checked); setFieldErrors(f => ({ ...f, agreeTerms: undefined })); }}
-                        style={{ accentColor: "#4AA41B", marginTop: 2, cursor: "pointer", width: 15, height: 15 }}
+                        style={{ accentColor: "var(--auth-accent)", marginTop: 2, cursor: "pointer", width: 15, height: 15 }}
                       />
-                      <label htmlFor="agreeTerms" style={{ fontSize: "0.78rem", color: "#6B7280", cursor: "pointer", lineHeight: 1.45 }}>
+                      <label htmlFor="agreeTerms" style={{ fontSize: "0.78rem", color: "var(--auth-muted)", cursor: "pointer", lineHeight: 1.45 }}>
                         I agree to the{" "}
                         <button
                           type="button"
                           onClick={() => { setLegalTab("terms"); setLegalOpen(true); }}
-                          style={{ background: "none", border: "none", color: "#4AA41B", fontWeight: 600, cursor: "pointer", padding: 0 }}
+                          style={{ background: "none", border: "none", color: "var(--auth-accent)", fontWeight: 600, cursor: "pointer", padding: 0 }}
                         >
                           Terms of Service
                         </button>{" "}
@@ -1602,7 +1809,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
                         <button
                           type="button"
                           onClick={() => { setLegalTab("privacy"); setLegalOpen(true); }}
-                          style={{ background: "none", border: "none", color: "#4AA41B", fontWeight: 600, cursor: "pointer", padding: 0 }}
+                          style={{ background: "none", border: "none", color: "var(--auth-accent)", fontWeight: 600, cursor: "pointer", padding: 0 }}
                         >
                           Privacy Policy
                         </button>
@@ -1675,6 +1882,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
               </div>
             )}
 
+            </div>
             {/* Legal / Disclaimers Footer */}
             <div className="auth-legal-footer">
               <div className="auth-legal-links">
