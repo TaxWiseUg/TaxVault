@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail, getAccountDeletionEmailHtml } from "@/lib/resend";
+import { verifyFirebaseIdToken } from "@/lib/server/firebaseIdentity";
+
+type VerifiedIdentity = { id: string; email: string };
+
+async function findSupabaseAuthUserId(
+  adminClient: SupabaseClient<any, "public", "public", any, any>,
+  email: string
+): Promise<string | null> {
+  for (let page = 1; page <= 100; page += 1) {
+    const { data, error } = await adminClient.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    const match = data.users.find((candidate) => candidate.email?.toLowerCase() === email);
+    if (match) return match.id;
+    if (data.users.length < 1000) return null;
+  }
+  throw new Error("Could not safely resolve the account for deletion.");
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,23 +26,40 @@ export async function POST(req: NextRequest) {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Unauthorized: Missing session token." }, { status: 401 });
     }
-    const accessToken = authHeader.slice(7);
+    const accessToken = authHeader.slice(7).trim();
+    if (!accessToken) {
+      return NextResponse.json({ error: "Unauthorized: Missing session token." }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const authProvider = body?.authProvider;
+    if (authProvider !== "firebase" && authProvider !== "supabase") {
+      return NextResponse.json({ error: "Unsupported authentication provider." }, { status: 400 });
+    }
 
     // 2. Use anon client to verify the token and get the user's ID
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!serviceRoleKey) {
+    if (!supabaseUrl || !serviceRoleKey || (authProvider === "supabase" && !anonKey)) {
       return NextResponse.json({ error: "Server configuration error." }, { status: 500 });
     }
 
-    const anonClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: `Bearer ${accessToken}` } },
-    });
+    let identity: VerifiedIdentity | null = null;
+    if (authProvider === "firebase") {
+      identity = await verifyFirebaseIdToken(accessToken);
+    } else {
+      const anonClient = createClient(supabaseUrl, anonKey!, {
+        global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      });
+      const { data: { user }, error: userError } = await anonClient.auth.getUser(accessToken);
+      if (user && !userError && user.email) {
+        identity = { id: user.id, email: user.email.toLowerCase() };
+      }
+    }
 
-    const { data: { user }, error: userError } = await anonClient.auth.getUser();
-    if (userError || !user) {
+    if (!identity) {
       return NextResponse.json({ error: "Invalid or expired session." }, { status: 401 });
     }
 
@@ -35,11 +69,15 @@ export async function POST(req: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    const userId = authProvider === "supabase"
+      ? identity.id
+      : await findSupabaseAuthUserId(adminClient, identity.email);
+
     try {
       const { data: profile } = await adminClient
         .from("users")
         .select("full_name")
-        .eq("id", user.id)
+        .eq("email", identity.email)
         .single();
       if (profile?.full_name) {
         fullName = profile.full_name;
@@ -48,22 +86,33 @@ export async function POST(req: NextRequest) {
       console.error("Could not fetch user name before deletion:", profileErr);
     }
 
-    // Delete from public.users table first (in case cascade isn't configured)
-    await adminClient.from("users").delete().eq("id", user.id);
+    // Delete the Supabase Auth record when present. Firebase-linked accounts may
+    // have a different Supabase Auth UUID, so resolve it by the verified email.
+    if (userId) {
+      const { error: deleteError } = await adminClient.auth.admin.deleteUser(userId);
+      if (deleteError) {
+        console.error("Failed to delete user from Supabase Auth:", deleteError);
+        return NextResponse.json({ error: deleteError.message || "Failed to delete account." }, { status: 500 });
+      }
+    }
 
-    // Delete from Supabase Auth
-    const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
-    if (deleteError) {
-      console.error("Failed to delete user from Supabase Auth:", deleteError);
-      return NextResponse.json({ error: deleteError.message || "Failed to delete account." }, { status: 500 });
+    // Remove the profile by verified email because legacy Google rows can have
+    // a Firebase UID that differs from the Supabase Auth UUID.
+    const profileDeleteQuery = adminClient.from("users").delete();
+    const { error: profileDeleteError } = authProvider === "supabase"
+      ? await profileDeleteQuery.eq("id", identity.id)
+      : await profileDeleteQuery.eq("email", identity.email);
+    if (profileDeleteError) {
+      console.error("Failed to delete public user profile:", profileDeleteError);
+      return NextResponse.json({ error: "Failed to delete account profile." }, { status: 500 });
     }
 
     // 4. Send account deletion confirmation email
-    if (user.email) {
+    if (identity.email) {
       try {
         const emailHtml = getAccountDeletionEmailHtml(fullName);
         await sendEmail({
-          to: user.email,
+          to: identity.email,
           subject: "Your TaxWise Account Has Been Deleted",
           html: emailHtml,
         });

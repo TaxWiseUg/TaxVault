@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { verifyFirebaseIdToken } from "@/lib/server/firebaseIdentity";
+
+const PROFESSIONAL_ROLES = new Set([
+  "Tax Consultant",
+  "Accountant",
+  "Tax Lawyer",
+  "Finance Manager",
+  "Business Owner",
+  "Student",
+]);
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -11,19 +21,44 @@ function getSupabaseAdmin() {
   return createClient(supabaseUrl, serviceRoleKey);
 }
 
+async function findAuthUserIdByEmail(
+  supabaseAdmin: SupabaseClient<any, "public", "public", any, any>,
+  email: string
+): Promise<string | null> {
+  for (let page = 1; page <= 100; page += 1) {
+    const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (error) throw error;
+    const match = data.users.find((candidate) => candidate.email?.toLowerCase() === email);
+    if (match) return match.id;
+    if (data.users.length < 1000) return null;
+  }
+  throw new Error("Could not safely resolve the existing Google account.");
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("authorization");
+    const idToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const identity = idToken ? await verifyFirebaseIdToken(idToken) : null;
+    if (!identity) {
+      return NextResponse.json({ error: "A valid Google session is required." }, { status: 401 });
+    }
+
     const body = await req.json();
     const rawEmail = typeof body.email === "string" ? body.email.trim() : "";
-    const email = rawEmail.toLowerCase();
+    const email = identity.email;
     const fullName = typeof body.full_name === "string" ? body.full_name.trim() : "";
     const avatarUrl = typeof body.avatar_url === "string" ? body.avatar_url : undefined;
-    const googleUid = typeof body.google_uid === "string" ? body.google_uid : "";
+    const googleUid = identity.id;
     const requestedRole = typeof body.role === "string" && body.role.trim() ? body.role.trim() : undefined;
     const isFirstLogin = body.is_first_login === true;
 
-    if (!email) {
-      return NextResponse.json({ error: "Email is required." }, { status: 400 });
+    if (!rawEmail || rawEmail.toLowerCase() !== email) {
+      return NextResponse.json({ error: "The Google account does not match the requested email." }, { status: 403 });
+    }
+
+    if (requestedRole && !PROFESSIONAL_ROLES.has(requestedRole)) {
+      return NextResponse.json({ error: "Choose a valid professional role." }, { status: 400 });
     }
 
     const isAdmin = email === "taxwiseplatform@gmail.com";
@@ -43,12 +78,29 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         const isNewUser = !isAdmin && (!existingUser || !existingUser.role) && !requestedRole;
-        const canonicalId = existingUser?.id || (googleUid.length === 36 ? googleUid : undefined);
+        let canonicalId = existingUser?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(googleUid) ? googleUid : undefined);
         const resolvedRole = isAdmin ? "Admin" : (requestedRole || existingUser?.role || defaultRole);
         const resolvedPlan = isAdmin ? "professional" : (existingUser?.plan || defaultPlan);
         const resolvedName = fullName || existingUser?.full_name || (isAdmin ? "TaxWise Platform" : email.split("@")[0]);
 
+        // Leave new/unfinished accounts unpersisted until the user confirms a role.
+        if (isNewUser) {
+          return NextResponse.json({
+            success: true,
+            isNewUser: true,
+            profile: {
+              id: existingUser?.id || googleUid,
+              email,
+              full_name: resolvedName,
+              role: existingUser?.role || "",
+              plan: resolvedPlan,
+              avatar_url: avatarUrl,
+            },
+          });
+        }
+
         // If user is not yet registered in Supabase auth, create them via admin API
+        let authCreateError: Error | null = null;
         try {
           const createPayload: {
             id?: string;
@@ -75,30 +127,39 @@ export async function POST(req: NextRequest) {
             createPayload.id = canonicalId;
           }
 
-          await supabaseAdmin.auth.admin.createUser(createPayload);
-        } catch {
-          // If auth user already exists, update their metadata
-          try {
-            if (canonicalId) {
-              await supabaseAdmin.auth.admin.updateUserById(canonicalId, {
-                email_confirm: true,
-                user_metadata: {
-                  full_name: resolvedName,
-                  role: resolvedRole,
-                  avatar_url: avatarUrl,
-                  provider: "google",
-                },
-              });
-            }
-          } catch {
-            // ignore update failure
+          const { data: createdAuthUser, error } = await supabaseAdmin.auth.admin.createUser(createPayload);
+          if (error) authCreateError = error;
+          else canonicalId = createdAuthUser.user?.id || canonicalId;
+        } catch (error) {
+          authCreateError = error instanceof Error ? error : new Error("Could not create the Supabase Auth user.");
+        }
+
+        if (!canonicalId) {
+          canonicalId = await findAuthUserIdByEmail(supabaseAdmin, email) || undefined;
+        }
+
+        if (authCreateError && canonicalId) {
+          const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(canonicalId, {
+            email_confirm: true,
+            user_metadata: {
+              full_name: resolvedName,
+              role: resolvedRole,
+              avatar_url: avatarUrl,
+              provider: "google",
+            },
+          });
+          if (updateAuthError && requestedRole) {
+            console.error("[google-sync] Could not update Supabase Auth user:", updateAuthError);
+            return NextResponse.json({ error: "Could not finish setting up your account. Please try again." }, { status: 500 });
           }
         }
 
         // Upsert into public.users without violating email uniqueness
-        const finalUserId = canonicalId || googleUid || `google-${email}`;
-        try {
-          await supabaseAdmin.from("users").upsert({
+        if (!canonicalId) {
+          return NextResponse.json({ error: "Could not finish setting up your account. Please try again." }, { status: 500 });
+        }
+        const finalUserId = canonicalId;
+        const { error: profileUpsertError } = await supabaseAdmin.from("users").upsert({
             id: finalUserId,
             email: email,
             full_name: resolvedName,
@@ -106,8 +167,12 @@ export async function POST(req: NextRequest) {
             plan: resolvedPlan,
             last_login: new Date().toISOString(),
           }, { onConflict: "id" });
-        } catch (upsertErr) {
-          console.warn("[google-sync] public.users upsert notice:", upsertErr);
+        if (profileUpsertError && requestedRole) {
+          console.error("[google-sync] Could not persist selected professional role:", profileUpsertError);
+          return NextResponse.json({ error: "Could not save your professional role. Please try again." }, { status: 500 });
+        }
+        if (profileUpsertError) {
+          console.warn("[google-sync] public.users upsert notice:", profileUpsertError);
         }
 
         return NextResponse.json({
@@ -124,6 +189,9 @@ export async function POST(req: NextRequest) {
         });
       } catch (dbErr) {
         console.warn("[google-sync] Supabase sync error, falling back to normalized profile:", dbErr);
+        if (requestedRole) {
+          return NextResponse.json({ error: "Could not save your professional role. Please try again." }, { status: 500 });
+        }
       }
     }
 

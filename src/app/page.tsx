@@ -409,12 +409,70 @@ export default function TaxWiseSaaS() {
     });
 
     // 1. Listen to Firebase Google Auth state
-    const unsubscribeFirebase = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribeFirebase = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         if (typeof window !== "undefined" && safeStorage.getItem("taxwise_pending_role_setup")) {
           return;
         }
-        const prof = getGoogleUserProfile(firebaseUser);
+        let prof = getGoogleUserProfile(firebaseUser);
+        if (prof) {
+          const storedProfile = safeStorage.getItem("taxwise_active_user");
+          if (storedProfile) {
+            try {
+              const parsed = JSON.parse(storedProfile);
+              if (parsed?.email?.toLowerCase() === prof.email.toLowerCase()) {
+                prof = {
+                  ...prof,
+                  role: parsed.role || prof.role,
+                  full_name: parsed.full_name || prof.full_name,
+                  plan: parsed.plan || prof.plan,
+                };
+              }
+            } catch {
+              safeStorage.removeItem("taxwise_active_user");
+            }
+          }
+
+          // Firebase's default profile has no knowledge of the role stored in
+          // Supabase. Resolve the canonical profile before choosing app access.
+          try {
+            const idToken = await firebaseUser.getIdToken();
+            const syncResponse = await fetch("/api/auth/google-sync", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+              body: JSON.stringify({
+                email: firebaseUser.email,
+                full_name: firebaseUser.displayName || prof.full_name,
+                avatar_url: firebaseUser.photoURL || undefined,
+                google_uid: firebaseUser.uid,
+              }),
+            });
+            if (syncResponse.ok) {
+              const syncData = await syncResponse.json();
+              if (syncData?.isNewUser) {
+                safeStorage.setItem("taxwise_pending_role_setup", "true");
+                safeStorage.setItem("taxwise_pending_google_role", JSON.stringify({
+                  email: prof.email,
+                  full_name: prof.full_name,
+                  avatar_url: prof.avatar_url,
+                }));
+                return;
+              }
+              if (syncData?.profile?.role) {
+                prof = {
+                  ...prof,
+                  id: syncData.profile.id || prof.id,
+                  role: syncData.profile.role,
+                  full_name: syncData.profile.full_name || prof.full_name,
+                  plan: syncData.profile.plan || prof.plan,
+                  avatar_url: syncData.profile.avatar_url || prof.avatar_url,
+                };
+              }
+            }
+          } catch (syncError) {
+            console.warn("Could not refresh Google account profile:", syncError);
+          }
+        }
         if (prof) {
           setDbUser(prof);
           setIsTrialSession(false);

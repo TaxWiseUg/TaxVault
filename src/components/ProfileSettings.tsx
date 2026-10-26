@@ -8,7 +8,7 @@ import { Card, Button } from "./UI";
 import { AlertTriangle, User, Lock, Key, CreditCard, Trash2, Check, CheckCircle2, Monitor, Sun, Moon } from "lucide-react";
 import { WorkspacePageHero } from "./WorkspacePageHero";
 import { getInitialTheme, applyTheme, ThemeMode } from "../lib/theme";
-import { auth } from "../lib/googleAuth";
+import { auth, deleteCurrentGoogleAccount, reauthenticateGoogleForDeletion } from "../lib/googleAuth";
 
 interface DbProfile {
   id: string;
@@ -23,6 +23,17 @@ interface ProfileSettingsProps {
   onRefreshUser: () => void;
   onAccountDeleted: () => void;
 }
+
+const hasGoogleAuthSession = () => {
+  if (auth.currentUser) return true;
+
+  try {
+    const session = JSON.parse(safeStorage.getItem("mock_supabase_session") || "{}");
+    return session?.user?.app_metadata?.provider === "google";
+  } catch {
+    return false;
+  }
+};
 
 export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefreshUser, onAccountDeleted }) => {
   // Personal Info States
@@ -169,9 +180,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
 
     try {
       // Check if user is logged in via Google Auth / Firebase
-      const isGoogleAuth = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+      const isGoogleAuth = hasGoogleAuthSession();
 
-      if (isGoogleAuth || auth.currentUser) {
+      if (isGoogleAuth) {
         setPassError("Google-authenticated accounts manage their password and credentials through Google Account Settings.");
         setPassLoading(false);
         return;
@@ -206,7 +217,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
       return;
     }
 
-    const isGoogleAuthUser = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+    const isGoogleAuthUser = hasGoogleAuthSession();
 
     if (!isGoogleAuthUser && !deletePassword) {
       setDeleteError("Please enter your current password to proceed.");
@@ -218,7 +229,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
 
     try {
       // Check if user is logged in via Google Auth / Firebase
-      const isGoogleAuth = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+      const isGoogleAuth = hasGoogleAuthSession();
 
       if (!isGoogleAuth && !auth.currentUser) {
         // Step 1: Re-authenticate — verify the password is correct for email users
@@ -235,13 +246,21 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
         }
       }
 
-      // Step 2: Get current session token to send to API
-      let accessToken = "";
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        accessToken = session.access_token;
+      // Google accounts use Firebase ID tokens; email/password accounts use Supabase sessions.
+      let accessToken: string;
+      let authProvider: "firebase" | "supabase";
+      if (auth.currentUser) {
+        accessToken = await reauthenticateGoogleForDeletion();
+        authProvider = "firebase";
       } else {
-        accessToken = safeStorage.getItem("mock_supabase_session") ? JSON.parse(safeStorage.getItem("mock_supabase_session") || "{}")?.access_token || "google-token" : "google-token";
+        const { data: { session } } = await supabase.auth.getSession();
+        const mockSession = safeStorage.getItem("mock_supabase_session");
+        accessToken = session?.access_token || (mockSession ? JSON.parse(mockSession)?.access_token || "" : "");
+        authProvider = "supabase";
+      }
+
+      if (!accessToken) {
+        throw new Error("Your session has expired. Please sign in again and retry account deletion.");
       }
 
       // Step 3: Call the secure server-side delete API
@@ -251,6 +270,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
           "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ authProvider }),
       });
 
       const result = await response.json();
@@ -265,6 +285,13 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
       // Step 4: Sign out locally and notify the parent
       setDeleteStep("done");
       setTimeout(async () => {
+        if (authProvider === "firebase") {
+          try {
+            await deleteCurrentGoogleAccount();
+          } catch (firebaseDeleteError) {
+            console.error("Application account was deleted, but Firebase account cleanup failed:", firebaseDeleteError);
+          }
+        }
         await supabase.auth.signOut();
         onAccountDeleted();
       }, 2000);
@@ -324,7 +351,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
     border: "1.5px solid #E5E7EB",
   };
 
-  const isGoogleAuthUser = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+  const isGoogleAuthUser = hasGoogleAuthSession();
   const isDeleteReady = deleteConfirmText === "DELETE" && (isGoogleAuthUser || deletePassword.length > 0);
 
   return (
@@ -493,7 +520,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
               </div>
 
               {(() => {
-                const isGoogleUser = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+                const isGoogleUser = hasGoogleAuthSession();
                 if (isGoogleUser) {
                   return (
                     <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
@@ -801,7 +828,7 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
 
                   {/* Password field (only for email/password users) */}
                   {(() => {
-                    const isGoogleAuth = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+                    const isGoogleAuth = hasGoogleAuthSession();
                     if (isGoogleAuth) {
                       return (
                         <div style={{ marginBottom: 16, fontSize: "0.8rem", color: C.muted, background: "#F8FAFC", padding: "10px 12px", borderRadius: 8, border: "1px solid #E2E8F0" }}>

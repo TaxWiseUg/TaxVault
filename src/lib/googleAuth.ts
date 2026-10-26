@@ -6,6 +6,8 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   getAdditionalUserInfo,
+  reauthenticateWithPopup,
+  deleteUser,
   type User as FirebaseUser,
 } from "firebase/auth";
 import firebaseConfig from "../../firebase-applet-config.json";
@@ -36,6 +38,26 @@ let cachedAccessToken: string | null = null;
 
 export const getGoogleAccessToken = (): string | null => {
   return cachedAccessToken;
+};
+
+/** Reauthenticate the current Google user and return a Firebase ID token for sensitive actions. */
+export const reauthenticateGoogleForDeletion = async (): Promise<string> => {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    throw new Error("Your Google session has expired. Please sign in again.");
+  }
+
+  const result = await reauthenticateWithPopup(currentUser, provider);
+  return result.user.getIdToken(true);
+};
+
+/** Remove the Firebase account after the application account has been deleted. */
+export const deleteCurrentGoogleAccount = async (): Promise<void> => {
+  const currentUser = auth.currentUser;
+  if (currentUser) {
+    await deleteUser(currentUser);
+  }
+  cachedAccessToken = null;
 };
 
 /**
@@ -150,6 +172,7 @@ export const signInWithGoogle = async (): Promise<{
   const fUser = result.user;
   const additionalInfo = getAdditionalUserInfo(result);
   const isNewFirebaseUser = additionalInfo?.isNewUser ?? false;
+  const idToken = await fUser.getIdToken();
 
   let profile = getGoogleUserProfile(fUser)!;
   let isNewUser = isNewFirebaseUser;
@@ -158,7 +181,7 @@ export const signInWithGoogle = async (): Promise<{
   try {
     const syncRes = await fetch("/api/auth/google-sync", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
       body: JSON.stringify({
         email: fUser.email,
         full_name: fUser.displayName || profile.full_name,
@@ -170,7 +193,7 @@ export const signInWithGoogle = async (): Promise<{
     if (syncRes.ok) {
       const syncData = await syncRes.json();
       if (syncData?.isNewUser !== undefined) {
-        isNewUser = syncData.isNewUser || isNewFirebaseUser;
+        isNewUser = syncData.isNewUser;
       }
       if (syncData?.profile) {
         profile = {
@@ -200,6 +223,17 @@ export const signInWithGoogle = async (): Promise<{
     }
   }
 
+  // Keep an interrupted onboarding prompt resumable on this device, including
+  // when the app is running without a configured Supabase backend.
+  try {
+    const pendingRole = JSON.parse(safeStorage.getItem("taxwise_pending_google_role") || "null");
+    if (pendingRole?.email?.toLowerCase() === (fUser.email || "").toLowerCase()) {
+      isNewUser = true;
+    }
+  } catch {
+    safeStorage.removeItem("taxwise_pending_google_role");
+  }
+
   const isAdmin = (fUser.email || "").toLowerCase() === "taxwiseplatform@gmail.com";
   if (isAdmin) {
     isNewUser = false;
@@ -208,6 +242,11 @@ export const signInWithGoogle = async (): Promise<{
   // If this is a new user (and not master admin), mark pending role setup
   if (isNewUser) {
     safeStorage.setItem("taxwise_pending_role_setup", "true");
+    safeStorage.setItem("taxwise_pending_google_role", JSON.stringify({
+      email: profile.email,
+      full_name: profile.full_name,
+      avatar_url: profile.avatar_url,
+    }));
     return { user: fUser, accessToken, profile, isNewUser: true };
   }
 
@@ -284,35 +323,42 @@ export const updateUserRole = async (
 
   // 1. Sync with server route
   try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error("Your Google session has expired. Please sign in again.");
+    const idToken = await currentUser.getIdToken();
     const res = await fetch("/api/auth/google-sync", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
       body: JSON.stringify({
         email: normEmail,
         role: finalRole,
         full_name: updatedProfile.full_name,
         avatar_url: avatarUrl,
-        google_uid: auth.currentUser?.uid,
+        google_uid: currentUser.uid,
       }),
     });
-    if (res.ok) {
-      const data = await res.json();
-      if (data?.profile) {
-        updatedProfile = {
-          id: data.profile.id || updatedProfile.id,
-          email: normEmail,
-          full_name: data.profile.full_name || updatedProfile.full_name,
-          role: data.profile.role || finalRole,
-          plan: data.profile.plan || "professional",
-          avatar_url: data.profile.avatar_url || avatarUrl,
-        };
-      }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data?.success || !data?.profile) {
+      throw new Error(data?.error || "Could not save your professional role. Please try again.");
+    }
+    updatedProfile = {
+      id: data.profile.id || updatedProfile.id,
+      email: normEmail,
+      full_name: data.profile.full_name || updatedProfile.full_name,
+      role: data.profile.role || finalRole,
+      plan: data.profile.plan || "professional",
+      avatar_url: data.profile.avatar_url || avatarUrl,
+    };
+    if (updatedProfile.role !== finalRole) {
+      throw new Error("Your professional role was not saved. Please select it again.");
     }
   } catch (err) {
     console.warn("Could not sync updated role to /api/auth/google-sync:", err);
+    throw err;
   }
 
   safeStorage.removeItem("taxwise_pending_role_setup");
+  safeStorage.removeItem("taxwise_pending_google_role");
   safeStorage.setItem(`taxwise_role_confirmed_${normEmail}`, "true");
 
   // 3. Update local session stores
