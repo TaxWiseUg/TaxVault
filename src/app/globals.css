@@ -1203,6 +1203,19 @@ textarea:focus-visible {
   letter-spacing: -0.03em;
 }
 
+.tw-mobile-nav__brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tw-mobile-nav__brand-copy small {
+  color: var(--color-muted, var(--landing-muted));
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+}
+
 .tw-main-nav__tabs button,
 .tw-mobile-nav__tabs button {
   display: inline-grid;
@@ -1210,8 +1223,8 @@ textarea:focus-visible {
   height: 46px;
   place-items: center;
   border: 1px solid var(--color-border, var(--landing-border));
-  border-radius: 15px;
-  background: transparent;
+  border-radius: 13px;
+  background: var(--color-offwhite, rgba(15, 32, 68, 0.035));
   color: var(--color-muted, var(--landing-muted));
   cursor: pointer;
   transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
@@ -1226,9 +1239,10 @@ textarea:focus-visible {
 
 .tw-main-nav__tabs button.is-active,
 .tw-mobile-nav__tabs button.is-active {
-  border-color: rgba(26, 123, 107, 0.34);
-  background: var(--color-teal-light, rgba(26, 123, 107, 0.1));
-  color: var(--color-teal, #1A7B6B);
+  border-color: var(--color-teal, #1A7B6B);
+  background: var(--color-teal, #1A7B6B);
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(26, 123, 107, 0.2);
 }
 
 .tw-main-nav__links,
@@ -1249,13 +1263,13 @@ textarea:focus-visible {
 .tw-mobile-nav__link {
   display: flex;
   width: 100%;
-  min-height: 44px;
+  min-height: 46px;
   align-items: center;
   gap: 11px;
-  padding: 10px 14px;
-  border: 1px solid var(--color-border, var(--landing-border));
+  padding: 10px 13px;
+  border: 1px solid transparent;
   border-radius: var(--mobile-nav-pill-radius);
-  background: transparent;
+  background: var(--color-offwhite, rgba(15, 32, 68, 0.035));
   color: var(--color-text, var(--landing-text));
   font: inherit;
   font-size: 0.84rem;
@@ -1268,7 +1282,7 @@ textarea:focus-visible {
 .tw-main-nav__links .tw-mobile-link:hover,
 .tw-mobile-nav__link:hover {
   transform: translateX(-2px);
-  border-color: rgba(26, 123, 107, 0.36);
+  border-color: rgba(26, 123, 107, 0.16);
   background: var(--color-teal-light, rgba(26, 123, 107, 0.08));
   color: var(--color-teal, #1A7B6B);
 }
@@ -1284,9 +1298,14 @@ textarea:focus-visible {
 }
 
 .tw-mobile-nav__link.is-active {
-  border-color: rgba(26, 123, 107, 0.36);
-  background: var(--color-teal-light);
-  color: var(--color-teal);
+  border-color: var(--color-teal, #1A7B6B);
+  background: var(--color-teal, #1A7B6B);
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(26, 123, 107, 0.18);
+}
+
+.tw-mobile-nav__link.is-active .tw-mobile-nav__link-icon {
+  color: #fff;
 }
 
 .tw-mobile-nav__badge {
@@ -1306,7 +1325,7 @@ textarea:focus-visible {
   align-items: center;
   gap: 9px;
   margin-top: auto;
-  padding-top: 13px;
+  padding-top: 12px;
   border-top: 1px solid var(--color-border, var(--landing-border));
 }
 
@@ -1321,7 +1340,7 @@ textarea:focus-visible {
   padding: 6px 10px;
   border: 1px solid transparent;
   border-radius: 14px;
-  background: transparent;
+  background: var(--color-offwhite, rgba(15, 32, 68, 0.035));
   color: var(--color-text, var(--landing-text));
   text-align: left;
   cursor: pointer;
@@ -1330,7 +1349,7 @@ textarea:focus-visible {
 
 .tw-main-nav__account:hover,
 .tw-mobile-nav__account:hover {
-  border-color: rgba(26, 123, 107, 0.24);
+  border-color: rgba(26, 123, 107, 0.2);
   background: var(--color-teal-light, rgba(26, 123, 107, 0.08));
 }
 

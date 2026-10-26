@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
-import { flushSync } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { User } from "@supabase/supabase-js";
 import { 
@@ -1454,7 +1454,7 @@ export default function TaxWiseSaaS() {
         </div>
 
         {/* MOBILE SLIDE-DOWN DRAWER */}
-        {isMobile && (
+        {isMobile && typeof document !== "undefined" && createPortal(
           <div
             id="mobile-navigation-drawer"
             className={`tw-mobile-nav-drawer ${isMobileMenuOpen ? "is-open" : ""}`}
@@ -1469,7 +1469,10 @@ export default function TaxWiseSaaS() {
           >
             <div className="tw-mobile-nav__header">
               <span className="tw-mobile-nav__brand-mark" aria-hidden="true">TW</span>
-              <span className="tw-mobile-nav__brand-name">TaxWise</span>
+              <span className="tw-mobile-nav__brand-copy">
+                <strong className="tw-mobile-nav__brand-name">TaxWise</strong>
+                <small>UGANDA TAX PLATFORM</small>
+              </span>
             </div>
             <div className="tw-mobile-nav__tabs">
               <button
@@ -1548,7 +1551,8 @@ export default function TaxWiseSaaS() {
                 <LogOut size={17} />
               </button>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </header>
 

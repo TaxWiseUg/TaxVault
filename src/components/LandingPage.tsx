@@ -833,7 +833,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             >
               <div className="tw-main-nav__header">
                 <span className="tw-mobile-nav__brand-mark" aria-hidden="true">TW</span>
-                <span className="tw-mobile-nav__brand-name">TaxWise</span>
+                <span className="tw-mobile-nav__brand-copy">
+                  <strong className="tw-mobile-nav__brand-name">TaxWise</strong>
+                  <small>UGANDA TAX PLATFORM</small>
+                </span>
               </div>
               <div className="tw-main-nav__tabs">
                 <button type="button" aria-label="Home" title="Home" aria-current="page" className="is-active">
