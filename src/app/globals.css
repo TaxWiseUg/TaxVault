@@ -2304,6 +2304,136 @@ html.dark .dashboard-panel {
   }
 }
 
+/* Floating mobile navigation dock and its compact More bubble */
+.tw-mobile-dock {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .tw-mobile-menu-trigger {
+    display: none !important;
+  }
+
+  .tw-mobile-nav-backdrop,
+  .tw-main-nav-backdrop {
+    background: rgba(12, 24, 38, 0.1) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .tw-main-nav,
+  .tw-mobile-nav-drawer {
+    top: auto !important;
+    right: 12px !important;
+    bottom: calc(86px + env(safe-area-inset-bottom)) !important;
+    left: 12px !important;
+    width: min(430px, calc(100vw - 24px)) !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: calc(100dvh - 132px - env(safe-area-inset-top)) !important;
+    margin-inline: auto !important;
+    padding: 16px !important;
+    gap: 12px !important;
+    border: 1px solid var(--color-border, var(--landing-border)) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 18px 55px rgba(10, 24, 40, 0.22) !important;
+    transform: translateY(14px);
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease, visibility 0s linear 240ms;
+  }
+
+  .tw-main-nav.open,
+  .tw-mobile-nav-drawer.is-open {
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .tw-main-nav__links,
+  .tw-mobile-nav__links {
+    justify-content: flex-start;
+    gap: 7px;
+    min-height: 0;
+  }
+
+  .tw-mobile-dock {
+    position: fixed;
+    z-index: 400;
+    right: 12px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 12px;
+    display: flex;
+    width: min(460px, calc(100vw - 24px));
+    min-height: 66px;
+    align-items: center;
+    justify-content: space-around;
+    gap: 3px;
+    margin-inline: auto;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 24px;
+    background: color-mix(in srgb, var(--color-white, #fff) 92%, transparent);
+    box-shadow: 0 9px 32px rgba(12, 28, 44, 0.2), 0 2px 8px rgba(12, 28, 44, 0.08);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+
+  .tw-mobile-dock button {
+    display: flex;
+    min-width: 0;
+    min-height: 52px;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px 2px;
+    border: 0;
+    border-radius: 17px;
+    background: transparent;
+    color: var(--color-muted, #667085);
+    font: inherit;
+    cursor: pointer;
+    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .tw-mobile-dock button span {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.59rem;
+    font-weight: 700;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tw-mobile-dock button.is-active {
+    background: var(--color-teal, #1a7b6b);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(26, 123, 107, 0.22);
+  }
+
+  .tw-mobile-dock button:active {
+    transform: scale(0.96);
+  }
+
+  html.dark .tw-mobile-dock {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: color-mix(in srgb, var(--color-white, #111827) 92%, transparent);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.42);
+  }
+
+  html.dark .tw-mobile-dock button {
+    color: #cbd5e1;
+  }
+
+  html.dark .tw-mobile-dock button.is-active {
+    color: #fff;
+  }
+
+  .main-scroll-container {
+    padding-bottom: 92px;
+  }
+}
+
 @media (max-width: 760px) {
   .dashboard-page { gap: 16px !important; }
 

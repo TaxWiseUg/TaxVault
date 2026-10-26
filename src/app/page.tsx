@@ -15,7 +15,6 @@ import {
   LogOut, 
   ChevronDown,
   Menu,
-  X,
   Calendar,
   User as UserIcon,
   ShieldCheck,
@@ -1437,36 +1436,22 @@ export default function TaxWiseSaaS() {
                 </>
               )}
             </div>
-            {isMobile && (
-              <button
-                className="tw-mobile-menu-trigger"
-                type="button"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-                aria-expanded={isMobileMenuOpen}
-                aria-controls="mobile-navigation-drawer"
-                title="Toggle menu"
-              >
-                {isMobileMenuOpen ? <X size={19} strokeWidth={2.2} /> : <Menu size={20} strokeWidth={2.2} />}
-              </button>
-            )}
           </div>
         </div>
 
         {/* MOBILE SLIDE-DOWN DRAWER */}
         {isMobile && typeof document !== "undefined" && createPortal(
-          <div
-            id="mobile-navigation-drawer"
-            className={`tw-mobile-nav-drawer ${isMobileMenuOpen ? "is-open" : ""}`}
-            role="dialog"
-            aria-label="Main navigation"
-            aria-modal="true"
-            aria-hidden={!isMobileMenuOpen}
-            inert={!isMobileMenuOpen}
-            style={{
-              background: "var(--color-white)",
-            }}
-          >
+          <>
+            <div
+              id="mobile-navigation-drawer"
+              className={`tw-mobile-nav-drawer ${isMobileMenuOpen ? "is-open" : ""}`}
+              role="dialog"
+              aria-label="More navigation"
+              aria-modal="true"
+              aria-hidden={!isMobileMenuOpen}
+              inert={!isMobileMenuOpen}
+              style={{ background: "var(--color-white)" }}
+            >
             <div className="tw-mobile-nav__header">
               <span className="tw-mobile-nav__brand-mark" aria-hidden="true">TW</span>
               <span className="tw-mobile-nav__brand-copy">
@@ -1551,7 +1536,25 @@ export default function TaxWiseSaaS() {
                 <LogOut size={17} />
               </button>
             </div>
-          </div>,
+            </div>
+            <nav className="tw-mobile-dock" aria-label="Quick navigation">
+              <button type="button" className={isDashboardActive ? "is-active" : ""} aria-label="Dashboard" title="Dashboard" onClick={() => { setPage("dashboard"); setIsMobileMenuOpen(false); }}>
+                <LayoutDashboard size={19} /><span>Dashboard</span>
+              </button>
+              <button type="button" aria-label="Home" title="Home" onClick={() => { setView("landing"); setIsMobileMenuOpen(false); }}>
+                <Home size={19} /><span>Home</span>
+              </button>
+              <button type="button" className={page === "library" ? "is-active" : ""} aria-label="Case library" title="Case library" onClick={() => { setPage("library"); setIsMobileMenuOpen(false); }}>
+                <BookOpen size={19} /><span>Cases</span>
+              </button>
+              <button type="button" className={page === "analyzer" ? "is-active" : ""} aria-label="Case analyzer" title="Case analyzer" onClick={() => { setPage("analyzer"); setIsMobileMenuOpen(false); }}>
+                <Scale size={19} /><span>Analyze</span>
+              </button>
+              <button type="button" className={isMobileMenuOpen ? "is-active" : ""} aria-label={isMobileMenuOpen ? "Close more navigation" : "More navigation"} title="More" aria-expanded={isMobileMenuOpen} aria-controls="mobile-navigation-drawer" onClick={() => setIsMobileMenuOpen(open => !open)}>
+                <Menu size={19} /><span>More</span>
+              </button>
+            </nav>
+          </>,
           document.body
         )}
       </header>

@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
   Car, Calculator, ShieldCheck, Mail, Check, Copy, CheckCircle2,
   FileText, Cpu, TrendingUp, Building2, Globe, Sparkles, 
-  ArrowRight, Receipt, FileCheck, Home, Clock
+  ArrowRight, Receipt, FileCheck, Home, Clock, Menu
 } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 
@@ -787,34 +787,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           </div>
 
-          {/* Accessible Mobile Menu Button */}
-          <button 
-            ref={menuBtnRef}
-            id="menuBtn"
-            className="tw-hamburger tw-hamburger-toggle"
-            onClick={() => {
-              if (!mobileOpen) {
-                const nav = menuBtnRef.current?.closest("nav");
-                if (nav) {
-                  document.documentElement.style.setProperty(
-                    "--landing-mobile-nav-top",
-                    `${nav.getBoundingClientRect().bottom}px`
-                  );
-                }
-              }
-              setMobileOpen(v => !v);
-            }}
-            aria-expanded={mobileOpen}
-            aria-controls="mainNav"
-            aria-label={mobileOpen ? "Close menu" : "Open menu"}
-            style={{
-              display: "none",
-            }}
-          >
-            <span className={`tw-hamburger-toggle__line ${mobileOpen ? "is-open" : ""}`} />
-            <span className={`tw-hamburger-toggle__line ${mobileOpen ? "is-open" : ""}`} />
-            <span className={`tw-hamburger-toggle__line ${mobileOpen ? "is-open" : ""}`} />
-          </button>
         </div>
 
         {/* Mobile Navigation Drawer */}
@@ -920,6 +892,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                 )}
               </div>
+            </nav>
+            <nav className="tw-mobile-dock" aria-label="Quick navigation">
+              <button type="button" className="is-active" aria-label="Home" title="Home">
+                <Home size={19} /><span>Home</span>
+              </button>
+              <button type="button" aria-label={dbUser ? "Dashboard" : "Start free trial"} title={dbUser ? "Dashboard" : "Start free trial"} onClick={() => {
+                if (dbUser && onNavigate) onNavigate("dashboard"); else onGetStarted();
+              }}>
+                <LayoutDashboard size={19} /><span>Dashboard</span>
+              </button>
+              <button type="button" aria-label="Case library" title="Case library" onClick={() => dbUser && onNavigate ? onNavigate("library") : onGetStarted()}>
+                <FileText size={19} /><span>Cases</span>
+              </button>
+              <button type="button" aria-label="Case analyzer" title="Case analyzer" onClick={() => dbUser && onNavigate ? onNavigate("analyzer") : onGetStarted()}>
+                <Scale size={19} /><span>Analyze</span>
+              </button>
+              <button ref={menuBtnRef} type="button" className={mobileOpen ? "is-active" : ""} aria-label={mobileOpen ? "Close more navigation" : "More navigation"} title="More" aria-expanded={mobileOpen} onClick={() => setMobileOpen(open => !open)}>
+                <Menu size={19} /><span>More</span>
+              </button>
             </nav>
           </>,
           document.body
