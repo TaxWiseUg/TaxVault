@@ -19,13 +19,15 @@ export async function POST(req: NextRequest) {
     const fullName = typeof body.full_name === "string" ? body.full_name.trim() : "";
     const avatarUrl = typeof body.avatar_url === "string" ? body.avatar_url : undefined;
     const googleUid = typeof body.google_uid === "string" ? body.google_uid : "";
+    const requestedRole = typeof body.role === "string" && body.role.trim() ? body.role.trim() : undefined;
+    const isFirstLogin = body.is_first_login === true;
 
     if (!email) {
       return NextResponse.json({ error: "Email is required." }, { status: 400 });
     }
 
     const isAdmin = email === "taxwiseplatform@gmail.com";
-    const defaultRole = isAdmin ? "Admin" : "Tax Consultant";
+    const defaultRole = isAdmin ? "Admin" : (requestedRole || "Tax Consultant");
     const defaultPlan = "professional";
 
     const supabaseAdmin = getSupabaseAdmin();
@@ -40,8 +42,9 @@ export async function POST(req: NextRequest) {
           .ilike("email", email)
           .maybeSingle();
 
+        const isNewUser = !isAdmin && (!existingUser || !existingUser.role) && !requestedRole;
         const canonicalId = existingUser?.id || (googleUid.length === 36 ? googleUid : undefined);
-        const resolvedRole = isAdmin ? "Admin" : (existingUser?.role || defaultRole);
+        const resolvedRole = isAdmin ? "Admin" : (requestedRole || existingUser?.role || defaultRole);
         const resolvedPlan = isAdmin ? "professional" : (existingUser?.plan || defaultPlan);
         const resolvedName = fullName || existingUser?.full_name || (isAdmin ? "TaxWise Platform" : email.split("@")[0]);
 
@@ -109,6 +112,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
           success: true,
+          isNewUser,
           profile: {
             id: finalUserId,
             email: email,
@@ -126,14 +130,16 @@ export async function POST(req: NextRequest) {
     // ── 2. Demo / Sandbox Mode (or fallback) ──
     const fallbackId = isAdmin ? "f8174d44-d81a-4e70-9f4b-64744f969d09" : (googleUid || `user-${email}`);
     const resolvedName = fullName || (isAdmin ? "TaxWise Platform" : email.split("@")[0]);
+    const isNewUser = !isAdmin && !requestedRole && isFirstLogin;
 
     return NextResponse.json({
       success: true,
+      isNewUser,
       profile: {
         id: fallbackId,
         email: email,
         full_name: resolvedName,
-        role: defaultRole,
+        role: requestedRole || defaultRole,
         plan: defaultPlan,
         avatar_url: avatarUrl,
       },

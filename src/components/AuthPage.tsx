@@ -3,10 +3,29 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase, safeStorage } from "../lib/supabaseClient";
-import { signInWithGoogle } from "../lib/googleAuth";
+import { signInWithGoogle, updateUserRole, signOutGoogle, type UserProfile } from "../lib/googleAuth";
+import type { User as FirebaseUser } from "firebase/auth";
 import { C } from "../lib/constants";
 import { LegalPortal } from "./LegalPortal";
-import { AlertTriangle, ArrowLeft, ShieldCheck, Lock, Mail, User, Eye, EyeOff } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ShieldCheck,
+  Lock,
+  Mail,
+  User,
+  Eye,
+  EyeOff,
+  Briefcase,
+  Calculator,
+  Scale,
+  TrendingUp,
+  Building2,
+  GraduationCap,
+  CheckCircle2,
+  Sparkles,
+  X,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -378,9 +397,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [globalError, setGlobalError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-
-
-
+  // Google New User Role Prompt
+  const [pendingGoogleUser, setPendingGoogleUser] = useState<{
+    user: FirebaseUser;
+    profile: UserProfile;
+  } | null>(null);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState("Tax Consultant");
+  const [isSavingRole, setIsSavingRole] = useState(false);
   // ── Clean mode switch ──
   const switchMode = (next: AuthMode) => {
     setMode(next);
@@ -751,6 +775,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
       setGlobalError("");
       const result = await signInWithGoogle();
       if (result?.user) {
+        if (result.isNewUser && (result.profile.email || "").toLowerCase() !== "taxwiseplatform@gmail.com") {
+          setPendingGoogleUser({ user: result.user, profile: result.profile });
+          setSelectedRole("Tax Consultant");
+          setShowRoleModal(true);
+          return;
+        }
         onLoginSuccess();
       }
     } catch (err: unknown) {
@@ -762,6 +792,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmRole = async () => {
+    if (!pendingGoogleUser) return;
+    setIsSavingRole(true);
+    setGlobalError("");
+    try {
+      await updateUserRole(
+        pendingGoogleUser.profile.email,
+        selectedRole,
+        pendingGoogleUser.profile.full_name,
+        pendingGoogleUser.profile.avatar_url
+      );
+      setShowRoleModal(false);
+      setPendingGoogleUser(null);
+      onLoginSuccess();
+    } catch (err: unknown) {
+      setGlobalError(err instanceof Error ? err.message : "Failed to save selected role.");
+    } finally {
+      setIsSavingRole(false);
+    }
+  };
+
+  const handleCancelRoleModal = async () => {
+    try {
+      await signOutGoogle();
+    } catch {
+      // ignore
+    }
+    safeStorage.removeItem("taxwise_pending_role_setup");
+    setShowRoleModal(false);
+    setPendingGoogleUser(null);
   };
 
   const inputStyle = (hasError?: boolean): React.CSSProperties => ({
@@ -1973,6 +2035,324 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
       </div>
 
       <LegalPortal isOpen={legalOpen} onClose={() => setLegalOpen(false)} initialTab={legalTab} />
+
+      {/* ── Modal: Select Professional Role for New Google User ── */}
+      <AnimatePresence>
+        {showRoleModal && pendingGoogleUser && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 9999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "16px",
+              background: "rgba(10, 20, 36, 0.72)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 16 }}
+              transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                width: "100%",
+                maxWidth: 680,
+                maxHeight: "92vh",
+                background: "#FFFFFF",
+                borderRadius: 24,
+                boxShadow: "0 28px 70px rgba(0, 0, 0, 0.36), 0 0 1px rgba(0, 0, 0, 0.1)",
+                border: "1px solid rgba(15, 32, 68, 0.08)",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {/* Header */}
+              <div
+                style={{
+                  padding: "24px 28px 20px",
+                  background: "linear-gradient(135deg, #102447 0%, #0E2A3C 60%, #105B52 100%)",
+                  color: "#FFFFFF",
+                  position: "relative",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255, 255, 255, 0.12)", padding: "4px 12px", borderRadius: 9999 }}>
+                    <Sparkles size={13} style={{ color: "#62D2B5" }} />
+                    <span style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#62D2B5" }}>
+                      New Account Onboarding
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCancelRoleModal}
+                    aria-label="Close"
+                    style={{
+                      background: "rgba(255, 255, 255, 0.14)",
+                      border: "none",
+                      color: "#FFFFFF",
+                      borderRadius: "50%",
+                      width: 28,
+                      height: 28,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "background 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255, 255, 255, 0.24)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255, 255, 255, 0.14)"; }}
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+
+                <h2 style={{ fontSize: "1.35rem", fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.02em" }}>
+                  Select Your Professional Role
+                </h2>
+                <p style={{ fontSize: "0.84rem", color: "rgba(255, 255, 255, 0.82)", margin: 0, lineHeight: 1.45 }}>
+                  TaxWise customizes your statutory tax calculators, compliance calendar, and TAT case law precedents based on your daily workflow.
+                </p>
+
+                {/* Google user pill */}
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginTop: 12,
+                    padding: "5px 12px",
+                    borderRadius: 9999,
+                    background: "rgba(0, 0, 0, 0.25)",
+                    border: "1px solid rgba(255, 255, 255, 0.15)",
+                    fontSize: "0.75rem",
+                    color: "rgba(255, 255, 255, 0.9)",
+                  }}
+                >
+                  <GoogleIcon />
+                  <span>
+                    Signed in as <strong>{pendingGoogleUser.profile.email}</strong>
+                  </span>
+                </div>
+              </div>
+
+              {/* Roles Grid */}
+              <div
+                style={{
+                  padding: "24px 28px",
+                  overflowY: "auto",
+                  flex: 1,
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 12,
+                  background: "#F8FAFC",
+                }}
+              >
+                {[
+                  {
+                    id: "Tax Consultant",
+                    title: "Tax Consultant",
+                    tag: "Advisory & Audits",
+                    desc: "Domestic taxes advisory, URA audit review representation, client tax clearance and TAT petitions.",
+                    icon: <Briefcase size={18} />,
+                  },
+                  {
+                    id: "Accountant",
+                    title: "Accountant / Auditor",
+                    tag: "Reporting & Returns",
+                    desc: "Monthly VAT & PAYE filings, ledger reconciliation, withholding tax management & annual tax returns.",
+                    icon: <Calculator size={18} />,
+                  },
+                  {
+                    id: "Tax Lawyer",
+                    title: "Tax Lawyer",
+                    tag: "Disputes & Litigation",
+                    desc: "Tax Appeals Tribunal (TAT) hearings, High Court tax litigation, objection briefs & statutory interpretation.",
+                    icon: <Scale size={18} />,
+                  },
+                  {
+                    id: "Finance Manager",
+                    title: "Finance Manager",
+                    tag: "Corporate & Treasury",
+                    desc: "Corporate tax planning, transfer pricing disclosures, payroll statutory compliance & treasury controls.",
+                    icon: <TrendingUp size={18} />,
+                  },
+                  {
+                    id: "Business Owner",
+                    title: "Business Owner / Director",
+                    tag: "Operations & EFRIS",
+                    desc: "EFRIS compliance, electronic invoicing, presumptive tax rates, TIN management & business risk mitigation.",
+                    icon: <Building2 size={18} />,
+                  },
+                  {
+                    id: "Student",
+                    title: "Student / Academic",
+                    tag: "Learning & Research",
+                    desc: "Uganda Income Tax Act, TAT case law precedents, academic research and CPD module certificates.",
+                    icon: <GraduationCap size={18} />,
+                  },
+                ].map((item) => {
+                  const isSelected = selectedRole === item.id;
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => setSelectedRole(item.id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setSelectedRole(item.id); }}
+                      style={{
+                        padding: "16px 16px",
+                        borderRadius: 14,
+                        border: isSelected ? "2px solid #1A7B6B" : "1.5px solid #E2E8F0",
+                        background: isSelected ? "#F0FDF9" : "#FFFFFF",
+                        cursor: "pointer",
+                        transition: "all 0.18s ease",
+                        boxShadow: isSelected
+                          ? "0 4px 14px rgba(26, 123, 107, 0.16)"
+                          : "0 1px 3px rgba(0, 0, 0, 0.03)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                        position: "relative",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div
+                            style={{
+                              width: 34,
+                              height: 34,
+                              borderRadius: 10,
+                              background: isSelected ? "#1A7B6B" : "#EDF2F7",
+                              color: isSelected ? "#FFFFFF" : "#4A5568",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.18s ease",
+                            }}
+                          >
+                            {item.icon}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "0.92rem", fontWeight: 750, color: "#0F2044" }}>
+                              {item.title}
+                            </div>
+                            <div style={{ fontSize: "0.68rem", fontWeight: 600, color: isSelected ? "#1A7B6B" : "#718096" }}>
+                              {item.tag}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            width: 20,
+                            height: 20,
+                            borderRadius: "50%",
+                            border: isSelected ? "2px solid #1A7B6B" : "2px solid #CBD5E1",
+                            background: isSelected ? "#1A7B6B" : "transparent",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#FFFFFF",
+                            flexShrink: 0,
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {isSelected && <CheckCircle2 size={14} strokeWidth={3} />}
+                        </div>
+                      </div>
+
+                      <p style={{ margin: 0, fontSize: "0.78rem", color: "#475569", lineHeight: 1.42 }}>
+                        {item.desc}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div
+                style={{
+                  padding: "16px 28px",
+                  background: "#FFFFFF",
+                  borderTop: "1px solid #E2E8F0",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={handleCancelRoleModal}
+                  disabled={isSavingRole}
+                  style={{
+                    background: "none",
+                    border: "1px solid #CBD5E1",
+                    color: "#475569",
+                    padding: "10px 18px",
+                    borderRadius: 9999,
+                    fontSize: "0.84rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmRole}
+                  disabled={isSavingRole}
+                  style={{
+                    background: "linear-gradient(135deg, #1A7B6B 0%, #156255 100%)",
+                    color: "#FFFFFF",
+                    border: "none",
+                    padding: "11px 24px",
+                    borderRadius: 9999,
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    cursor: isSavingRole ? "not-allowed" : "pointer",
+                    boxShadow: "0 4px 14px rgba(26, 123, 107, 0.3)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontFamily: "inherit",
+                    transition: "all 0.18s ease",
+                  }}
+                >
+                  {isSavingRole ? (
+                    <>
+                      <div
+                        style={{
+                          width: 14,
+                          height: 14,
+                          border: "2px solid rgba(255,255,255,0.4)",
+                          borderTopColor: "#FFFFFF",
+                          borderRadius: "50%",
+                          animation: "spin 0.8s linear infinite",
+                        }}
+                      />
+                      <span>Setting up workspace...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Continue to Dashboard</span>
+                      <ArrowLeft size={15} style={{ transform: "rotate(180deg)" }} />
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

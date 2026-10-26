@@ -29,6 +29,13 @@ import {
 
 import { setScrollLocked } from "./UI";
 import { KnowYourTaxesCard } from "../features/know-your-taxes/components/KnowYourTaxesCard";
+import { 
+  getUserDashboardData, 
+  saveUserDashboardData, 
+  type UserDashboardMetrics, 
+  type UserDeadlineItem, 
+  type PinnedCalculator 
+} from "../lib/userDashboardData";
 
 interface DashboardProps {
   user: {
@@ -108,8 +115,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isComingUpExpanded, setIsComingUpExpanded] = useState(false);
-  const [isSeptemberFiled, setIsSeptemberFiled] = useState(false);
-  const [deadlines, setDeadlines] = useState<DeadlineItem[]>(INITIAL_DEADLINES);
+
+  // User-scoped dynamic dashboard metrics and persistent state
+  const [metrics, setMetrics] = useState<UserDashboardMetrics>(() => getUserDashboardData(user));
+  const [isSeptemberFiled, setIsSeptemberFiled] = useState<boolean>(() => metrics.isReturnFiled);
+  const [deadlines, setDeadlines] = useState<DeadlineItem[]>(() => 
+    metrics.deadlines && metrics.deadlines.length > 0 ? (metrics.deadlines as DeadlineItem[]) : INITIAL_DEADLINES
+  );
   
   // Dynamic Calendar Navigation state (defaults to October 2026)
   const [calYear, setCalYear] = useState(() => new Date().getFullYear());
@@ -126,13 +138,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
   const [newDeadlineTax, setNewDeadlineTax] = useState("PAYE");
 
   // Pinned Calculators State
-  const [pinnedCalculators, setPinnedCalculators] = useState([
-    { id: "paye", title: "PAYE", sub: "2026 statutory bands", page: "calculators" },
-    { id: "corporate", title: "Corporate tax", sub: "With loss carry-forward", page: "calculators" },
-    { id: "rental", title: "Rental income", sub: "Individuals & companies", page: "calculators" },
-    { id: "vat", title: "VAT", sub: "Output vs input (18%)", page: "calculators" },
-  ]);
+  const [pinnedCalculators, setPinnedCalculators] = useState<PinnedCalculator[]>(() => 
+    metrics.pinnedCalculators && metrics.pinnedCalculators.length > 0 ? metrics.pinnedCalculators : [
+      { id: "paye", title: "PAYE", sub: "2026 statutory bands", page: "calculators" },
+      { id: "corporate", title: "Corporate tax", sub: "With loss carry-forward", page: "calculators" },
+      { id: "rental", title: "Rental income", sub: "Individuals & companies", page: "calculators" },
+      { id: "vat", title: "VAT", sub: "Output vs input (18%)", page: "calculators" },
+    ]
+  );
   const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+
+  // Sync state whenever the active user, role or plan changes
+  useEffect(() => {
+    const fresh = getUserDashboardData(user);
+    setMetrics(fresh);
+    setIsSeptemberFiled(fresh.isReturnFiled);
+    if (fresh.deadlines && fresh.deadlines.length > 0) {
+      setDeadlines(fresh.deadlines as DeadlineItem[]);
+    }
+    if (fresh.pinnedCalculators && fresh.pinnedCalculators.length > 0) {
+      setPinnedCalculators(fresh.pinnedCalculators);
+    }
+  }, [user.id, user.email, user.role, user.plan]);
 
   // Prevent background scrolling when modal overlays are open
   useEffect(() => {
@@ -301,12 +328,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
   // Toggle Deadline Completion
   const toggleDeadline = (id: string) => {
-    setDeadlines(prev => prev.map(dl => {
-      if (dl.id === id) {
-        return { ...dl, completed: !dl.completed };
-      }
-      return dl;
-    }));
+    setDeadlines(prev => {
+      const updated = prev.map(dl => {
+        if (dl.id === id) {
+          return { ...dl, completed: !dl.completed };
+        }
+        return dl;
+      });
+      saveUserDashboardData(user, { deadlines: updated });
+      return updated;
+    });
   };
 
   // Add Custom Deadline Handler
@@ -335,7 +366,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
       completed: false
     };
 
-    setDeadlines(prev => [newDl, ...prev]);
+    const nextDeadlines = [newDl, ...deadlines];
+    setDeadlines(nextDeadlines);
+    saveUserDashboardData(user, { deadlines: nextDeadlines });
     setCalYear(y);
     setCalMonth(m);
     setSelectedDay(d);
@@ -399,11 +432,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
       {/* 1. Greeting & Search / CTA Header */}
       <motion.div className="dashboard-heading" variants={itemVariants} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
         <div>
-          <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2rem", color: C.navy, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 4 }}>
-            {greeting}, {userName}
-          </h1>
-          <p style={{ color: "#64748B", fontSize: "0.85rem", fontWeight: 500 }}>
-            {currentDateLabel} · {isSeptemberFiled ? "September returns filed" : timeLeft.isLate ? "1 overdue filing needs attention" : "1 filing due soon"} · 1 case waiting for your review
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4, flexWrap: "wrap" }}>
+            <h1 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "2rem", color: C.navy, fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>
+              {greeting}, {userName}
+            </h1>
+            <span style={{ 
+              fontSize: "0.72rem", 
+              fontWeight: 800, 
+              padding: "3px 10px", 
+              borderRadius: 99, 
+              background: metrics.isAdmin ? "rgba(200, 146, 42, 0.15)" : "rgba(26, 123, 107, 0.12)", 
+              color: metrics.isAdmin ? "#B45309" : C.teal,
+              border: `1px solid ${metrics.isAdmin ? "rgba(200, 146, 42, 0.3)" : "rgba(26, 123, 107, 0.25)"}`,
+              letterSpacing: "0.02em"
+            }}>
+              {metrics.roleBadge}
+            </span>
+          </div>
+          <p style={{ color: "#64748B", fontSize: "0.85rem", fontWeight: 500, margin: 0 }}>
+            {currentDateLabel} · {metrics.roleDescription} · {isSeptemberFiled ? "September returns filed" : timeLeft.isLate ? "1 overdue filing needs attention" : "1 filing due soon"}
           </p>
         </div>
 
@@ -573,7 +620,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
       </motion.div>
 
       {/* 2. Urgent Statutory Filing Deadline Banner (Prominent Standout Card with Dynamic Duration Colors) */}
-      <motion.div className="dashboard-deadline" variants={itemVariants}>
+      <motion.div className="dashboard-deadline" variants={itemVariants} style={{ width: "100%", opacity: 1 }}>
         {(() => {
           const totalHoursLeft = (timeLeft.days * 24) + timeLeft.hours;
           let bannerBg = "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)";
@@ -634,10 +681,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              flexWrap: "nowrap",
-              gap: 24,
+              flexWrap: "wrap",
+              gap: 20,
               transition: "all 0.25s ease",
-              width: "100%"
+              width: "100%",
+              opacity: 1,
+              visibility: "visible",
             }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 18, flex: 1, minWidth: 0 }}>
                 {/* Date Badge */}
@@ -681,7 +730,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0, flexWrap: "nowrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                 {!isSeptemberFiled ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FFFFFF", padding: "10px 16px", borderRadius: 12, border: timerBorder, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", flexShrink: 0 }}>
                     {timeLeft.isCountUp || timeLeft.isLate ? (
@@ -716,12 +765,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                     )}
                   </div>
                 ) : (
-                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#15803D", background: "rgba(22,163,74,0.15)", padding: "10px 16px", borderRadius: 10, flexShrink: 0 }}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#15803D", background: "rgba(22,163,74,0.15)", padding: "10px 16px", borderRadius: 10, display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                     ✓ Zero outstanding exposure
                   </span>
                 )}
 
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -752,7 +801,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   
                   <button
                     type="button"
-                    onClick={() => setIsSeptemberFiled(!isSeptemberFiled)}
+                    onClick={() => {
+                      const next = !isSeptemberFiled;
+                      setIsSeptemberFiled(next);
+                      saveUserDashboardData(user, { isReturnFiled: next });
+                    }}
                     style={{
                       background: isSeptemberFiled ? "#FFFFFF" : C.navy,
                       color: isSeptemberFiled ? "#DC2626" : "#FFFFFF",
@@ -813,10 +866,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <Scale size={16} style={{ color: C.teal }} />
             </div>
             <div style={{ fontSize: "2rem", fontWeight: 800, color: C.navy, fontFamily: "'Playfair Display', Georgia, serif", lineHeight: 1, marginBottom: 8 }}>
-              <DashboardCountUp value={3} />
+              <DashboardCountUp value={metrics.activeCasesCount} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
-              <span><span style={{ color: "#D97706", fontWeight: 700 }}>1 needs review</span> · 2 in progress</span>
+              <span>{metrics.activeCasesSub}</span>
               <span style={{ color: C.teal, fontWeight: 700, fontSize: "0.75rem" }}>View →</span>
             </div>
           </div>
@@ -846,10 +899,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <ShieldCheck size={16} style={{ color: C.teal }} />
             </div>
             <div style={{ fontSize: "2rem", fontWeight: 800, color: C.navy, fontFamily: "'Playfair Display', Georgia, serif", lineHeight: 1, marginBottom: 8 }}>
-              <DashboardCountUp value={2} />
+              <DashboardCountUp value={metrics.reportsCount} />
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
-              <span>Last: Mukwano PAYE review</span>
+              <span>{metrics.reportsSub}</span>
               <span style={{ color: C.teal, fontWeight: 700, fontSize: "0.75rem" }}>Audit →</span>
             </div>
           </div>
@@ -879,13 +932,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <BookOpen size={16} style={{ color: C.teal }} />
             </div>
             <div style={{ fontSize: "2rem", fontWeight: 800, color: C.navy, fontFamily: "'Playfair Display', Georgia, serif", lineHeight: 1, marginBottom: 8 }}>
-              <DashboardCountUp value={4} /> <span style={{ fontSize: "1.1rem", fontWeight: 600, color: "#64748B" }}>lessons</span>
+              <DashboardCountUp value={metrics.learningLessonsCount} /> <span style={{ fontSize: "1.1rem", fontWeight: 600, color: "#64748B" }}>lessons</span>
             </div>
-            <div style={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600, marginBottom: 8 }}>
-              Advanced VAT course · 4 of 12
+            <div style={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600, marginBottom: 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {metrics.learningCourseName}
             </div>
             <div style={{ width: "100%", height: 5, background: "#E2E8F0", borderRadius: 99, overflow: "hidden" }}>
-              <div style={{ width: "33%", height: "100%", background: C.teal, borderRadius: 99 }} />
+              <div style={{ width: `${Math.min(100, Math.max(5, metrics.learningProgressPercent))}%`, height: "100%", background: C.teal, borderRadius: 99 }} />
             </div>
           </div>
         </motion.div>
@@ -912,11 +965,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                 <div style={{ fontSize: "0.76rem", fontWeight: 700, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>
                   Compliance score
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "#D97706", fontWeight: 700, marginBottom: 6 }}>
-                  2 items to fix
+                <div style={{ fontSize: "0.75rem", color: metrics.complianceScore >= 90 ? "#16A34A" : "#D97706", fontWeight: 700, marginBottom: 6 }}>
+                  {metrics.complianceSub}
                 </div>
                 <div style={{ fontSize: "0.76rem", color: C.teal, fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
-                  <span>See what&apos;s missing</span>
+                  <span>See breakdown</span>
                   <span>→</span>
                 </div>
               </div>
@@ -925,9 +978,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
               <div style={{ position: "relative", width: 50, height: 50, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="50" height="50" viewBox="0 0 36 36" style={{ transform: "rotate(-90deg)" }}>
                   <circle cx="18" cy="18" r="15.5" fill="none" stroke="#E2E8F0" strokeWidth="3.5" />
-                  <circle cx="18" cy="18" r="15.5" fill="none" stroke={C.teal} strokeWidth="3.5" strokeDasharray="100" strokeDashoffset="12" strokeLinecap="round" />
+                  <circle cx="18" cy="18" r="15.5" fill="none" stroke={metrics.complianceScore >= 90 ? "#16A34A" : C.teal} strokeWidth="3.5" strokeDasharray="100" strokeDashoffset={100 - metrics.complianceScore} strokeLinecap="round" />
                 </svg>
-                <span style={{ position: "absolute", fontSize: "0.75rem", fontWeight: 800, color: C.navy }}><DashboardCountUp value={88} suffix="%" /></span>
+                <span style={{ position: "absolute", fontSize: "0.75rem", fontWeight: 800, color: C.navy }}><DashboardCountUp value={metrics.complianceScore} suffix="%" /></span>
               </div>
             </div>
           </div>
@@ -960,86 +1013,63 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                 <div style={{ textAlign: "right" }}>Next step</div>
               </div>
 
-              {/* Row 1: Uganda Clays */}
-              <div 
-                onClick={() => onNavigate("analyzer")}
-                className="dashboard-case-row"
-                style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "14px 0", borderBottom: `1px solid ${C.border}`, alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(15,32,68,0.02)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >
-                <div>
-                  <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.navy }}>Uganda Clays — VAT input audit</div>
-                  <div style={{ fontSize: "0.7rem", color: "#64748B", marginTop: 2 }}>Updated 5 Jul</div>
+              {metrics.cases && metrics.cases.length > 0 ? (
+                metrics.cases.map((caseItem, idx) => (
+                  <div 
+                    key={caseItem.id || idx}
+                    onClick={() => onNavigate(caseItem.page || "analyzer")}
+                    className="dashboard-case-row"
+                    style={{ 
+                      display: "grid", 
+                      gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", 
+                      padding: "14px 0", 
+                      borderBottom: idx < metrics.cases.length - 1 ? `1px solid ${C.border}` : "none", 
+                      alignItems: "center", 
+                      cursor: "pointer", 
+                      transition: "background 0.12s" 
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(15,32,68,0.02)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                  >
+                    <div>
+                      <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.navy }}>{caseItem.title}</div>
+                      <div style={{ fontSize: "0.7rem", color: "#64748B", marginTop: 2 }}>{caseItem.updatedAt}</div>
+                    </div>
+                    <div>
+                      <span style={{ background: "rgba(15,32,68,0.06)", color: C.navy, fontSize: "0.68rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>
+                        {caseItem.tax}
+                      </span>
+                    </div>
+                    <div>
+                      <span style={{ 
+                        background: caseItem.status === "Needs review" 
+                          ? "rgba(239, 68, 68, 0.1)" 
+                          : caseItem.status === "Report ready" 
+                            ? "rgba(22, 163, 74, 0.1)" 
+                            : caseItem.status === "Drafting"
+                              ? "rgba(217, 119, 6, 0.1)"
+                              : "rgba(37, 99, 235, 0.1)", 
+                        color: caseItem.statusColor || (caseItem.status === "Needs review" ? "#DC2626" : caseItem.status === "Report ready" ? "#16A34A" : "#2563EB"), 
+                        fontSize: "0.7rem", 
+                        fontWeight: 700, 
+                        padding: "3px 8px", 
+                        borderRadius: 99 
+                      }}>
+                        {caseItem.status}
+                      </span>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <span style={{ color: C.teal, fontWeight: 700, fontSize: "0.78rem" }}>
+                        {caseItem.nextStep}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div style={{ padding: "24px 0", textAlign: "center", color: "#64748B", fontSize: "0.82rem" }}>
+                  No active cases yet. Click &ldquo;Analyze a case&rdquo; to start.
                 </div>
-                <div>
-                  <span style={{ background: "rgba(15,32,68,0.06)", color: C.navy, fontSize: "0.68rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>VAT</span>
-                </div>
-                <div>
-                  <span style={{ background: "rgba(239, 68, 68, 0.1)", color: "#DC2626", fontSize: "0.7rem", fontWeight: 700, padding: "3px 8px", borderRadius: 99 }}>
-                    Needs review
-                  </span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ color: C.teal, fontWeight: 700, fontSize: "0.78rem" }}>
-                    Review AI findings →
-                  </span>
-                </div>
-              </div>
-
-              {/* Row 2: Mukwano */}
-              <div 
-                onClick={() => onNavigate("analyzer")}
-                className="dashboard-case-row"
-                style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "14px 0", borderBottom: `1px solid ${C.border}`, alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(15,32,68,0.02)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >
-                <div>
-                  <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.navy }}>Mukwano — PAYE on casual workers</div>
-                  <div style={{ fontSize: "0.7rem", color: "#64748B", marginTop: 2 }}>Updated 8 Jul</div>
-                </div>
-                <div>
-                  <span style={{ background: "rgba(15,32,68,0.06)", color: C.navy, fontSize: "0.68rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>PAYE</span>
-                </div>
-                <div>
-                  <span style={{ background: "rgba(22, 163, 74, 0.1)", color: "#16A34A", fontSize: "0.7rem", fontWeight: 700, padding: "3px 8px", borderRadius: 99 }}>
-                    Report ready
-                  </span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ color: C.teal, fontWeight: 700, fontSize: "0.78rem" }}>
-                    Send to client →
-                  </span>
-                </div>
-              </div>
-
-              {/* Row 3: EFRIS */}
-              <div 
-                onClick={() => onNavigate("compliance")}
-                className="dashboard-case-row"
-                style={{ display: "grid", gridTemplateColumns: "1.6fr 0.6fr 0.9fr 1fr", padding: "14px 0", alignItems: "center", cursor: "pointer", transition: "background 0.12s" }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(15,32,68,0.02)"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >
-                <div>
-                  <div style={{ fontSize: "0.84rem", fontWeight: 700, color: C.navy }}>EFRIS compliance checklist</div>
-                  <div style={{ fontSize: "0.7rem", color: "#64748B", marginTop: 2 }}>Updated 15 Jul</div>
-                </div>
-                <div>
-                  <span style={{ background: "rgba(15,32,68,0.06)", color: C.navy, fontSize: "0.68rem", fontWeight: 700, padding: "2px 6px", borderRadius: 4 }}>EFRIS</span>
-                </div>
-                <div>
-                  <span style={{ background: "rgba(217, 119, 6, 0.1)", color: "#D97706", fontSize: "0.7rem", fontWeight: 700, padding: "3px 8px", borderRadius: 99 }}>
-                    Items open
-                  </span>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ color: C.teal, fontWeight: 700, fontSize: "0.78rem" }}>
-                    Finish checklist →
-                  </span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </motion.div>
@@ -1695,11 +1725,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                     <div
                       key={item.id}
                       onClick={() => {
+                        let nextPinned: PinnedCalculator[];
                         if (isPinned) {
-                          setPinnedCalculators(prev => prev.filter(p => p.id !== item.id));
+                          nextPinned = pinnedCalculators.filter(p => p.id !== item.id);
                         } else {
-                          setPinnedCalculators(prev => [...prev, { ...item, page: "calculators" }]);
+                          nextPinned = [...pinnedCalculators, { ...item, page: "calculators" }];
                         }
+                        setPinnedCalculators(nextPinned);
+                        saveUserDashboardData(user, { pinnedCalculators: nextPinned });
                       }}
                       style={{
                         padding: "12px",

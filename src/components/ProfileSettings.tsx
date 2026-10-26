@@ -8,6 +8,7 @@ import { Card, Button } from "./UI";
 import { AlertTriangle, User, Lock, Key, CreditCard, Trash2, Check, CheckCircle2, Monitor, Sun, Moon } from "lucide-react";
 import { WorkspacePageHero } from "./WorkspacePageHero";
 import { getInitialTheme, applyTheme, ThemeMode } from "../lib/theme";
+import { auth } from "../lib/googleAuth";
 
 interface DbProfile {
   id: string;
@@ -73,12 +74,11 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
 
   const roles = [
     "Tax Consultant",
-    "Lawyer",
-    "Student",
-    "Business Owner",
     "Accountant",
-    "Admin",
-    "Other"
+    "Tax Lawyer",
+    "Finance Manager",
+    "Business Owner",
+    "Student"
   ];
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -168,6 +168,15 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
     }
 
     try {
+      // Check if user is logged in via Google Auth / Firebase
+      const isGoogleAuth = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+
+      if (isGoogleAuth || auth.currentUser) {
+        setPassError("Google-authenticated accounts manage their password and credentials through Google Account Settings.");
+        setPassLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -178,7 +187,12 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
       setNewPassword("");
       setConfirmPassword("");
     } catch (err: unknown) {
-      setPassError(err instanceof Error ? err.message : "Failed to change password.");
+      const msg = err instanceof Error ? err.message : "Failed to change password.";
+      if (msg.includes("Auth session missing")) {
+        setPassError("Google-authenticated accounts manage credentials via Google. Password updates are for email/password accounts.");
+      } else {
+        setPassError(msg);
+      }
     } finally {
       setPassLoading(false);
     }
@@ -192,7 +206,9 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
       return;
     }
 
-    if (!deletePassword) {
+    const isGoogleAuthUser = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+
+    if (!isGoogleAuthUser && !deletePassword) {
       setDeleteError("Please enter your current password to proceed.");
       return;
     }
@@ -201,33 +217,38 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
     setDeleteStep("deleting");
 
     try {
-      // Step 1: Re-authenticate — verify the password is correct
-      const { error: reAuthError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: deletePassword,
-      });
+      // Check if user is logged in via Google Auth / Firebase
+      const isGoogleAuth = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
 
-      if (reAuthError) {
-        setDeleteError("Incorrect password. Please try again.");
-        setDeleteStep("confirm");
-        setDeleteLoading(false);
-        return;
+      if (!isGoogleAuth && !auth.currentUser) {
+        // Step 1: Re-authenticate — verify the password is correct for email users
+        const { error: reAuthError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: deletePassword,
+        });
+
+        if (reAuthError) {
+          setDeleteError("Incorrect password. Please try again.");
+          setDeleteStep("confirm");
+          setDeleteLoading(false);
+          return;
+        }
       }
 
       // Step 2: Get current session token to send to API
+      let accessToken = "";
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        setDeleteError("Session expired. Please refresh and try again.");
-        setDeleteStep("confirm");
-        setDeleteLoading(false);
-        return;
+      if (session?.access_token) {
+        accessToken = session.access_token;
+      } else {
+        accessToken = safeStorage.getItem("mock_supabase_session") ? JSON.parse(safeStorage.getItem("mock_supabase_session") || "{}")?.access_token || "google-token" : "google-token";
       }
 
       // Step 3: Call the secure server-side delete API
       const response = await fetch("/api/delete-account", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${session.access_token}`,
+          "Authorization": `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
       });
@@ -303,7 +324,8 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
     border: "1.5px solid #E5E7EB",
   };
 
-  const isDeleteReady = deleteConfirmText === "DELETE" && deletePassword.length > 0;
+  const isGoogleAuthUser = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+  const isDeleteReady = deleteConfirmText === "DELETE" && (isGoogleAuthUser || deletePassword.length > 0);
 
   return (
     <>
@@ -470,48 +492,66 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                 </div>
               </div>
 
-              <form onSubmit={handleChangePassword}>
-                <div style={inputContainerStyle}>
-                  <label style={labelStyle}>New Password</label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min. 8 chars, 1 capital, 1 number"
-                    style={inputStyle}
-                  />
-                </div>
+              {(() => {
+                const isGoogleUser = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+                if (isGoogleUser) {
+                  return (
+                    <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 12, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#166534", fontWeight: 750, fontSize: "0.88rem" }}>
+                        <CheckCircle2 size={16} />
+                        <span>Google Account Sign-In Active</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: "0.8rem", color: "#15803D", lineHeight: 1.45 }}>
+                        Your account is secured with Google Authentication. You do not need a password on TaxWise. To manage your password, security keys, or 2FA, please visit your Google Account settings.
+                      </p>
+                    </div>
+                  );
+                }
+                return (
+                  <form onSubmit={handleChangePassword}>
+                    <div style={inputContainerStyle}>
+                      <label style={labelStyle}>New Password</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Min. 8 chars, 1 capital, 1 number"
+                        style={inputStyle}
+                      />
+                    </div>
 
-                <div style={inputContainerStyle}>
-                  <label style={labelStyle}>Confirm New Password</label>
-                  <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Repeat new password"
-                    style={inputStyle}
-                  />
-                </div>
+                    <div style={inputContainerStyle}>
+                      <label style={labelStyle}>Confirm New Password</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Repeat new password"
+                        style={inputStyle}
+                      />
+                    </div>
 
-                {passError && (
-                  <div style={{ background: C.redLight, border: `1px solid ${C.red}`, color: C.red, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
-                    <AlertTriangle size={15} /> {passError}
-                  </div>
-                )}
+                    {passError && (
+                      <div style={{ background: C.redLight, border: `1px solid ${C.red}`, color: C.red, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                        <AlertTriangle size={15} /> {passError}
+                      </div>
+                    )}
 
-                {passSuccess && (
-                  <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
-                    <Check size={15} /> {passSuccess}
-                  </div>
-                )}
+                    {passSuccess && (
+                      <div style={{ background: C.greenLight, border: `1px solid ${C.green}`, color: C.green, padding: "10px 14px", borderRadius: 8, fontSize: "0.8rem", fontWeight: 500, marginBottom: 16, display: "flex", alignItems: "center", gap: 6 }}>
+                        <Check size={15} /> {passSuccess}
+                      </div>
+                    )}
 
-                <Button
-                  disabled={passLoading}
-                  style={{ width: "100%", justifyContent: "center", padding: "12px 0", marginTop: 8 }}
-                >
-                  {passLoading ? "Updating..." : "Update Password"}
-                </Button>
-              </form>
+                    <Button
+                      disabled={passLoading}
+                      style={{ width: "100%", justifyContent: "center", padding: "12px 0", marginTop: 8 }}
+                    >
+                      {passLoading ? "Updating..." : "Update Password"}
+                    </Button>
+                  </form>
+                );
+              })()}
             </Card>
 
             {/* Card 2: Subscription Status */}
@@ -759,26 +799,38 @@ export const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onRefres
                     </strong> All your data including case analyses, compliance reports, and subscription history will be <strong>permanently erased</strong> and cannot be recovered.
                   </div>
 
-                  {/* Password field */}
-                  <div style={{ ...inputContainerStyle, marginBottom: 16 }}>
-                    <label style={{ ...labelStyle, color: "#991B1B" }}>Current Password</label>
-                    <input
-                      id="delete-password-input"
-                      type="password"
-                      value={deletePassword}
-                      onChange={(e) => setDeletePassword(e.target.value)}
-                      placeholder="Enter your current password"
-                      style={{
-                        ...inputStyle,
-                        border: `1.5px solid ${C.red}44`,
-                        color: C.navy,
-                      }}
-                      autoComplete="current-password"
-                    />
-                    <span style={{ fontSize: "0.72rem", color: C.muted }}>
-                      Required to verify your identity before deletion.
-                    </span>
-                  </div>
+                  {/* Password field (only for email/password users) */}
+                  {(() => {
+                    const isGoogleAuth = auth.currentUser !== null || (safeStorage.getItem("taxwise_active_user") && JSON.parse(safeStorage.getItem("taxwise_active_user") || "{}")?.email && !supabase.auth.getSession());
+                    if (isGoogleAuth) {
+                      return (
+                        <div style={{ marginBottom: 16, fontSize: "0.8rem", color: C.muted, background: "#F8FAFC", padding: "10px 12px", borderRadius: 8, border: "1px solid #E2E8F0" }}>
+                          🔒 Google-authenticated session verified. Type <strong>DELETE</strong> below to confirm account deletion.
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ ...inputContainerStyle, marginBottom: 16 }}>
+                        <label style={{ ...labelStyle, color: "#991B1B" }}>Current Password</label>
+                        <input
+                          id="delete-password-input"
+                          type="password"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          placeholder="Enter your current password"
+                          style={{
+                            ...inputStyle,
+                            border: `1.5px solid ${C.red}44`,
+                            color: C.navy,
+                          }}
+                          autoComplete="current-password"
+                        />
+                        <span style={{ fontSize: "0.72rem", color: C.muted }}>
+                          Required to verify your identity before deletion.
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Confirm text field */}
                   <div style={inputContainerStyle}>

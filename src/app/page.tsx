@@ -238,8 +238,8 @@ export default function TaxWiseSaaS() {
 
   useEffect(() => {
     if (typeof IntersectionObserver === "undefined") return;
-    const appScrollRoot = view === "app" ? scrollContainerRef.current : null;
-    const scanRoot: ParentNode | null = appScrollRoot ?? document.querySelector(".tw-landing-page");
+    if (view !== "landing") return;
+    const scanRoot: ParentNode | null = document.querySelector(".tw-landing-page");
     if (!scanRoot) return;
 
     const observed = new Set<HTMLElement>();
@@ -250,7 +250,7 @@ export default function TaxWiseSaaS() {
         target.classList.toggle("scroll-reveal-in-view", isIntersecting);
       });
     }, {
-      root: appScrollRoot,
+      root: null,
       threshold: 0.12,
       rootMargin: "-5% 0px -8% 0px",
     });
@@ -411,6 +411,9 @@ export default function TaxWiseSaaS() {
     // 1. Listen to Firebase Google Auth state
     const unsubscribeFirebase = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
+        if (typeof window !== "undefined" && safeStorage.getItem("taxwise_pending_role_setup")) {
+          return;
+        }
         const prof = getGoogleUserProfile(firebaseUser);
         if (prof) {
           setDbUser(prof);
@@ -474,7 +477,11 @@ export default function TaxWiseSaaS() {
     }
   };
 
-  const activeUser: DbProfile = dbUser || (isTrialSession ? FREE_TRIAL_USER : FREE_TRIAL_USER);
+  const rawActiveUser: DbProfile = dbUser || (isTrialSession ? FREE_TRIAL_USER : FREE_TRIAL_USER);
+  const isEmailAdmin = (rawActiveUser.email || "").toLowerCase() === "taxwiseplatform@gmail.com";
+  const activeUser: DbProfile = isEmailAdmin
+    ? { ...rawActiveUser, role: "Admin", plan: "professional" }
+    : rawActiveUser;
 
   const handleNavigation = (pageId: string) => {
     if (!dbUser) {
@@ -505,7 +512,8 @@ export default function TaxWiseSaaS() {
     { id: "education", label: "Learning Hub", desc: "Uganda tax academy & CPD modules" },
   ];
 
-  if (activeUser.role?.toLowerCase() === "admin") {
+  const isAdmin = activeUser.role?.toLowerCase() === "admin" || isEmailAdmin;
+  if (isAdmin) {
     legalItems.push({ id: "admin", label: "Admin Portal", desc: "User permissions & audit controls" });
   }
 

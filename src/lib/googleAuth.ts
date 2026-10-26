@@ -5,6 +5,7 @@ import {
   signOut,
   GoogleAuthProvider,
   onAuthStateChanged,
+  getAdditionalUserInfo,
   type User as FirebaseUser,
 } from "firebase/auth";
 import firebaseConfig from "../../firebase-applet-config.json";
@@ -63,9 +64,31 @@ export const getGoogleUserProfile = (fUser?: FirebaseUser | null): UserProfile |
  * Retrieves the currently active user profile across Firebase Auth and local storage.
  */
 export const getCurrentUserProfile = (): UserProfile | null => {
+  // If role selection is pending, do not treat user as logged in yet
+  if (typeof window !== "undefined" && safeStorage.getItem("taxwise_pending_role_setup")) {
+    return null;
+  }
+
   // 1. Check live Firebase Auth user first
   if (auth.currentUser && auth.currentUser.email) {
-    return getGoogleUserProfile(auth.currentUser);
+    const prof = getGoogleUserProfile(auth.currentUser);
+    const stored = safeStorage.getItem("taxwise_active_user");
+    if (stored && prof) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed?.email?.toLowerCase() === auth.currentUser.email.toLowerCase() && parsed.role) {
+          return {
+            ...prof,
+            role: parsed.role,
+            full_name: parsed.full_name || prof.full_name,
+            plan: parsed.plan || prof.plan,
+          };
+        }
+      } catch {
+        // ignore JSON parse error
+      }
+    }
+    return prof;
   }
 
   // 2. Check local persistent store
@@ -111,11 +134,13 @@ export const initGoogleAuth = (
 /**
  * Initiates authentic Google OAuth popup flow via Firebase Auth.
  * Syncs the verified Google profile and credentials into the TaxWise application session.
+ * Detects whether this is a brand-new user who must be prompted to select their professional role.
  */
 export const signInWithGoogle = async (): Promise<{
   user: FirebaseUser;
   accessToken: string;
   profile: UserProfile;
+  isNewUser: boolean;
 }> => {
   const result = await signInWithPopup(auth, provider);
   const credential = GoogleAuthProvider.credentialFromResult(result);
@@ -123,7 +148,11 @@ export const signInWithGoogle = async (): Promise<{
   cachedAccessToken = accessToken;
 
   const fUser = result.user;
+  const additionalInfo = getAdditionalUserInfo(result);
+  const isNewFirebaseUser = additionalInfo?.isNewUser ?? false;
+
   let profile = getGoogleUserProfile(fUser)!;
+  let isNewUser = isNewFirebaseUser;
 
   // Sync & register Google user with Supabase backend to avoid email duplicates and errors
   try {
@@ -135,10 +164,14 @@ export const signInWithGoogle = async (): Promise<{
         full_name: fUser.displayName || profile.full_name,
         avatar_url: fUser.photoURL || undefined,
         google_uid: fUser.uid,
+        is_first_login: isNewFirebaseUser,
       }),
     });
     if (syncRes.ok) {
       const syncData = await syncRes.json();
+      if (syncData?.isNewUser !== undefined) {
+        isNewUser = syncData.isNewUser || isNewFirebaseUser;
+      }
       if (syncData?.profile) {
         profile = {
           ...profile,
@@ -153,7 +186,33 @@ export const signInWithGoogle = async (): Promise<{
     console.warn("Could not sync with /api/auth/google-sync:", syncErr);
   }
 
-  // Sync to local application session (safeStorage)
+  // Check if an existing profile with an established non-default role exists locally
+  const localStored = safeStorage.getItem("taxwise_active_user");
+  if (localStored) {
+    try {
+      const parsed = JSON.parse(localStored);
+      if (parsed?.email?.toLowerCase() === (fUser.email || "").toLowerCase() && parsed.role) {
+        isNewUser = false;
+        profile.role = parsed.role;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const isAdmin = (fUser.email || "").toLowerCase() === "taxwiseplatform@gmail.com";
+  if (isAdmin) {
+    isNewUser = false;
+  }
+
+  // If this is a new user (and not master admin), mark pending role setup
+  if (isNewUser) {
+    safeStorage.setItem("taxwise_pending_role_setup", "true");
+    return { user: fUser, accessToken, profile, isNewUser: true };
+  }
+
+  // Otherwise, finalize the session immediately
+  safeStorage.removeItem("taxwise_pending_role_setup");
   const session = {
     access_token: accessToken || "google-token",
     token_type: "bearer",
@@ -177,7 +236,6 @@ export const signInWithGoogle = async (): Promise<{
   safeStorage.setItem("mock_supabase_session", JSON.stringify(session));
   safeStorage.setItem("mock_profile", JSON.stringify(profile));
 
-  // Dispatch custom window event so page listeners update synchronously
   if (typeof window !== "undefined") {
     try {
       window.dispatchEvent(new CustomEvent("taxwise_auth_changed", { detail: profile }));
@@ -186,7 +244,6 @@ export const signInWithGoogle = async (): Promise<{
     }
   }
 
-  // Sync with Supabase users table if available
   try {
     await supabase.from("users").upsert({
       id: profile.id,
@@ -199,7 +256,113 @@ export const signInWithGoogle = async (): Promise<{
     console.warn("Could not upsert user to Supabase table:", err);
   }
 
-  return { user: fUser, accessToken, profile };
+  return { user: fUser, accessToken, profile, isNewUser: false };
+};
+
+/**
+ * Updates the user's professional role both in Supabase backend and in the local app session.
+ * Used when a new Google user selects their professional role on initial registration.
+ */
+export const updateUserRole = async (
+  email: string,
+  selectedRole: string,
+  fullName?: string,
+  avatarUrl?: string
+): Promise<UserProfile> => {
+  const normEmail = email.toLowerCase();
+  const isAdmin = normEmail === "taxwiseplatform@gmail.com";
+  const finalRole = isAdmin ? "Admin" : selectedRole;
+
+  let updatedProfile: UserProfile = {
+    id: `google-${normEmail}`,
+    email: normEmail,
+    full_name: fullName || (isAdmin ? "TaxWise Platform" : normEmail.split("@")[0]),
+    role: finalRole,
+    plan: "professional",
+    avatar_url: avatarUrl,
+  };
+
+  // 1. Sync with server route
+  try {
+    const res = await fetch("/api/auth/google-sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: normEmail,
+        role: finalRole,
+        full_name: updatedProfile.full_name,
+        avatar_url: avatarUrl,
+        google_uid: auth.currentUser?.uid,
+      }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.profile) {
+        updatedProfile = {
+          id: data.profile.id || updatedProfile.id,
+          email: normEmail,
+          full_name: data.profile.full_name || updatedProfile.full_name,
+          role: data.profile.role || finalRole,
+          plan: data.profile.plan || "professional",
+          avatar_url: data.profile.avatar_url || avatarUrl,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("Could not sync updated role to /api/auth/google-sync:", err);
+  }
+
+  safeStorage.removeItem("taxwise_pending_role_setup");
+  safeStorage.setItem(`taxwise_role_confirmed_${normEmail}`, "true");
+
+  // 3. Update local session stores
+  const session = {
+    access_token: cachedAccessToken || "google-token",
+    token_type: "bearer",
+    expires_in: 3600,
+    refresh_token: "google-refresh",
+    user: {
+      id: updatedProfile.id,
+      email: updatedProfile.email,
+      user_metadata: {
+        full_name: updatedProfile.full_name,
+        avatar_url: updatedProfile.avatar_url,
+        role: updatedProfile.role,
+        role_confirmed: true,
+      },
+      app_metadata: { provider: "google" },
+      aud: "authenticated",
+      created_at: new Date().toISOString(),
+    },
+  };
+
+  safeStorage.setItem("taxwise_active_user", JSON.stringify({ ...updatedProfile, role_confirmed: true }));
+  safeStorage.setItem("mock_supabase_session", JSON.stringify(session));
+  safeStorage.setItem("mock_profile", JSON.stringify({ ...updatedProfile, role_confirmed: true }));
+
+  // 4. Notify app components
+  if (typeof window !== "undefined") {
+    try {
+      window.dispatchEvent(new CustomEvent("taxwise_auth_changed", { detail: updatedProfile }));
+    } catch {
+      // ignore
+    }
+  }
+
+  // 5. Upsert to Supabase public.users
+  try {
+    await supabase.from("users").upsert({
+      id: updatedProfile.id,
+      email: updatedProfile.email,
+      full_name: updatedProfile.full_name,
+      role: updatedProfile.role,
+      plan: updatedProfile.plan,
+    });
+  } catch (err) {
+    console.warn("Could not upsert updated role to Supabase users table:", err);
+  }
+
+  return updatedProfile;
 };
 
 export const signOutGoogle = async () => {
