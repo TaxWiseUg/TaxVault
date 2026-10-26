@@ -7,7 +7,6 @@ function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
-    console.warn("Supabase URL or Service Role Key is missing. Running in robust Demo / Sandbox mode.");
     return null;
   }
   return createClient(url, serviceKey);
@@ -16,6 +15,9 @@ function getSupabaseAdmin() {
 export async function POST(req: NextRequest) {
   try {
     const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Database is not configured. Case analysis cannot be saved." }, { status: 503 });
+    }
     const contentType = req.headers.get("content-type") || "";
 
     let file: File | null = null;
@@ -107,11 +109,8 @@ export async function POST(req: NextRequest) {
         .select()
         .single();
 
-      if (dbError) {
-        console.error("Supabase DB error saving case:", dbError);
-      } else {
-        insertedCase = data;
-      }
+      if (dbError) throw new Error(`Could not save case: ${dbError.message}`);
+      insertedCase = data;
 
       // Check if this is a new case to store into the TAT Case Library
       const isAlreadyInLibrary = textToAnalyze.includes("[Case Library:") || textToAnalyze.includes("[Case Library ");
@@ -131,7 +130,7 @@ export async function POST(req: NextRequest) {
             proposedNum = `${proposedNum} (${Math.random().toString(36).substring(2, 6).toUpperCase()})`;
           }
 
-          await supabaseAdmin.from("tat_cases").insert({
+          const { error: libraryInsertError } = await supabaseAdmin.from("tat_cases").insert({
             case_number: proposedNum,
             title: libInfo.title || title,
             year: yearVal,
@@ -141,22 +140,11 @@ export async function POST(req: NextRequest) {
             full_text: textToAnalyze,
             ai_commentary: analysisOutput.advice,
           });
+          if (libraryInsertError) throw libraryInsertError;
         } catch (libErr) {
           console.error("Error running auto-insertion logic for Case Library:", libErr);
         }
       }
-    } else {
-      insertedCase = {
-        id: `mock-case-${Date.now()}`,
-        user_id: userId,
-        title,
-        input_text: textToAnalyze.slice(0, 100),
-        pdf_path: file ? `pdfs/${userId}/${Date.now()}_${file.name}` : null,
-        ai_summary: analysisOutput,
-        risk_level: analysisOutput.risk || "medium",
-        tags: analysisOutput.tags || [],
-        created_at: new Date().toISOString(),
-      };
     }
 
     return NextResponse.json({

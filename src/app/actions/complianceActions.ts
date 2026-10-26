@@ -2,7 +2,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-import { TaxPeriodBundle, Finding } from "../../lib/validation/helpers";
+import { TaxPeriodBundle } from "../../lib/validation/helpers";
 import { runComplianceEngine } from "../../lib/engine/complianceEngine";
 import { calculateRisk } from "../../lib/engine/riskEngine";
 
@@ -11,13 +11,11 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 /**
- * Robustly resolves the authenticated server-side user.
- * Falls back to a default demo-user when running in preview/sandbox mode.
+ * Resolves the authenticated Supabase user. No mock identity is returned when
+ * the request has no valid server-side session.
  */
 async function getServerUser() {
-  if (!supabaseUrl || !serviceRoleKey) {
-    return { id: "f8174d44-d81a-4e70-9f4b-64744f969d09", email: "taxwiseplatform@gmail.com", full_name: "Tester123" };
-  }
+  if (!supabaseUrl || !serviceRoleKey || !anonKey) return null;
 
   try {
     const cookieStore = await cookies();
@@ -43,11 +41,6 @@ async function getServerUser() {
     console.warn("Failed to retrieve server user via cookies, checking token direct:", err);
   }
 
-  // Fallback if we cannot parse cookies but env variables are defined:
-  // (We return null to enforce security in production, or demo-user if explicitly in dev)
-  if (process.env.NODE_ENV === "development") {
-    return { id: "f8174d44-d81a-4e70-9f4b-64744f969d09", email: "taxwiseplatform@gmail.com", full_name: "Tester123" };
-  }
   return null;
 }
 
@@ -55,49 +48,8 @@ async function getServerUser() {
  * Gets a Supabase Admin client that bypasses RLS for service operations.
  */
 function getSupabaseAdmin() {
-  if (!supabaseUrl || !serviceRoleKey) return null;
+  if (!supabaseUrl || !serviceRoleKey) throw new Error("Supabase is not configured for database actions.");
   return createClient(supabaseUrl, serviceRoleKey);
-}
-
-async function getMockReview(companyId: string, periodName: string, enableAi: boolean) {
-  const mockBundle: TaxPeriodBundle = {
-    period_name: periodName,
-    vat_declared_output: 15000000,
-    vat_declared_input: 4000000,
-    efris_sales_total: 100000000,
-    vat_input_invalid_tin: 1200000,
-    payroll_register_count: 12,
-    payroll_register_gross: 24000000,
-    paye_schedule_count: 10,
-    paye_schedule_tax: 3600000,
-    financial_gross_margin: 0.12,
-    financial_sales: 115000000,
-    supplier_tins_total_count: 12,
-    supplier_tins_invalid_count: 3,
-    nssf_contribution_total: 3600000,
-    is_nil_return: false,
-    supporting_documents_present: false,
-    duplicate_invoices_count: 3,
-    negative_balances_present: true,
-    historicalPeriods: [
-      { financial_gross_margin: 0.35 } as any,
-      { financial_gross_margin: 0.37 } as any
-    ]
-  };
-  const result = await runComplianceEngine(mockBundle, enableAi);
-  return {
-    review: {
-      id: `mock-review-${periodName}`,
-      company_id: companyId,
-      period: periodName,
-      status: result.risk.status,
-      estimated_exposure: result.risk.estimated_exposure,
-      confidence: result.risk.confidence,
-      ai_summary: result.professionalSummary,
-      reviewed_at: new Date().toISOString()
-    },
-    findings: result.findings.map((f, i) => ({ id: `mock-finding-${i}`, ...f }))
-  };
 }
 
 // ==========================================
@@ -109,12 +61,6 @@ export async function getCompaniesAction() {
   if (!user) throw new Error("Unauthorized: Please log in first.");
 
   const admin = getSupabaseAdmin();
-  if (!admin) {
-    // Return mock companies
-    return [
-      { id: "c17bf7ee-3382-4467-88e3-ea6222bde971", name: "Uganda Premium Trade Ltd", created_at: new Date().toISOString() }
-    ];
-  }
 
   try {
     // Fetch companies user belongs to via company_members table
@@ -124,18 +70,10 @@ export async function getCompaniesAction() {
       .eq("user_id", user.id);
 
     if (error) {
-      console.log("[db info] Note: Falling back to sandbox companies data.");
-      return [
-        { id: "c17bf7ee-3382-4467-88e3-ea6222bde971", name: "Uganda Premium Trade Ltd", created_at: new Date().toISOString() }
-      ];
+      throw new Error(error.message);
     }
 
-    if (!members || members.length === 0) {
-      // User is logged in but has no companies, return a default mock company for a better preview experience
-      return [
-        { id: "c17bf7ee-3382-4467-88e3-ea6222bde971", name: "Uganda Premium Trade Ltd", created_at: new Date().toISOString() }
-      ];
-    }
+    if (!members || members.length === 0) return [];
 
     return (members || [])
       .map((m: any) => m.companies ? ({
@@ -146,10 +84,7 @@ export async function getCompaniesAction() {
       }) : null)
       .filter(Boolean);
   } catch (err) {
-    console.log("[db info] Note: Exception fetching companies, falling back to sandbox mode.");
-    return [
-      { id: "c17bf7ee-3382-4467-88e3-ea6222bde971", name: "Uganda Premium Trade Ltd", created_at: new Date().toISOString() }
-    ];
+    throw err;
   }
 }
 
@@ -158,10 +93,6 @@ export async function createCompanyAction(name: string) {
   if (!user) throw new Error("Unauthorized");
 
   const admin = getSupabaseAdmin();
-  if (!admin) {
-    // Mock insert
-    return { id: `mock-company-${Date.now()}`, name, created_at: new Date().toISOString() };
-  }
 
   // Insert company
   const { data: company, error: compErr } = await admin
@@ -200,101 +131,14 @@ export async function getTaxPeriodsAction(companyId: string) {
   const user = await getServerUser();
   if (!user) throw new Error("Unauthorized");
 
-  const admin = getSupabaseAdmin();
-  if (!admin) {
-    return [];
-  }
-
-  try {
-    const { data, error } = await admin
-      .from("tax_periods")
-      .select("*")
-      .eq("company_id", companyId)
-      .order("period_name", { ascending: false });
-
-    if (error || !data || data.length === 0) {
-      console.log("[db info] Note: Falling back to sandbox tax periods.");
-      return [
-        {
-          id: "mock-period-2026-06",
-          company_id: companyId,
-          period_name: "2026-06",
-          vat_declared_output: 15450000,
-          vat_declared_input: 4200000,
-          efris_sales_total: 98500000,
-          vat_input_invalid_tin: 1200000,
-          payroll_register_count: 12,
-          payroll_register_gross: 24000000,
-          paye_schedule_count: 10,
-          paye_schedule_tax: 3600000,
-          financial_gross_margin: 0.12,
-          financial_sales: 115000000,
-          supplier_tins_total_count: 12,
-          supplier_tins_invalid_count: 3,
-          nssf_contribution_total: 3600000,
-          is_nil_return: false,
-          supporting_documents_present: false,
-          duplicate_invoices_count: 3,
-          negative_balances_present: true,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: "mock-period-2026-07",
-          company_id: companyId,
-          period_name: "2026-07",
-          vat_declared_output: 18200000,
-          vat_declared_input: 5100000,
-          efris_sales_total: 110000000,
-          vat_input_invalid_tin: 800000,
-          payroll_register_count: 14,
-          payroll_register_gross: 28000000,
-          paye_schedule_count: 14,
-          paye_schedule_tax: 4200000,
-          financial_gross_margin: 0.15,
-          financial_sales: 122000000,
-          supplier_tins_total_count: 15,
-          supplier_tins_invalid_count: 2,
-          nssf_contribution_total: 4200000,
-          is_nil_return: false,
-          supporting_documents_present: true,
-          duplicate_invoices_count: 1,
-          negative_balances_present: false,
-          created_at: new Date().toISOString()
-        }
-      ];
-    }
-
-    return data;
-  } catch (err) {
-    console.log("[db info] Note: Exception fetching tax periods, falling back to sandbox.");
-    return [
-      {
-        id: "mock-period-2026-06",
-        company_id: companyId,
-        period_name: "2026-06",
-        vat_declared_output: 15450000,
-        vat_declared_input: 4200000,
-        efris_sales_total: 98500000,
-        vat_input_invalid_tin: 1200000,
-        payroll_register_count: 12,
-        payroll_register_gross: 24000000,
-        paye_schedule_count: 10,
-        paye_schedule_tax: 3600000,
-        financial_gross_margin: 0.12,
-        financial_sales: 115000000,
-        supplier_tins_total_count: 12,
-        supplier_tins_invalid_count: 3,
-        nssf_contribution_total: 3600000,
-        is_nil_return: false,
-        supporting_documents_present: false,
-        duplicate_invoices_count: 3,
-        negative_balances_present: true,
-        created_at: new Date().toISOString()
-      }
-    ];
-  }
+  const { data, error } = await getSupabaseAdmin()
+    .from("tax_periods")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("period_name", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data || [];
 }
-
 export async function saveTaxPeriodAction(
   companyId: string,
   periodName: string,
@@ -302,11 +146,6 @@ export async function saveTaxPeriodAction(
 ) {
   const user = await getServerUser();
   if (!user) throw new Error("Unauthorized");
-
-  const admin = getSupabaseAdmin();
-  if (!admin) {
-    return { success: true, mock: true };
-  }
 
   const record = {
     company_id: companyId,
@@ -327,32 +166,17 @@ export async function saveTaxPeriodAction(
     is_nil_return: bundle.is_nil_return ?? false,
     supporting_documents_present: bundle.supporting_documents_present ?? true,
     duplicate_invoices_count: bundle.duplicate_invoices_count ?? 0,
-    negative_balances_present: bundle.negative_balances_present ?? false
+    negative_balances_present: bundle.negative_balances_present ?? false,
   };
 
-  try {
-    const { data, error } = await admin
-      .from("tax_periods")
-      .upsert(record, { onConflict: "company_id,period_name" })
-      .select()
-      .single();
-
-    if (error) {
-      console.log("[saveTaxPeriodAction] DB error, using mock save fallback.");
-      return { success: true, data: { id: `mock-period-${periodName}`, ...record, created_at: new Date().toISOString() } };
-    }
-
-    return { success: true, data };
-  } catch (err) {
-    console.log("[saveTaxPeriodAction] exception, using mock save fallback.");
-    return { success: true, data: { id: `mock-period-${periodName}`, ...record, created_at: new Date().toISOString() } };
-  }
+  const { data, error } = await getSupabaseAdmin()
+    .from("tax_periods")
+    .upsert(record, { onConflict: "company_id,period_name" })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return { success: true, data };
 }
-
-// ==========================================
-// 3. Compliance Review & Narrative Actions
-// ==========================================
-
 export async function runComplianceReviewAction(
   companyId: string,
   periodName: string,
@@ -360,84 +184,30 @@ export async function runComplianceReviewAction(
 ) {
   const user = await getServerUser();
   if (!user) throw new Error("Unauthorized");
-
   const admin = getSupabaseAdmin();
-  if (!admin) {
-    // Return mock run for Sandbox mode
-    const mockBundle: TaxPeriodBundle = {
-      period_name: periodName,
-      vat_declared_output: 15000000,
-      vat_declared_input: 4000000,
-      efris_sales_total: 100000000,
-      vat_input_invalid_tin: 1200000,
-      payroll_register_count: 12,
-      payroll_register_gross: 24000000,
-      paye_schedule_count: 10,
-      paye_schedule_tax: 3600000,
-      financial_gross_margin: 0.12,
-      financial_sales: 115000000,
-      supplier_tins_total_count: 12,
-      supplier_tins_invalid_count: 3,
-      nssf_contribution_total: 3600000,
-      is_nil_return: false,
-      supporting_documents_present: false,
-      duplicate_invoices_count: 3,
-      negative_balances_present: true,
-      historicalPeriods: [
-        { financial_gross_margin: 0.35 } as any,
-        { financial_gross_margin: 0.37 } as any
-      ]
-    };
-    const result = await runComplianceEngine(mockBundle, enableAi);
-    return {
-      review: {
-        id: `mock-review-${periodName}`,
-        company_id: companyId,
-        period: periodName,
-        status: result.risk.status,
-        estimated_exposure: result.risk.estimated_exposure,
-        confidence: result.risk.confidence,
-        ai_summary: result.professionalSummary,
-        reviewed_at: new Date().toISOString()
-      },
-      findings: result.findings.map((f, i) => ({ id: `mock-finding-${i}`, ...f }))
-    };
-  }
 
-  try {
-    // 1. Fetch current tax period record
-    const { data: currentPeriod, error: periodErr } = await admin
-      .from("tax_periods")
-      .select("*")
-      .eq("company_id", companyId)
-      .eq("period_name", periodName)
-      .single();
+  const { data: currentPeriod, error: periodError } = await admin
+    .from("tax_periods")
+    .select("*")
+    .eq("company_id", companyId)
+    .eq("period_name", periodName)
+    .single();
+  if (periodError) throw new Error(periodError.message);
+  if (!currentPeriod) throw new Error("Tax period not found.");
 
-    if (periodErr || !currentPeriod) {
-      console.log("[runComplianceReviewAction] period data not found in DB, falling back to mock.");
-      return await getMockReview(companyId, periodName, enableAi);
-    }
+  const { data: historicalPeriods, error: historyError } = await admin
+    .from("tax_periods")
+    .select("*")
+    .eq("company_id", companyId)
+    .neq("period_name", periodName)
+    .order("period_name", { ascending: false })
+    .limit(3);
+  if (historyError) throw new Error(historyError.message);
 
-    // 2. Fetch historical tax periods for gross margin calculations
-    const { data: historicalPeriods } = await admin
-      .from("tax_periods")
-      .select("*")
-      .eq("company_id", companyId)
-      .neq("period_name", periodName)
-      .order("period_name", { ascending: false })
-      .limit(3);
-
-    // Map into TaxPeriodBundle format
-    const bundle: TaxPeriodBundle = {
-      ...currentPeriod,
-      historicalPeriods: historicalPeriods || []
-    };
-
-    // 3. Run validation engines & calculate risk
-    const result = await runComplianceEngine(bundle, enableAi);
-
-    // 4. Upsert Compliance Review
-    const reviewRecord = {
+  const result = await runComplianceEngine({ ...currentPeriod, historicalPeriods: historicalPeriods || [] }, enableAi);
+  const { data: review, error: reviewError } = await admin
+    .from("compliance_reviews")
+    .upsert({
       company_id: companyId,
       period: periodName,
       status: result.risk.status,
@@ -445,65 +215,39 @@ export async function runComplianceReviewAction(
       confidence: result.risk.confidence,
       ai_summary: result.professionalSummary,
       reviewed_at: new Date().toISOString(),
-      reviewed_by: user.id
-    };
+      reviewed_by: user.id,
+    }, { onConflict: "company_id,period" })
+    .select()
+    .single();
+  if (reviewError) throw new Error(reviewError.message);
 
-    const { data: review, error: revErr } = await admin
-      .from("compliance_reviews")
-      .upsert(reviewRecord, { onConflict: "company_id,period" })
-      .select()
-      .single();
+  const { error: clearError } = await admin.from("findings").delete().eq("review_id", review.id);
+  if (clearError) throw new Error(clearError.message);
 
-    if (revErr) {
-      console.log("[runComplianceReviewAction] upsert review failed, falling back to mock review.");
-      return await getMockReview(companyId, periodName, enableAi);
-    }
+  const findingsToInsert = result.findings.map((finding) => ({
+    review_id: review.id,
+    code: finding.code,
+    severity: finding.severity,
+    area: finding.area,
+    title: finding.title,
+    description: finding.description,
+    reason: finding.reason,
+    impact: finding.impact,
+    recommendation: finding.recommendation,
+    legislation_ref: finding.legislation_ref || null,
+    exposure: finding.exposure,
+    confidence: finding.confidence,
+    status: "open",
+  }));
 
-    // 5. Clear old findings for this review to prevent duplicates
-    await admin.from("findings").delete().eq("review_id", review.id);
-
-    // 6. Bulk insert findings
-    const findingsToInsert = result.findings.map(f => ({
-      review_id: review.id,
-      code: f.code,
-      severity: f.severity,
-      area: f.area,
-      title: f.title,
-      description: f.description,
-      reason: f.reason,
-      impact: f.impact,
-      recommendation: f.recommendation,
-      legislation_ref: f.legislation_ref || null,
-      exposure: f.exposure,
-      confidence: f.confidence,
-      status: "open"
-    }));
-
-    if (findingsToInsert.length > 0) {
-      const { data: insertedFindings, error: findErr } = await admin
-        .from("findings")
-        .insert(findingsToInsert)
-        .select();
-
-      if (findErr) {
-        console.log("[runComplianceReviewAction] findings insert failed, falling back to mock review.");
-        return await getMockReview(companyId, periodName, enableAi);
-      }
-
-      return { review, findings: insertedFindings };
-    }
-
-    return { review, findings: [] };
-  } catch (err) {
-    console.log("[runComplianceReviewAction] exception in DB actions, falling back to mock review.");
-    return await getMockReview(companyId, periodName, enableAi);
-  }
+  if (findingsToInsert.length === 0) return { review, findings: [] };
+  const { data: findings, error: findingsError } = await admin
+    .from("findings")
+    .insert(findingsToInsert)
+    .select();
+  if (findingsError) throw new Error(findingsError.message);
+  return { review, findings: findings || [] };
 }
-
-// ==========================================
-// 4. Resolve / Audit Action Trails
-// ==========================================
-
 export async function updateFindingStatusAction(
   reviewId: string,
   findingId: string,
@@ -512,101 +256,47 @@ export async function updateFindingStatusAction(
 ) {
   const user = await getServerUser();
   if (!user) throw new Error("Unauthorized");
-
   const admin = getSupabaseAdmin();
-  if (!admin) {
-    // Return mock resolved in Sandbox mode
-    return { success: true, mock: true };
-  }
+  const mappedStatus = action === "reopen" ? "open" : action === "resolve" ? "resolved" : "ignored";
 
-  try {
-    const mappedStatus = action === "reopen" ? "open" : action === "resolve" ? "resolved" : "ignored";
+  const { data: finding, error: findingError } = await admin
+    .from("findings")
+    .update({ status: mappedStatus })
+    .eq("id", findingId)
+    .eq("review_id", reviewId)
+    .select()
+    .single();
+  if (findingError) throw new Error(findingError.message);
 
-    // 1. Update finding status
-    const { data: finding, error: findErr } = await admin
-      .from("findings")
-      .update({ status: mappedStatus })
-      .eq("id", findingId)
-      .select()
-      .single();
+  const { error: actionError } = await admin.from("finding_actions").insert({
+    finding_id: findingId,
+    action_by: user.id,
+    action,
+    notes: notes || null,
+  });
+  if (actionError) throw new Error(actionError.message);
 
-    if (findErr) {
-      console.log("[updateFindingStatusAction] DB error, using mock fallback update.");
-      return {
-        success: true,
-        finding: { id: findingId, status: mappedStatus },
-        findings: []
-      };
-    }
+  const { data: allFindings, error: findingsError } = await admin
+    .from("findings")
+    .select("*")
+    .eq("review_id", reviewId);
+  if (findingsError) throw new Error(findingsError.message);
 
-    // 2. Insert Audit Action Trail
-    const { error: actErr } = await admin
-      .from("finding_actions")
-      .insert({
-        finding_id: findingId,
-        action_by: user.id,
-        action,
-        notes: notes || null
-      });
+  const risk = calculateRisk(allFindings || []);
+  const { data: updatedReview, error: reviewError } = await admin
+    .from("compliance_reviews")
+    .update({
+      status: risk.status,
+      estimated_exposure: risk.estimated_exposure,
+      confidence: risk.confidence,
+    })
+    .eq("id", reviewId)
+    .select()
+    .single();
+  if (reviewError) throw new Error(reviewError.message);
 
-    if (actErr) {
-      console.log("[updateFindingStatusAction] trail insert failed silently.");
-    }
-
-    // 3. Fetch all remaining findings for this review to recalculate risk
-    const { data: allFindings, error: fetchErr } = await admin
-      .from("findings")
-      .select("*")
-      .eq("review_id", reviewId);
-
-    if (fetchErr) {
-      console.log("[updateFindingStatusAction] error fetching review findings, using empty array.");
-      return {
-        success: true,
-        finding,
-        findings: [finding]
-      };
-    }
-
-    // 4. Re-calculate risk score
-    const risk = calculateRisk(allFindings);
-
-    // 5. Update compliance review record
-    const { data: updatedReview, error: revErr } = await admin
-      .from("compliance_reviews")
-      .update({
-        status: risk.status,
-        estimated_exposure: risk.estimated_exposure,
-        confidence: risk.confidence
-      })
-      .eq("id", reviewId)
-      .select()
-      .single();
-
-    if (revErr) {
-      console.log("[updateFindingStatusAction] error updating review risk aggregation.");
-    }
-
-    return {
-      success: true,
-      review: updatedReview || { id: reviewId, ...risk },
-      finding,
-      findings: allFindings
-    };
-  } catch (err) {
-    console.log("[updateFindingStatusAction] exception during status update, using mock fallback.");
-    return {
-      success: true,
-      finding: { id: findingId, status: action === "reopen" ? "open" : action === "resolve" ? "resolved" : "ignored" },
-      findings: []
-    };
-  }
+  return { success: true, review: updatedReview, finding, findings: allFindings || [] };
 }
-
-// ==========================================
-// 5. Compliance History Action
-// ==========================================
-
 export interface ComplianceHistoryRecord {
   id: string;
   company_id: string;
@@ -634,165 +324,55 @@ export interface ComplianceHistoryRecord {
   }>;
 }
 
-const SANDBOX_COMPLIANCE_HISTORY: ComplianceHistoryRecord[] = [
-  {
-    id: "hist-001",
-    company_id: "c17bf7ee-3382-4467-88e3-ea6222bde971",
-    company_name: "Uganda Premium Trade Ltd",
-    period: "2026-07",
-    status: "high_risk",
-    estimated_exposure: 3090000,
-    confidence: 91,
-    ai_summary: "Two critical findings identified: VAT reconciliation gap against EFRIS and missing employees from PAYE schedule. Immediate action required before filing.",
-    reviewed_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    findings: [
-      {
-        id: "h1-f1", code: "XVAL-003", severity: "critical", area: "VAT",
-        title: "Output VAT does not reconcile with EFRIS sales",
-        description: "Declared output VAT of UGX 18,240,000 is 11.4% lower than EFRIS-implied VAT.",
-        reason: "EFRIS receipts imply output VAT of UGX 38,628,000; return declares UGX 101,333,000 taxable base.",
-        impact: "possible inconsistency detected: this may require further review",
-        recommendation: "Reconcile EFRIS sales export against VAT working schedule line by line.",
-        legislation_ref: "VAT Act Cap 349, s.16 & s.30",
-        exposure: 2450000, confidence: 96, status: "open"
-      },
-      {
-        id: "h1-f2", code: "PAYE-002", severity: "critical", area: "PAYE",
-        title: "Two employees missing from PAYE schedule",
-        description: "Payroll register lists 47 active employees; PAYE schedule reflects 45.",
-        reason: "Employee IDs 0038 and 0041 appear in payroll with gross pay above PAYE threshold but absent from computation schedule.",
-        impact: "this appears unusual and should be verified before filing",
-        recommendation: "Confirm whether employees 0038 and 0041 were engaged mid-period or excluded in error.",
-        legislation_ref: "Income Tax Act Cap 340, s.116",
-        exposure: 640000, confidence: 91, status: "open"
-      }
-    ]
-  },
-  {
-    id: "hist-002",
-    company_id: "c17bf7ee-3382-4467-88e3-ea6222bde971",
-    company_name: "Uganda Premium Trade Ltd",
-    period: "2026-06",
-    status: "review_required",
-    estimated_exposure: 1120000,
-    confidence: 84,
-    ai_summary: "One warning-level finding: input VAT claim on a supplier with no TIN on file. Obtain and record the TIN before filing.",
-    reviewed_at: new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString(),
-    findings: [
-      {
-        id: "h2-f1", code: "VAT-001", severity: "warning", area: "VAT",
-        title: "Input VAT claim on a supplier with no TIN on file",
-        description: "An input VAT claim of UGX 1,120,000 references supplier invoice INV-2291 with no TIN recorded.",
-        reason: "Supplier record 'Kase Hardware Ltd' has a blank TIN field.",
-        impact: "possible inconsistency detected",
-        recommendation: "Obtain and record the supplier's TIN, or exclude the claim.",
-        legislation_ref: "VAT Act Cap 349, s.28",
-        exposure: 1120000, confidence: 84, status: "resolved"
-      }
-    ]
-  },
-  {
-    id: "hist-003",
-    company_id: "c17bf7ee-3382-4467-88e3-ea6222bde971",
-    company_name: "Uganda Premium Trade Ltd",
-    period: "2026-05",
-    status: "ready",
-    estimated_exposure: 0,
-    confidence: 98,
-    ai_summary: "All compliance checks passed for May 2026. No outstanding findings. Return is ready to file.",
-    reviewed_at: new Date(Date.now() - 62 * 24 * 60 * 60 * 1000).toISOString(),
-    findings: []
-  },
-  {
-    id: "hist-004",
-    company_id: "c17bf7ee-3382-4467-88e3-ea6222bde971",
-    company_name: "Uganda Premium Trade Ltd",
-    period: "2026-04",
-    status: "review_required",
-    estimated_exposure: 870000,
-    confidence: 79,
-    ai_summary: "Gross profit margin diverged from prior periods. Cost of sales grew 29% while revenue was flat. A note should be added to financial statements.",
-    reviewed_at: new Date(Date.now() - 93 * 24 * 60 * 60 * 1000).toISOString(),
-    findings: [
-      {
-        id: "h4-f1", code: "ITX-001", severity: "warning", area: "Income Tax",
-        title: "Gross profit margin diverges from prior periods",
-        description: "Gross margin for the period is 22.1%, against a trailing three-period average of 31.4%.",
-        reason: "Cost of sales grew 29% period-on-period while revenue grew 2%, without a note in the financial statements.",
-        impact: "this may require further review",
-        recommendation: "Add a note to the financial statements explaining the cost movement.",
-        legislation_ref: "Income Tax Act Cap 340, s.15",
-        exposure: 870000, confidence: 79, status: "resolved"
-      }
-    ]
-  }
-];
-
 export async function getComplianceHistoryAction(
   companyId?: string
 ): Promise<ComplianceHistoryRecord[]> {
   const user = await getServerUser();
   if (!user) throw new Error("Unauthorized");
-
   const admin = getSupabaseAdmin();
-  if (!admin) {
-    // Return rich mock history in sandbox mode
-    return SANDBOX_COMPLIANCE_HISTORY;
+
+  let query = admin
+    .from("compliance_reviews")
+    .select("*, companies(name)")
+    .order("reviewed_at", { ascending: false })
+    .limit(20);
+
+  if (companyId) {
+    query = query.eq("company_id", companyId);
+  } else {
+    const { data: memberships, error: membershipError } = await admin
+      .from("company_members")
+      .select("company_id")
+      .eq("user_id", user.id);
+    if (membershipError) throw new Error(membershipError.message);
+    const companyIds = (memberships || []).map((membership) => membership.company_id);
+    if (companyIds.length === 0) return [];
+    query = query.in("company_id", companyIds);
   }
 
-  try {
-    let query = admin
-      .from("compliance_reviews")
-      .select("*, companies(name)")
-      .order("reviewed_at", { ascending: false })
-      .limit(20);
+  const { data: reviews, error } = await query;
+  if (error) throw new Error(error.message);
+  if (!reviews?.length) return [];
 
-    if (companyId) {
-      query = query.eq("company_id", companyId);
-    } else {
-      // Filter to companies the current user belongs to
-      const { data: members } = await admin
-        .from("company_members")
-        .select("company_id")
-        .eq("user_id", user.id);
-      if (members && members.length > 0) {
-        query = query.in("company_id", members.map((m: any) => m.company_id));
-      }
-    }
+  return Promise.all(reviews.map(async (review): Promise<ComplianceHistoryRecord> => {
+    const { data: findings, error: findingsError } = await admin
+      .from("findings")
+      .select("*")
+      .eq("review_id", review.id)
+      .order("severity", { ascending: true });
+    if (findingsError) throw new Error(findingsError.message);
 
-    const { data: reviews, error } = await query;
-    if (error || !reviews || reviews.length === 0) {
-      console.log("[getComplianceHistoryAction] DB empty or unavailable, returning sandbox history.");
-      return SANDBOX_COMPLIANCE_HISTORY;
-    }
-
-    // Fetch findings for each review
-    const enriched = await Promise.all(
-      reviews.map(async (rev: any) => {
-        const { data: findings } = await admin
-          .from("findings")
-          .select("*")
-          .eq("review_id", rev.id)
-          .order("severity", { ascending: true });
-
-        return {
-          id: rev.id,
-          company_id: rev.company_id,
-          company_name: rev.companies?.name,
-          period: rev.period,
-          status: rev.status,
-          estimated_exposure: rev.estimated_exposure,
-          confidence: rev.confidence,
-          ai_summary: rev.ai_summary,
-          reviewed_at: rev.reviewed_at,
-          findings: findings || []
-        } as ComplianceHistoryRecord;
-      })
-    );
-
-    return enriched;
-  } catch (err) {
-    console.log("[getComplianceHistoryAction] exception, returning sandbox history:", err);
-    return SANDBOX_COMPLIANCE_HISTORY;
-  }
+    return {
+      id: review.id,
+      company_id: review.company_id,
+      company_name: review.companies?.name,
+      period: review.period,
+      status: review.status,
+      estimated_exposure: review.estimated_exposure,
+      confidence: review.confidence,
+      ai_summary: review.ai_summary,
+      reviewed_at: review.reviewed_at,
+      findings: findings || [],
+    };
+  }));
 }

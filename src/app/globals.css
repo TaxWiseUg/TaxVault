@@ -6,6 +6,55 @@
   margin: 0;
 }
 
+.tat-case-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 20px;
+  padding: 24px 28px 28px;
+  color: var(--color-text);
+  text-align: justify;
+}
+
+.tat-case-detail__heading {
+  grid-column: 1 / -1;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(15, 32, 68, 0.1);
+}
+
+.tat-case-detail__summary,
+.tat-case-detail__commentary,
+.tat-case-detail__copy,
+.tat-case-detail__copy p,
+.tat-case-detail__copy span {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.tat-case-detail__summary {
+  align-self: start;
+  padding: 4px 8px 4px 0;
+}
+
+.tat-case-detail__commentary {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .tat-case-detail {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .tat-case-detail__heading {
+    grid-column: auto;
+  }
+
+  .tat-case-detail__commentary {
+    padding: 18px !important;
+  }
+}
+
 :root {
   --color-navy: #0F2044; 
   --color-navy-light: #1a3260;

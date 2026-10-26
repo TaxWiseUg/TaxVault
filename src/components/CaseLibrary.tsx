@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { supabase, DEFAULT_TAT_CASES } from "../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { C } from "../lib/constants";
 import { Badge, Card, Modal } from "./UI";
 import { WorkspacePageHero } from "./WorkspacePageHero";
@@ -39,17 +39,11 @@ export const CaseLibrary: React.FC = () => {
           .select("*")
           .order("year", { ascending: false });
 
-        if (error) {
-          console.warn("Could not query tat_cases table, using imported data:", error.message);
-          setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
-        } else if (data && data.length > 0) {
-          setCases(data as TatCase[]);
-        } else {
-          setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
-        }
+        if (error) throw error;
+        setCases((data || []) as TatCase[]);
       } catch (err) {
         console.error("Error fetching TAT cases:", err);
-        setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
+        setCases([]);
       } finally {
         setLoading(false);
       }
@@ -231,14 +225,14 @@ export const CaseLibrary: React.FC = () => {
       )}
       </motion.div>
 
-      <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.case_number} width={680}>
+      <Modal open={!!selected} onClose={() => setSelected(null)} title={selected?.case_number} width={1120}>
         {selected && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <h3 style={{ color: C.navy, marginBottom: 8, fontSize: "1.15rem", fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 800 }}>
+          <div className="tat-case-detail">
+            <div className="tat-case-detail__heading">
+              <h3 style={{ color: C.navy, marginBottom: 12, fontSize: "1.35rem", fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 800 }}>
                 {selected.title}
               </h3>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <Badge
                   color={outcomeColors[selected.outcome]?.[0] || C.muted}
                   bg={outcomeColors[selected.outcome]?.[1] || C.offwhite}
@@ -260,12 +254,12 @@ export const CaseLibrary: React.FC = () => {
               </div>
             </div>
             
-            <div style={{ fontSize: "0.9rem", color: C.text, lineHeight: 1.75, borderTop: "1px solid rgba(15,32,68,0.05)", paddingTop: 16, fontWeight: 500 }}>
+            <div className="tat-case-detail__summary" style={{ fontSize: "0.92rem", color: C.text, lineHeight: 1.85, fontWeight: 500 }}>
               {selected.summary}
             </div>
             
             {selected.ai_commentary && (
-              <div style={{ background: C.tealLight, borderRadius: 14, padding: 24, border: `1px solid ${C.teal}15` }}>
+              <div className="tat-case-detail__commentary" style={{ background: C.tealLight, borderRadius: 14, padding: 24, border: `1px solid ${C.teal}15` }}>
                 <div
                   style={{
                     fontSize: "0.72rem",
@@ -282,7 +276,7 @@ export const CaseLibrary: React.FC = () => {
                   <BookOpen size={13} style={{ color: C.teal }} />
                   <span>Statutory Summary &amp; Legal Commentary</span>
                 </div>
-                <div style={{ fontSize: "0.9rem", color: C.text, lineHeight: 1.85, fontWeight: 500, textAlign: "justify" }}>
+                <div className="tat-case-detail__copy" style={{ fontSize: "0.9rem", color: C.text, lineHeight: 1.85, fontWeight: 500 }}>
                   {selected.ai_commentary.split("\n").map((line, index) => {
                     const trimmed = line.trim();
                     if (!trimmed) return <br key={index} />;
@@ -291,7 +285,7 @@ export const CaseLibrary: React.FC = () => {
                       return (
                         <div key={index} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
                           <span style={{ minWidth: 16, color: C.teal, fontWeight: 700 }}>•</span>
-                          <span style={{ flex: 1, textAlign: "left" }}>{trimmed.replace(/^[-•*]+\s*/, "")}</span>
+                          <span style={{ flex: 1 }}>{trimmed.replace(/^[-•*]+\s*/, "")}</span>
                         </div>
                       );
                     }

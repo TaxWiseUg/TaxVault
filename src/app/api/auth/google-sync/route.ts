@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
     const avatarUrl = typeof body.avatar_url === "string" ? body.avatar_url : undefined;
     const googleUid = identity.id;
     const requestedRole = typeof body.role === "string" && body.role.trim() ? body.role.trim() : undefined;
-    const isFirstLogin = body.is_first_login === true;
 
     if (!rawEmail || rawEmail.toLowerCase() !== email) {
       return NextResponse.json({ error: "The Google account does not match the requested email." }, { status: 403 });
@@ -66,6 +65,9 @@ export async function POST(req: NextRequest) {
     const defaultPlan = "professional";
 
     const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Database is not configured. Google sign-in cannot be completed." }, { status: 503 });
+    }
 
     // ── 1. If Supabase Service Role is configured, sync directly to PostgreSQL auth & tables ──
     if (supabaseAdmin) {
@@ -195,23 +197,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── 2. Demo / Sandbox Mode (or fallback) ──
-    const fallbackId = isAdmin ? "f8174d44-d81a-4e70-9f4b-64744f969d09" : (googleUid || `user-${email}`);
-    const resolvedName = fullName || (isAdmin ? "TaxWise Platform" : email.split("@")[0]);
-    const isNewUser = !isAdmin && !requestedRole && isFirstLogin;
-
-    return NextResponse.json({
-      success: true,
-      isNewUser,
-      profile: {
-        id: fallbackId,
-        email: email,
-        full_name: resolvedName,
-        role: requestedRole || defaultRole,
-        plan: defaultPlan,
-        avatar_url: avatarUrl,
-      },
-    });
+    return NextResponse.json({ error: "Google account could not be synchronized with the database." }, { status: 500 });
   } catch (err: unknown) {
     console.error("[google-sync] Unhandled error:", err);
     return NextResponse.json(

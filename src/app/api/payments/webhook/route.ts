@@ -81,46 +81,30 @@ export async function POST(req: NextRequest) {
     const consumerKey = process.env.PESAPAL_CONSUMER_KEY || "";
     const consumerSecret = process.env.PESAPAL_CONSUMER_SECRET || "";
 
-    const isSimulation =
-      !consumerKey ||
-      !consumerSecret ||
-      consumerKey.includes("placeholder") ||
-      consumerSecret.includes("placeholder");
-
-    let verifyData: PesaPalStatusResponse | null = null;
-
-    if (isSimulation) {
-      console.warn(`[Webhook Simulation] Mocking validation for Order ID: ${orderTrackingId}`);
-      // Simulate successful payment payload from PesaPal status query
-      verifyData = {
-        payment_status_description: "COMPLETED",
-        amount: 150000,
-        merchant_reference: merchantReference || `taxwise-sub-simulated-professional-${Date.now()}`,
-        payment_method: "Simulated",
-      };
-    } else {
-      // Fetch official status from PesaPal API to prevent spoofing
-      const token = await getPesapalToken();
-      const statusResponse = await fetch(
-        `${PESAPAL_BASE_URL}/Transactions/GetTransactionStatus?orderTrackingId=${orderTrackingId}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const jsonResponse = await statusResponse.json();
-      verifyData = jsonResponse as PesaPalStatusResponse;
-      if (!statusResponse.ok || !verifyData) {
-        console.error("Failed to query transaction status from PesaPal:", verifyData);
-        return NextResponse.json({ error: "Failed to verify transaction status" }, { status: 502 });
-      }
+    if (!consumerKey || !consumerSecret || consumerKey.includes("placeholder") || consumerSecret.includes("placeholder")) {
+      return NextResponse.json({ error: "Payment verification is not configured." }, { status: 503 });
     }
 
+    let verifyData: PesaPalStatusResponse | null = null;
+    const token = await getPesapalToken();
+    const statusResponse = await fetch(
+      `${PESAPAL_BASE_URL}/Transactions/GetTransactionStatus?orderTrackingId=${encodeURIComponent(orderTrackingId)}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const jsonResponse = await statusResponse.json();
+    verifyData = jsonResponse as PesaPalStatusResponse;
+    if (!statusResponse.ok || !verifyData) {
+      console.error("Failed to query transaction status from PesaPal:", verifyData);
+      return NextResponse.json({ error: "Failed to verify transaction status" }, { status: 502 });
+    }
     const paymentStatus = verifyData.payment_status_description || verifyData.status;
 
     // If transaction is not completed yet, acknowledge receipt of notification but do not award value

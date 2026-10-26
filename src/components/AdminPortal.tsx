@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { supabase, DEFAULT_USERS, DEFAULT_CASES, DEFAULT_ADMIN_LOGS, DEFAULT_TAT_CASES, DEFAULT_COURSES } from "../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
+import { auth } from "../lib/googleAuth";
 import { C } from "../lib/constants";
 import {
   isSupportedDocument,
@@ -468,12 +469,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         supabase.from("courses").select("*").order("created_at", { ascending: false }),
       ]);
 
-      setUsers(((usersRes.data && usersRes.data.length > 0) ? usersRes.data : DEFAULT_USERS) as AdminUser[]);
-      setCases(((casesRes.data && casesRes.data.length > 0) ? casesRes.data : DEFAULT_CASES) as AdminCase[]);
+      setUsers((usersRes.data || []) as AdminUser[]);
+      setCases((casesRes.data || []) as AdminCase[]);
       setSubs((subsRes.data || []) as Subscription[]);
-      setLogs(((logsRes.data && logsRes.data.length > 0) ? logsRes.data : DEFAULT_ADMIN_LOGS) as AdminLog[]);
-      setPrecedents(((tatCasesRes.data && tatCasesRes.data.length > 0) ? tatCasesRes.data : DEFAULT_TAT_CASES) as Precedent[]);
-      setCourses(((coursesRes.data && coursesRes.data.length > 0) ? coursesRes.data : DEFAULT_COURSES) as Course[]);
+      setLogs((logsRes.data || []) as AdminLog[]);
+      setPrecedents((tatCasesRes.data || []) as Precedent[]);
+      setCourses((coursesRes.data || []) as Course[]);
+      const readError = [usersRes, casesRes, subsRes, logsRes, tatCasesRes, coursesRes]
+        .find((result) => result.error)?.error;
+      setActionError(readError?.message || "");
       setCasesToday(casesTodayRes.count || 0);
       setEnrollmentCount(enrollRes.count || 0);
 
@@ -536,7 +540,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
     setActionError("");
     try {
       const { error } = await supabase.from("users").update({ role: newRole }).eq("id", userToUpdate.id);
-      if (error) console.error("Database user update:", error);
+      if (error) throw error;
       await logAdminAction("user_role_changed", currentAdminId, {
         user_id: userToUpdate.id,
         email: userToUpdate.email,
@@ -581,8 +585,24 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
     setActionLoading(true);
     setActionError("");
     try {
-      const { error } = await supabase.from("users").delete().eq("id", deleteUser.id);
-      if (error) throw error;
+      const provider = auth.currentUser ? "firebase" : "supabase";
+      const accessToken = auth.currentUser
+        ? await auth.currentUser.getIdToken()
+        : (await supabase.auth.getSession()).data.session?.access_token;
+      if (!accessToken) throw new Error("Your admin session expired. Sign in again and retry.");
+
+      const response = await fetch("/api/admin/users/delete", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ authProvider: provider, userId: deleteUser.id }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || "Database deletion failed.");
+      }
       await logAdminAction("user_deleted", currentAdminId, { user_id: deleteUser.id, email: deleteUser.email });
       setUsers(prev => prev.filter(u => u.id !== deleteUser.id));
       setDeleteUser(null);
@@ -1400,6 +1420,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
           <span>{roleSuccessMsg}</span>
         </div>
       )}
+
+      {actionError && <div style={{ background: "#FEE2E2", border: `1px solid ${C.red}`, borderRadius: 8, padding: "10px 14px", fontSize: "0.83rem", color: C.red, marginBottom: 16, fontWeight: 600 }}>{actionError}</div>}
 
       <div style={{ fontSize: "0.8rem", color: C.muted, fontWeight: 600, marginBottom: 12 }}>
         Showing {filteredUsers.length} of {users.length} users

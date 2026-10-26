@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { supabase, DEFAULT_CASES, DEFAULT_TAT_CASES } from "../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 import { C, riskColors } from "../lib/constants";
 import {
   MAX_DOCUMENT_SIZE_BYTES,
@@ -204,10 +204,10 @@ const LibraryPicker: React.FC<LibraryPickerProps> = ({ open, onClose, onSelect }
         if (!error && data && data.length > 0) {
           setCases(data as TatCase[]);
         } else {
-          setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
+          setCases([]);
         }
       } catch {
-        setCases(DEFAULT_TAT_CASES as unknown as TatCase[]);
+        setCases([]);
       } finally {
         setLoading(false);
       }
@@ -786,14 +786,10 @@ export const CaseAnalyzer: React.FC<CaseAnalyzerProps> = ({ user }) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      if (data && data.length > 0) {
-        setReports(data as unknown as CaseRecord[]);
-      } else {
-        setReports(DEFAULT_CASES as unknown as CaseRecord[]);
-      }
+      setReports((data || []) as unknown as CaseRecord[]);
     } catch (err) {
       console.error("Error fetching past reports:", err);
-      setReports(DEFAULT_CASES as unknown as CaseRecord[]);
+      setReports([]);
     } finally {
       setReportsLoading(false);
     }

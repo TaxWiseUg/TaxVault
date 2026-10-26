@@ -123,54 +123,9 @@ export async function POST(req: NextRequest) {
     const consumerKey = process.env.PESAPAL_CONSUMER_KEY || "";
     const consumerSecret = process.env.PESAPAL_CONSUMER_SECRET || "";
 
-    // Simulation / developer testing mode
-    const isSimulation =
-      !consumerKey ||
-      !consumerSecret ||
-      consumerKey.includes("placeholder") ||
-      consumerSecret.includes("placeholder");
-
-    if (isSimulation) {
-      console.warn("PesaPal API Keys are missing or placeholder. Simulating successful checkout.");
-      
-      try {
-        const supabaseAdmin = getSupabaseAdmin();
-        
-        // Upgrade user plan directly in the DB
-        await supabaseAdmin
-          .from("users")
-          .update({ plan: normalizedPlan })
-          .eq("id", userId);
-
-        const startsAt = new Date();
-        const expiresAt = new Date();
-        expiresAt.setDate(startsAt.getDate() + 30);
-
-        // Log subscription record
-        await supabaseAdmin
-          .from("subscriptions")
-          .insert({
-            user_id: userId,
-            plan: normalizedPlan,
-            flutterwave_ref: `simulated-pesapal-${Date.now()}`,
-            status: "active",
-            starts_at: startsAt.toISOString(),
-            expires_at: expiresAt.toISOString(),
-          });
-
-        console.log(`[Simulation] Direct upgraded user ${userId} to ${normalizedPlan}`);
-      } catch (dbErr) {
-        console.error("[Simulation] Database upgrade failed:", dbErr);
-      }
-
-      const mockCheckoutUrl = `/pricing?status=completed&tx_ref=${txRef}&plan=${normalizedPlan}`;
-      return NextResponse.json({
-        success: true,
-        simulated: true,
-        link: mockCheckoutUrl,
-      });
+    if (!consumerKey || !consumerSecret || consumerKey.includes("placeholder") || consumerSecret.includes("placeholder")) {
+      return NextResponse.json({ error: "Payment processing is not configured." }, { status: 503 });
     }
-
     // Call PesaPal API flow
     const token = await getPesapalToken();
     const ipnId = await getOrRegisterIpnId(token, req.nextUrl.origin);

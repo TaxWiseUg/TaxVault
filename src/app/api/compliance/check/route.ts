@@ -25,6 +25,9 @@ export async function POST(req: NextRequest) {
     if (!complianceType || gaps === undefined) {
       return NextResponse.json({ error: "Missing compliance checker parameters" }, { status: 400 });
     }
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Supabase is not configured to save compliance reports." }, { status: 503 });
+    }
 
     const systemPrompt = `You are a Uganda tax compliance auditor. Based on the compliance gaps provided, generate a professional, structured risk report.
 Format the report beautifully in markdown. Do not include introductory conversational filler. Start directly with the report.
@@ -56,36 +59,19 @@ ${(gaps as string[]).length > 0 ? (gaps as string[]).map((g: string) => `• ${g
 
     // Save report to compliance_reports table
     let insertedReport = null;
-    if (supabaseAdmin) {
-      const { data, error: dbError } = await supabaseAdmin
-        .from("compliance_reports")
-        .insert({
-          user_id: userId,
-          type: complianceType,
-          responses: responses || {},
-          risk_report: responseText,
-          score: score,
-        })
-        .select()
-        .single();
-
-      if (dbError) {
-        console.error("Supabase DB error saving compliance report:", dbError);
-      } else {
-        insertedReport = data;
-      }
-    } else {
-      console.log("Skipping Supabase insert for compliance check in Demo / Sandbox mode.");
-      insertedReport = {
-        id: `mock-compliance-${Date.now()}`,
+    const { data, error: dbError } = await supabaseAdmin
+      .from("compliance_reports")
+      .insert({
         user_id: userId,
         type: complianceType,
         responses: responses || {},
         risk_report: responseText,
         score: score,
-        created_at: new Date().toISOString()
-      };
-    }
+      })
+      .select()
+      .single();
+    if (dbError) throw dbError;
+    insertedReport = data;
 
     return NextResponse.json({
       success: true,

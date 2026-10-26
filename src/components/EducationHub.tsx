@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
-import { supabase, DEFAULT_COURSES } from "../lib/supabaseClient";
-import { IMPORTED_ENROLLMENTS } from "../lib/importedData";
+import { supabase } from "../lib/supabaseClient";
 import { C, levelColors } from "../lib/constants";
 import { Badge, Button, Card, ProgressBar } from "./UI";
 import { WorkspacePageHero } from "./WorkspacePageHero";
@@ -85,37 +84,23 @@ export const EducationHub: React.FC<EducationHubProps> = ({ user }) => {
         .select("*")
         .order("id", { ascending: true });
 
-      if (coursesError || !coursesData || coursesData.length === 0) {
-        setCourses(DEFAULT_COURSES as unknown as Course[]);
-      } else {
-        setCourses(coursesData as Course[]);
-      }
+      if (coursesError) throw coursesError;
+      setCourses((coursesData || []) as Course[]);
 
       // Fetch user's enrollments
       try {
-        const { data: enrollmentsData } = await supabase
+        const { data: enrollmentsData, error: enrollmentsError } = await supabase
           .from("enrollments")
           .select("*")
           .eq("user_id", user.id);
+        if (enrollmentsError) throw enrollmentsError;
 
         const enrollMap: Record<number, Enrollment> = {};
-        if (enrollmentsData && enrollmentsData.length > 0) {
-          enrollmentsData.forEach((e) => {
-            enrollMap[e.course_id] = e as Enrollment;
-          });
-        } else {
-          IMPORTED_ENROLLMENTS.forEach((e) => {
-            enrollMap[e.course_id] = e as unknown as Enrollment;
-          });
-        }
+        (enrollmentsData || []).forEach((e) => { enrollMap[e.course_id] = e as Enrollment; });
         setEnrollments(enrollMap);
       } catch (enrErr) {
-        console.warn("Could not load enrollments, proceeding with defaults:", enrErr);
-        const enrollMap: Record<number, Enrollment> = {};
-        IMPORTED_ENROLLMENTS.forEach((e) => {
-          enrollMap[e.course_id] = e as unknown as Enrollment;
-        });
-        setEnrollments(enrollMap);
+        console.error("Could not load enrollments from Supabase:", enrErr);
+        setEnrollments({});
       }
     } catch (err) {
       console.error("Error loading education hub data:", err);

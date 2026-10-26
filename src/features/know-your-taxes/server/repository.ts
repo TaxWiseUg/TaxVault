@@ -1,4 +1,4 @@
-import { supabase, safeStorage } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { Answers, AssessmentResult, LegalSource } from "../types";
 import { SEED_RULES, RULE_SET_VERSION } from "../rules/seed-rules";
 import { SOURCES } from "../rules/sources";
@@ -28,29 +28,6 @@ export interface StoredAssessment {
   completedAt: string;
 }
 
-const STORAGE_KEY = "mock_kyt_assessments";
-
-function getLocalAssessments(): StoredAssessment[] {
-  const raw = safeStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-}
-
-function saveLocalAssessment(item: StoredAssessment) {
-  const list = getLocalAssessments();
-  const idx = list.findIndex((x) => x.id === item.id);
-  if (idx >= 0) {
-    list[idx] = item;
-  } else {
-    list.unshift(item);
-  }
-  safeStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-}
-
 export async function createCompletedAssessment(
   userId: string,
   answers: Answers
@@ -58,8 +35,7 @@ export async function createCompletedAssessment(
   const asOf = new Date();
   const asOfStr = asOf.toISOString().slice(0, 10);
   const result = assess(answers, SEED_RULES, asOfStr, RULE_SET_VERSION);
-  const id = `kyt-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-
+  const id = crypto.randomUUID();
   const item: StoredAssessment = {
     id,
     userId,
@@ -73,30 +49,19 @@ export async function createCompletedAssessment(
     completedAt: asOf.toISOString(),
   };
 
-  // Try writing to Supabase, with automatic fallback to safeStorage
-  try {
-    const { error } = await supabase.from("kyt_assessments").insert([
-      {
-        id,
-        user_id: userId,
-        status: "COMPLETED",
-        entity_type: answers.entityType,
-        rule_set_id: RULE_SET_VERSION,
-        engine_version: result.engineVersion,
-        as_of: asOfStr,
-        result: item.result,
-        created_at: item.createdAt,
-      },
-    ]);
-    if (error) {
-      saveLocalAssessment(item);
-    } else {
-      saveLocalAssessment(item);
-    }
-  } catch {
-    saveLocalAssessment(item);
-  }
-
+  const { error } = await supabase.from("kyt_assessments").insert({
+    id,
+    user_id: userId,
+    status: item.status,
+    entity_type: item.entityType,
+    rule_set_id: item.ruleSetId,
+    engine_version: item.engineVersion,
+    as_of: item.asOf,
+    result: item.result,
+    created_at: item.createdAt,
+    completed_at: item.completedAt,
+  });
+  if (error) throw new Error(`Could not save assessment to Supabase: ${error.message}`);
   return { id };
 }
 
@@ -104,48 +69,36 @@ export async function getAssessmentForUser(
   userId: string,
   id: string
 ): Promise<{ id: string; createdAt: string; result: AssessmentResult & { answers: Answers } }> {
-  // Check local memory/storage first
-  const localList = getLocalAssessments();
-  const match = localList.find((x) => x.id === id && (x.userId === userId || userId === "f8174d44-d81a-4e70-9f4b-64744f969d09"));
-  if (match) {
-    return { id: match.id, createdAt: match.createdAt, result: match.result };
-  }
+  const { data, error } = await supabase
+    .from("kyt_assessments")
+    .select("*")
+    .eq("id", id)
+    .eq("user_id", userId)
+    .single();
 
-  // Check Supabase
-  try {
-    const { data, error } = await supabase
-      .from("kyt_assessments")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (!error && data) {
-      const res = data.result || data;
-      return {
-        id: data.id,
-        createdAt: data.created_at,
-        result: res,
-      };
-    }
-  } catch {
-    // fallback
-  }
-
-  throw new NotFoundError("Assessment not found");
+  if (error || !data) throw new NotFoundError("Assessment not found");
+  return {
+    id: data.id,
+    createdAt: data.created_at,
+    result: data.result || data,
+  };
 }
 
 export async function listAssessmentsForUser(userId: string) {
-  const local = getLocalAssessments().filter(
-    (x) => x.userId === userId || userId === "f8174d44-d81a-4e70-9f4b-64744f969d09"
-  );
-  return local.map((x) => ({
-    id: x.id,
-    createdAt: x.createdAt,
-    entityType: x.entityType,
-    ruleSetId: x.ruleSetId,
+  const { data, error } = await supabase
+    .from("kyt_assessments")
+    .select("id, created_at, entity_type, rule_set_id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`Could not load assessments from Supabase: ${error.message}`);
+
+  return (data || []).map((item) => ({
+    id: item.id,
+    createdAt: item.created_at,
+    entityType: item.entity_type,
+    ruleSetId: item.rule_set_id,
   }));
 }
-
 export async function getSources(ids: string[]): Promise<LegalSource[]> {
   return ids.map((id) => SOURCES[id]).filter(Boolean);
 }
@@ -159,9 +112,6 @@ export async function logQuestion(input: {
   citedSourceIds: string[];
   grounded: boolean;
 }) {
-  try {
-    await supabase.from("kyt_questions").insert([input]);
-  } catch {
-    // silent
-  }
+  const { error } = await supabase.from("kyt_questions").insert(input);
+  if (error) throw new Error(`Could not save assessment question to Supabase: ${error.message}`);
 }
