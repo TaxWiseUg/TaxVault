@@ -783,9 +783,7 @@ export default function TaxWiseSaaS() {
           onClick={() => setIsMobileMenuOpen(false)}
           aria-hidden="true"
           style={{
-            background: "rgba(10, 15, 30, 0.4)",
-            backdropFilter: "blur(4px)",
-            WebkitBackdropFilter: "blur(4px)",
+            background: "rgba(10, 15, 30, 0.32)",
           }}
         />
       )}
@@ -1469,6 +1467,10 @@ export default function TaxWiseSaaS() {
               background: "var(--color-white)",
             }}
           >
+            <div className="tw-mobile-nav__header">
+              <span className="tw-mobile-nav__brand-mark" aria-hidden="true">TW</span>
+              <span className="tw-mobile-nav__brand-name">TaxWise</span>
+            </div>
             <div className="tw-mobile-nav__tabs">
               <button
                 type="button"

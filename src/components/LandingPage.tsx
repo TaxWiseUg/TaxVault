@@ -831,6 +831,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               aria-hidden={!mobileOpen}
               inert={!mobileOpen}
             >
+              <div className="tw-main-nav__header">
+                <span className="tw-mobile-nav__brand-mark" aria-hidden="true">TW</span>
+                <span className="tw-mobile-nav__brand-name">TaxWise</span>
+              </div>
               <div className="tw-main-nav__tabs">
                 <button type="button" aria-label="Home" title="Home" aria-current="page" className="is-active">
                   <Home size={19} />
