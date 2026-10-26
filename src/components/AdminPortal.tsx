@@ -323,6 +323,34 @@ const logAdminAction = async (action: string, adminId: string | undefined, meta:
   }
 };
 
+async function fetchAdminUsers(): Promise<AdminUser[]> {
+  let token: string | undefined;
+  let authProvider: "firebase" | "supabase";
+
+  if (auth.currentUser) {
+    token = await auth.currentUser.getIdToken();
+    authProvider = "firebase";
+  } else {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    token = data.session?.access_token;
+    authProvider = "supabase";
+  }
+
+  if (!token) throw new Error("Your admin session is unavailable. Sign in again and refresh the user directory.");
+
+  const response = await fetch("/api/admin/users", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-Auth-Provider": authProvider,
+    },
+    cache: "no-store",
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || "Could not load users from Supabase.");
+  return Array.isArray(result.users) ? result.users as AdminUser[] : [];
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdminId }) => {
   const [tab, setTab] = useState<"overview" | "users" | "revenue" | "activity" | "logs" | "settings" | "tat_precedents" | "courses" | "database_sql">("overview");
@@ -354,6 +382,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
   // Data states
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersLoadError, setUsersLoadError] = useState("");
   const [cases, setCases] = useState<AdminCase[]>([]);
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [logs, setLogs] = useState<AdminLog[]>([]);
@@ -444,6 +473,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
     setLoading(true);
     try {
       const today = new Date().toISOString().split("T")[0];
+      const usersPromise = fetchAdminUsers()
+        .then((data) => ({ data, error: null as { message: string } | null }))
+        .catch((error: unknown) => ({
+          data: null,
+          error: { message: error instanceof Error ? error.message : "Could not load users from Supabase." },
+        }));
 
       const [
         usersRes,
@@ -457,7 +492,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         tatCasesRes,
         coursesRes,
       ] = await Promise.all([
-        supabase.from("users").select("id,full_name,email,role,plan,created_at").order("created_at", { ascending: false }),
+        usersPromise,
         supabase.from("cases").select("id,title,risk_level,created_at,user_id").order("created_at", { ascending: false }).limit(50),
         supabase.from("subscriptions").select("id,user_id,plan,status,starts_at,expires_at").order("starts_at", { ascending: false }).limit(100),
         supabase.from("admin_logs").select("id,action,performed_by,metadata,created_at").order("created_at", { ascending: false }).limit(50),
@@ -469,13 +504,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
         supabase.from("courses").select("*").order("created_at", { ascending: false }),
       ]);
 
-      setUsers((usersRes.data || []) as AdminUser[]);
+      setUsers(usersRes.data || []);
+      setUsersLoadError(usersRes.error?.message || "");
       setCases((casesRes.data || []) as AdminCase[]);
       setSubs((subsRes.data || []) as Subscription[]);
       setLogs((logsRes.data || []) as AdminLog[]);
       setPrecedents((tatCasesRes.data || []) as Precedent[]);
       setCourses((coursesRes.data || []) as Course[]);
-      const readError = [usersRes, casesRes, subsRes, logsRes, tatCasesRes, coursesRes]
+      const readError = [casesRes, subsRes, logsRes, tatCasesRes, coursesRes]
         .find((result) => result.error)?.error;
       setActionError(readError?.message || "");
       setCasesToday(casesTodayRes.count || 0);
@@ -1423,8 +1459,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
 
       {actionError && <div style={{ background: "#FEE2E2", border: `1px solid ${C.red}`, borderRadius: 8, padding: "10px 14px", fontSize: "0.83rem", color: C.red, marginBottom: 16, fontWeight: 600 }}>{actionError}</div>}
 
+      {usersLoadError && (
+        <div role="alert" style={{ background: "#FEF2F2", border: `1px solid ${C.red}`, borderRadius: 8, padding: "12px 14px", fontSize: "0.83rem", color: C.red, marginBottom: 16, fontWeight: 600 }}>
+          The user directory could not be loaded from Supabase: {usersLoadError}
+        </div>
+      )}
+
       <div style={{ fontSize: "0.8rem", color: C.muted, fontWeight: 600, marginBottom: 12 }}>
-        Showing {filteredUsers.length} of {users.length} users
+        {usersLoadError ? "User directory unavailable" : `Showing ${filteredUsers.length} of ${users.length} users`}
       </div>
 
       <Card style={{ padding: 0, overflow: "hidden" }}>
@@ -1445,7 +1487,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onNavigate, currentAdm
               </thead>
               <tbody>
                 {pagedUsers.length === 0 ? (
-                  <tr><td colSpan={6} style={{ textAlign: "center", padding: 40, color: C.muted, fontWeight: 600 }}>No users match your filters.</td></tr>
+                  <tr><td colSpan={6} style={{ textAlign: "center", padding: 40, color: C.muted, fontWeight: 600 }}>{usersLoadError ? "User records could not be retrieved. Use Refresh to try again." : "No users match your filters."}</td></tr>
                 ) : pagedUsers.map((u, i) => {
                   const isAdmin = (u.role || "").toLowerCase() === "admin";
                   return (
