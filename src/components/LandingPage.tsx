@@ -908,6 +908,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <button type="button" aria-label="Case analyzer" title="Case analyzer" onClick={() => dbUser && onNavigate ? onNavigate("analyzer") : onGetStarted()}>
                 <Scale size={19} /><span>Analyze</span>
               </button>
+              <button type="button" aria-label="Tax calculators" title="Tax calculators" onClick={() => dbUser && onNavigate ? onNavigate("calculators") : onGetStarted()}>
+                <Calculator size={19} /><span>Calculators</span>
+              </button>
               <button ref={menuBtnRef} type="button" className={mobileOpen ? "is-active" : ""} aria-label={mobileOpen ? "Close more navigation" : "More navigation"} title="More" aria-expanded={mobileOpen} onClick={() => setMobileOpen(open => !open)}>
                 <Menu size={19} /><span>More</span>
               </button>

@@ -1550,6 +1550,9 @@ export default function TaxWiseSaaS() {
               <button type="button" className={page === "analyzer" ? "is-active" : ""} aria-label="Case analyzer" title="Case analyzer" onClick={() => { setPage("analyzer"); setIsMobileMenuOpen(false); }}>
                 <Scale size={19} /><span>Analyze</span>
               </button>
+              <button type="button" className={page === "calculators" ? "is-active" : ""} aria-label="Tax calculators" title="Tax calculators" onClick={() => { setPage("calculators"); setIsMobileMenuOpen(false); }}>
+                <Calculator size={19} /><span>Calculators</span>
+              </button>
               <button type="button" className={isMobileMenuOpen ? "is-active" : ""} aria-label={isMobileMenuOpen ? "Close more navigation" : "More navigation"} title="More" aria-expanded={isMobileMenuOpen} aria-controls="mobile-navigation-drawer" onClick={() => setIsMobileMenuOpen(open => !open)}>
                 <Menu size={19} /><span>More</span>
               </button>
