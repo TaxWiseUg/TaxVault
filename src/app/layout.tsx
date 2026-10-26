@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -26,9 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light" suppressHydrationWarning>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
+        <Script id="theme-initializer" strategy="beforeInteractive">{`
               try {
                 var theme = localStorage.getItem('taxwise_theme');
                 if (theme === 'dark') {
@@ -44,9 +43,7 @@ export default function RootLayout({
               } catch (e) {
                 document.documentElement.classList.add('light');
               }
-            `,
-          }}
-        />
+            `}</Script>
       </head>
       <body>
         {children}

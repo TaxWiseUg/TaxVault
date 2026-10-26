@@ -1166,6 +1166,7 @@ textarea:focus-visible {
 .tw-mobile-nav__tabs {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   flex: 0 0 auto;
 }
@@ -1252,11 +1253,19 @@ textarea:focus-visible {
   min-height: 0;
   flex-direction: column;
   align-items: stretch;
+  justify-content: center;
   gap: 8px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
+}
+
+@media (max-height: 680px) {
+  .tw-main-nav__links,
+  .tw-mobile-nav__links {
+    justify-content: flex-start;
+  }
 }
 
 .tw-main-nav__links .tw-mobile-link,
