@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Sun,
   Moon,
+  Settings,
   Sparkles,
   Home,
   Compass,
@@ -1461,205 +1462,89 @@ export default function TaxWiseSaaS() {
             className={`tw-mobile-nav-drawer ${isMobileMenuOpen ? "is-open" : ""}`}
             role="dialog"
             aria-label="Main navigation"
+            aria-modal="true"
             aria-hidden={!isMobileMenuOpen}
             inert={!isMobileMenuOpen}
             style={{
               background: "var(--color-white)",
-              padding: "16px",
             }}
           >
-            {/* Dynamic Home ⇄ Dashboard Switcher in Mobile */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16, padding: "4px", background: "rgba(15, 32, 68, 0.04)", borderRadius: 10 }}>
+            <div className="tw-mobile-nav__tabs">
               <button
                 type="button"
+                aria-label="Dashboard"
+                title="Dashboard"
+                aria-current={isDashboardActive ? "page" : undefined}
+                className={isDashboardActive ? "is-active" : ""}
                 onClick={() => {
                   setPage("dashboard");
                   setIsMobileMenuOpen(false);
                 }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  padding: "8px 10px",
-                  borderRadius: 7,
-                  border: isDashboardActive ? "1px solid rgba(26,123,107,0.3)" : "1px solid transparent",
-                  background: isDashboardActive ? "#FFFFFF" : "transparent",
-                  color: isDashboardActive ? C.teal : C.navy,
-                  fontWeight: 700,
-                  fontSize: "0.8rem",
-                  cursor: "pointer",
-                  boxShadow: isDashboardActive ? "0 2px 6px rgba(0,0,0,0.06)" : "none",
-                }}
               >
-                <LayoutDashboard size={15} style={{ color: isDashboardActive ? C.teal : "#7A889B" }} />
-                <span>Dashboard</span>
+                <LayoutDashboard size={19} />
               </button>
               <button
                 type="button"
+                aria-label="Home"
+                title="Home"
+                className=""
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   setView("landing");
                 }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                  padding: "8px 10px",
-                  borderRadius: 7,
-                  border: "1px solid transparent",
-                  background: "transparent",
-                  color: C.navy,
-                  fontWeight: 600,
-                  fontSize: "0.8rem",
-                  cursor: "pointer",
-                }}
               >
-                <Home size={15} style={{ color: C.teal }} />
-                <span>Go to Home</span>
+                <Home size={19} />
               </button>
             </div>
 
-            {/* Advisory & Tools Section */}
-            <div style={{ fontSize: "0.68rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-              Advisory &amp; Tools
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 5, marginBottom: 14 }}>
-              {advisoryItems.map((n) => {
+            <div className="tw-mobile-nav__links">
+              {[...advisoryItems, ...legalItems].map((n) => {
                 const isActive = page === n.id;
                 return (
                   <button
                     key={n.id}
+                    className={`tw-mobile-nav__link ${isActive ? "is-active" : ""}`}
                     onClick={() => {
                       setPage(n.id);
                       setIsMobileMenuOpen(false);
                     }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "9px 12px",
-                      borderRadius: 8,
-                      border: isActive ? "1px solid rgba(26,123,107,0.3)" : `1px solid ${C.border}`,
-                      background: isActive ? "rgba(26, 123, 107, 0.08)" : C.white,
-                      color: isActive ? C.teal : C.navy,
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: "0.8rem",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      fontFamily: "inherit",
-                    }}
                   >
-                    <span style={{ color: isActive ? C.teal : C.muted }}>
-                      {getNavItemIcon(n.id, 15)}
-                    </span>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {n.label}
-                    </span>
-                    {n.badge && (
-                      <span style={{ marginLeft: "auto", background: C.gold, color: "#FFF", fontSize: "0.62rem", padding: "1px 5px", borderRadius: 99, fontWeight: 700 }}>
-                        {n.badge}
-                      </span>
-                    )}
+                    <span className="tw-mobile-nav__link-icon">{getNavItemIcon(n.id, 16)}</span>
+                    <span>{n.label}</span>
+                    {n.badge && <span className="tw-mobile-nav__badge">{n.badge}</span>}
                   </button>
                 );
               })}
             </div>
 
-            {/* Legal & Insights Section */}
-            <div style={{ fontSize: "0.68rem", fontWeight: 700, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-              Legal &amp; Insights
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 5, marginBottom: 14 }}>
-              {legalItems.map((n) => {
-                const isActive = page === n.id;
-                return (
-                  <button
-                    key={n.id}
-                    onClick={() => {
-                      setPage(n.id);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "9px 12px",
-                      borderRadius: 8,
-                      border: isActive ? "1px solid rgba(26,123,107,0.3)" : `1px solid ${C.border}`,
-                      background: isActive ? "rgba(26, 123, 107, 0.08)" : C.white,
-                      color: isActive ? C.teal : C.navy,
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: "0.8rem",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <span style={{ color: isActive ? C.teal : C.muted }}>
-                      {getNavItemIcon(n.id, 15)}
-                    </span>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {n.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.teal, display: "flex", alignItems: "center", justifyContent: "center", color: "#FFF", fontSize: "0.72rem", fontWeight: 700 }}>
-                  {getInitials(activeUser.full_name)}
-                </div>
-                <div>
-                  <div style={{ fontSize: "0.78rem", fontWeight: 600, color: C.navy }}>{activeUser.full_name}</div>
-                  <div style={{ fontSize: "0.65rem", color: C.teal, fontWeight: 700 }}>{activeUser.plan.toUpperCase()}</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <button
-                  onClick={(event) => toggleTheme(event)}
-                  style={{
-                    padding: "6px 10px",
-                    borderRadius: 6,
-                    border: `1px solid ${C.border}`,
-                    background: C.white,
-                    color: C.navy,
-                    fontSize: "0.74rem",
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  {themeMode === "dark" ? <Sun size={12} style={{ color: "#F59E0B" }} /> : <Moon size={12} />}
-                  <span>{themeMode === "dark" ? "Light" : "Dark"}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleSignOut();
-                  }}
-                  style={{
-                    background: "rgba(239, 68, 68, 0.08)",
-                    border: "none",
-                    color: "#EF4444",
-                    fontSize: "0.74rem",
-                    fontWeight: 600,
-                    padding: "6px 10px",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  <LogOut size={12} />
-                  <span>Sign Out</span>
-                </button>
-              </div>
+            <div className="tw-mobile-nav__footer">
+              <button
+                className="tw-mobile-nav__account"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setPage("settings");
+                }}
+                aria-label="Open general settings"
+                title="General settings"
+              >
+                <span className="tw-mobile-nav__avatar">{getInitials(activeUser.full_name)}</span>
+                <span className="tw-mobile-nav__account-copy">
+                  <strong>{activeUser.full_name}</strong>
+                  <small>General settings</small>
+                </span>
+                <Settings size={17} />
+              </button>
+              <button
+                className="tw-mobile-nav__signout"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  handleSignOut();
+                }}
+                aria-label="Sign out"
+                title="Sign out"
+              >
+                <LogOut size={17} />
+              </button>
             </div>
           </div>
         )}

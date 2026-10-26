@@ -251,30 +251,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   }, [mobileOpen]);
 
   useEffect(() => {
-    if (!mobileOpen) return;
-    const updateDrawerTop = () => {
-      const nav = menuBtnRef.current?.closest("nav");
-      if (nav) {
-        document.documentElement.style.setProperty(
-          "--landing-mobile-nav-top",
-          `${nav.getBoundingClientRect().bottom}px`
-        );
-      }
-    };
-    updateDrawerTop();
-    window.addEventListener("resize", updateDrawerTop);
-    window.addEventListener("scroll", updateDrawerTop, { passive: true });
-    return () => {
-      window.removeEventListener("resize", updateDrawerTop);
-      window.removeEventListener("scroll", updateDrawerTop);
-    };
-  }, [mobileOpen]);
-
-  useEffect(() => () => {
-    document.documentElement.style.removeProperty("--landing-mobile-nav-top");
-  }, []);
-
-  useEffect(() => {
     const closeOnDesktop = () => {
       if (window.innerWidth > 768) setMobileOpen(false);
     };
@@ -845,7 +821,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {typeof document !== "undefined" && createPortal(
           <>
             <div
-            className={`tw-main-nav-backdrop ${mobileOpen ? "open" : ""}`}
+              className={`tw-main-nav-backdrop ${mobileOpen ? "open" : ""}`}
               onClick={() => setMobileOpen(false)}
               aria-hidden="true"
             />
@@ -855,114 +831,88 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               aria-hidden={!mobileOpen}
               inert={!mobileOpen}
             >
-          {dbUser && (
-            <div style={{ padding: "8px 0 16px", borderBottom: "1px solid var(--landing-border)", marginBottom: "8px" }}>
-              <span style={{ fontSize: "0.72rem", color: "var(--landing-muted)" }}>Signed in as</span>
-              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--landing-text)" }}>{dbUser.full_name}</div>
-            </div>
-          )}
-          {/* Dynamic Home ⇄ Dashboard switcher on Mobile */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14, padding: "4px", background: "var(--landing-bg)", borderRadius: 10 }}>
-            <button
-              type="button"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                padding: "8px 10px",
-                borderRadius: 7,
-                border: "1px solid rgba(26,123,107,0.3)",
-                background: "var(--landing-surface)",
-                color: "#1A7B6B",
-                fontWeight: 700,
-                fontSize: "0.8rem",
-                cursor: "default"
-              }}
-            >
-              <Home size={15} style={{ color: "#1A7B6B" }} />
-              <span>Home</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileOpen(false);
-                if (dbUser) {
-                  if (onNavigate) onNavigate("dashboard");
-                  else onGetStarted();
-                } else {
-                  onSignIn();
-                }
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                padding: "8px 10px",
-                borderRadius: 7,
-                border: "1px solid transparent",
-                background: "transparent",
-                color: "var(--landing-text)",
-                fontWeight: 600,
-                fontSize: "0.8rem",
-                cursor: "pointer"
-              }}
-            >
-              <LayoutDashboard size={15} style={{ color: "#1A7B6B" }} />
-              <span>{dbUser ? "Dashboard" : "Login"}</span>
-            </button>
-          </div>
+              <div className="tw-main-nav__tabs">
+                <button type="button" aria-label="Home" title="Home" aria-current="page" className="is-active">
+                  <Home size={19} />
+                </button>
+                <button
+                  type="button"
+                  aria-label={dbUser ? "Dashboard" : "Login"}
+                  title={dbUser ? "Dashboard" : "Login"}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    if (dbUser) {
+                      if (onNavigate) onNavigate("dashboard");
+                      else onGetStarted();
+                    } else {
+                      onSignIn();
+                    }
+                  }}
+                >
+                  <LayoutDashboard size={19} />
+                </button>
+              </div>
 
-          <div style={{ padding: "8px 10px 6px", color: "var(--landing-muted)", fontSize: ".66rem", fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase" }}>
-            Shortcuts
-          </div>
-          {[
-            { label: "Analyzer", page: "analyzer", icon: <Scale size={16} /> },
-            { label: "Cases", page: "library", icon: <FileText size={16} /> },
-            { label: "Calculators", page: "calculators", icon: <Calculator size={16} /> },
-            { label: "Intelligence", page: "intelligence", icon: <TrendingUp size={16} /> },
-            { label: "Compliance", page: "compliance", icon: <ShieldCheck size={16} /> },
-            { label: "Learning", page: "education", icon: <FileCheck size={16} /> },
-          ].map(item => (
-            <button 
-              key={item.label} 
-              onClick={() => {
-                setMobileOpen(false);
-                if (onNavigate) onNavigate(item.page);
-                else onGetStarted();
-              }} 
-              className="tw-mobile-link" 
-              style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 11px", color: "var(--landing-text)", background: "transparent", border: "1px solid transparent", borderRadius: 10, fontSize: ".84rem", fontWeight: 600, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "background 180ms ease, border-color 180ms ease, color 180ms ease" }}
-            >
-              <span style={{ width: 20, display: "inline-flex", justifyContent: "center", color: "#1A7B6B" }}>{item.icon}</span>
-              <span>{item.label}</span>
-            </button>
-          ))}
-          {!dbUser ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
-              <button 
-                onClick={() => { setMobileOpen(false); onSignIn(); }} 
-                style={{ display: "block", padding: "11px 16px", color: "var(--landing-text)", background: "var(--landing-bg)", border: "1px solid var(--landing-border)", borderRadius: 6, fontSize: ".875rem", fontWeight: 600, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
-              >
-                Login
-              </button>
-              <button 
-                onClick={() => { setMobileOpen(false); onGetStarted(); }} 
-                style={{ display: "block", padding: "11px 16px", color: "white", background: "#1A7B6B", border: "none", borderRadius: 6, fontSize: ".875rem", fontWeight: 700, width: "100%", textAlign: "center", cursor: "pointer", fontFamily: "inherit" }}
-              >
-                Start Free Trial →
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={() => { setMobileOpen(false); if (onSignOut) onSignOut(); }} 
-              style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0", color: "#DC2626", background: "none", border: "none", fontSize: ".92rem", fontWeight: 700, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", marginTop: 8 }}
-            >
-              <LogOut size={16} />
-              <span>Sign Out</span>
-            </button>
-          )}
+              <div className="tw-main-nav__links">
+                {[
+                  { label: "Analyzer", page: "analyzer", icon: <Scale size={16} /> },
+                  { label: "Cases", page: "library", icon: <FileText size={16} /> },
+                  { label: "Calculators", page: "calculators", icon: <Calculator size={16} /> },
+                  { label: "Intelligence", page: "intelligence", icon: <TrendingUp size={16} /> },
+                  { label: "Compliance", page: "compliance", icon: <ShieldCheck size={16} /> },
+                  { label: "Learning", page: "education", icon: <FileCheck size={16} /> },
+                ].map(item => (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      if (onNavigate) onNavigate(item.page);
+                      else onGetStarted();
+                    }}
+                    className="tw-mobile-link"
+                  >
+                    <span className="tw-main-nav__link-icon">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="tw-main-nav__footer">
+                {dbUser ? (
+                  <>
+                    <button
+                      className="tw-main-nav__account"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        if (onNavigate) onNavigate("settings");
+                        else onGetStarted();
+                      }}
+                      aria-label="Open general settings"
+                      title="General settings"
+                    >
+                      <span className="tw-main-nav__avatar">{dbUser.full_name?.[0]?.toUpperCase() || "U"}</span>
+                      <span className="tw-main-nav__account-copy">
+                        <strong>{dbUser.full_name}</strong>
+                        <small>General settings</small>
+                      </span>
+                      <Settings size={17} />
+                    </button>
+                    <button
+                      className="tw-main-nav__signout"
+                      onClick={() => { setMobileOpen(false); onSignOut?.(); }}
+                      aria-label="Sign out"
+                      title="Sign out"
+                    >
+                      <LogOut size={17} />
+                    </button>
+                  </>
+                ) : (
+                  <div className="tw-main-nav__guest-actions">
+                    <button onClick={() => { setMobileOpen(false); onSignIn(); }}>Login</button>
+                    <button onClick={() => { setMobileOpen(false); onGetStarted(); }}>Start Free Trial</button>
+                  </div>
+                )}
+              </div>
             </nav>
           </>,
           document.body
