@@ -239,6 +239,45 @@ body {
   letter-spacing: -0.011em;
 }
 
+::view-transition-group(root) {
+  animation-duration: 520ms;
+}
+
+::view-transition-old(root) {
+  animation: none;
+  z-index: 0;
+}
+
+::view-transition-new(root) {
+  animation: theme-circle-reveal 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  z-index: 1;
+}
+
+@keyframes theme-circle-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-reveal-x, 50vw) var(--theme-reveal-y, 50vh));
+  }
+  to {
+    clip-path: circle(150vmax at var(--theme-reveal-x, 50vw) var(--theme-reveal-y, 50vh));
+  }
+}
+
+.theme-crossfade,
+.theme-crossfade body,
+.theme-crossfade body * {
+  transition-property: background-color, color, border-color, box-shadow, fill, stroke !important;
+  transition-duration: 180ms !important;
+  transition-timing-function: ease-out !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
 /* Responsive Layout Utilities */
 .kyt-responsive-grid {
   display: grid;

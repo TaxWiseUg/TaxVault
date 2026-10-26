@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import { flushSync } from "react-dom";
 import { motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { User } from "@supabase/supabase-js";
 import { 
@@ -510,10 +512,47 @@ export default function TaxWiseSaaS() {
     };
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (event: ReactMouseEvent<HTMLButtonElement>, afterToggle?: () => void) => {
     const next: ThemeMode = themeMode === "dark" ? "light" : "dark";
-    setThemeMode(next);
-    applyTheme(next);
+    const commitTheme = () => {
+      setThemeMode(next);
+      applyTheme(next);
+      afterToggle?.();
+    };
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const rect = event.currentTarget.getBoundingClientRect();
+    const root = document.documentElement;
+
+    if (!reducedMotion && typeof document.startViewTransition === "function") {
+      root.style.setProperty("--theme-reveal-x", `${rect.left + rect.width / 2}px`);
+      root.style.setProperty("--theme-reveal-y", `${rect.top + rect.height / 2}px`);
+
+      try {
+        const transition = document.startViewTransition(() => {
+          flushSync(commitTheme);
+        });
+        const clearRevealOrigin = () => {
+          root.style.removeProperty("--theme-reveal-x");
+          root.style.removeProperty("--theme-reveal-y");
+        };
+        void transition.finished.then(clearRevealOrigin, clearRevealOrigin);
+      } catch {
+        root.style.removeProperty("--theme-reveal-x");
+        root.style.removeProperty("--theme-reveal-y");
+        commitTheme();
+      }
+      return;
+    }
+
+    if (!reducedMotion) {
+      root.classList.add("theme-crossfade");
+      flushSync(commitTheme);
+      window.setTimeout(() => root.classList.remove("theme-crossfade"), 220);
+      return;
+    }
+
+    commitTheme();
   };
 
   const handleSignOut = async () => {
@@ -1339,10 +1378,7 @@ export default function TaxWiseSaaS() {
                     </button>
 
                     <button
-                      onClick={() => {
-                        toggleTheme();
-                        setIsProfileMenuOpen(false);
-                      }}
+                      onClick={(event) => toggleTheme(event, () => setIsProfileMenuOpen(false))}
                       style={{
                         width: "100%",
                         display: "flex",
@@ -1607,7 +1643,7 @@ export default function TaxWiseSaaS() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <button
-                  onClick={toggleTheme}
+                  onClick={(event) => toggleTheme(event)}
                   style={{
                     padding: "6px 10px",
                     borderRadius: 6,
