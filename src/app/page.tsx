@@ -43,6 +43,8 @@ import { CalculatorsPortal } from "../components/CalculatorsPortal";
 import { IntelligencePortal } from "../components/IntelligencePortal";
 import { KnowYourTaxesPortal } from "../features/know-your-taxes/components/KnowYourTaxesPortal";
 import { setScrollLocked } from "../components/UI";
+import { InstallAppButton } from "../components/PwaInstallProvider";
+import { AppLoadingSkeleton } from "../components/AppLoadingSkeleton";
 
 interface DbProfile {
   id: string;
@@ -669,44 +671,7 @@ export default function TaxWiseSaaS() {
 
   // Show loading screen while auth state is being determined
   if (loading) {
-    return (
-      <div style={{ display: "flex", minHeight: "100vh", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#FAFAF8", fontFamily: "'Inter', sans-serif" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", animation: "fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}>
-          {/* Logo Branding */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
-            <div style={{ width: 12, height: 12, background: "#C8922A", borderRadius: 3, transform: "rotate(45deg)", flexShrink: 0, boxShadow: "0 0 12px rgba(200, 146, 42, 0.4)" }} />
-            <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.85rem", color: "#0F2044", fontWeight: 800, letterSpacing: "-0.01em" }}>
-              Tax<span style={{ color: "#1A7B6B" }}>Wise</span>
-            </span>
-          </div>
-
-          {/* Premium CSS/SVG Spinner */}
-          <div style={{ position: "relative", width: 44, height: 44, marginBottom: 20 }}>
-            {/* Outer glowing pulsed ring */}
-            <div style={{ position: "absolute", inset: -4, borderRadius: "50%", border: "2px solid rgba(26, 123, 107, 0.05)", animation: "pulseGlow 2s infinite ease-in-out" }} />
-            {/* SVG Spinner */}
-            <svg width="44" height="44" viewBox="0 0 44 44" style={{ display: "block" }}>
-              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(15, 32, 68, 0.04)" strokeWidth="3" />
-              <circle cx="22" cy="22" r="18" fill="none" stroke="url(#spinner-gradient)" strokeWidth="3" strokeDasharray="113" strokeDashoffset="40" strokeLinecap="round" style={{ transformOrigin: "center", animation: "spin 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite" }} />
-              <defs>
-                <linearGradient id="spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#1A7B6B" />
-                  <stop offset="100%" stopColor="#4DD9C0" />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-
-          {/* Loading Text */}
-          <div style={{ fontSize: "0.72rem", color: "#6B7280", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", animation: "pulse 1.8s infinite ease-in-out" }}>
-            Syncing session
-          </div>
-          <div style={{ fontSize: "0.78rem", color: "rgba(15, 32, 68, 0.45)", marginTop: 6, fontWeight: 500 }}>
-            Securing your connection...
-          </div>
-        </div>
-      </div>
-    );
+    return <AppLoadingSkeleton />;
   }
 
   // Show landing page if requested
@@ -1318,6 +1283,8 @@ export default function TaxWiseSaaS() {
                       </div>
                     </div>
 
+                    <InstallAppButton className="tw-install-app-button--menu" />
+
                     <button
                       onClick={() => {
                         setPage("settings");
@@ -1506,6 +1473,8 @@ export default function TaxWiseSaaS() {
                 );
               })}
             </div>
+
+            <InstallAppButton className="tw-install-app-button--mobile" />
 
             <div className="tw-mobile-nav__footer">
               <button

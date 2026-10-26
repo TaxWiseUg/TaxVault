@@ -10,6 +10,7 @@ import {
   ArrowRight, Receipt, FileCheck, Home, Clock, Menu
 } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
+import { InstallAppButton } from "./PwaInstallProvider";
 
 // Animated Counting Number Component
 const CountingNumber: React.FC<{ value: string; duration?: number }> = ({ value, duration = 1900 }) => {
@@ -785,6 +786,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </button>
               </>
             )}
+            <InstallAppButton />
           </div>
 
         </div>
@@ -855,6 +857,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   </button>
                 ))}
               </div>
+
+              <InstallAppButton className="tw-install-app-button--mobile" />
 
               <div className="tw-main-nav__footer">
                 {dbUser ? (
