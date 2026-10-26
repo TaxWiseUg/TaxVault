@@ -776,18 +776,15 @@ export default function TaxWiseSaaS() {
   return (
     <div className="tw-app-shell" style={{ display: "flex", flexDirection: "column", height: "100vh", minHeight: 0, overflow: "hidden", fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif", background: C.offwhite }}>
       {/* Mobile Drawer Backdrop */}
-      {isMobile && isMobileMenuOpen && (
+      {isMobile && (
         <div 
+          className={`tw-mobile-nav-backdrop ${isMobileMenuOpen ? "is-open" : ""}`}
           onClick={() => setIsMobileMenuOpen(false)}
           aria-hidden="true"
           style={{
-            position: "fixed",
-            inset: 0,
             background: "rgba(10, 15, 30, 0.4)",
             backdropFilter: "blur(4px)",
             WebkitBackdropFilter: "blur(4px)",
-            zIndex: 90,
-            animation: "fadeIn 0.2s ease-out"
           }}
         />
       )}
@@ -1470,25 +1467,17 @@ export default function TaxWiseSaaS() {
         </div>
 
         {/* MOBILE SLIDE-DOWN DRAWER */}
-        {isMobile && isMobileMenuOpen && (
+        {isMobile && (
           <div
             id="mobile-navigation-drawer"
-            className="tw-mobile-nav-drawer"
+            className={`tw-mobile-nav-drawer ${isMobileMenuOpen ? "is-open" : ""}`}
             role="dialog"
             aria-label="Main navigation"
+            aria-hidden={!isMobileMenuOpen}
+            inert={!isMobileMenuOpen}
             style={{
-              position: "fixed",
-              top: 72,
-              bottom: 0,
-              left: 0,
-              width: "min(88vw, 360px)",
-              overflowY: "auto",
-              borderRight: `1px solid ${C.border}`,
               background: "var(--color-white)",
               padding: "16px",
-              boxShadow: "0 20px 48px rgba(15, 32, 68, 0.20)",
-              zIndex: 120,
-              animation: "mobileDrawerIn 0.2s ease-out",
             }}
           >
             {/* Dynamic Home ⇄ Dashboard Switcher in Mobile */}

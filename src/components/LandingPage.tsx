@@ -240,6 +240,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const closeOnDesktop = () => {
+      if (window.innerWidth > 768) setMobileOpen(false);
+    };
+    window.addEventListener("resize", closeOnDesktop);
+    return () => window.removeEventListener("resize", closeOnDesktop);
+  }, []);
+
   const scrollToId = (id: string) => {
     if (typeof document !== "undefined") {
       const el = document.getElementById(id);
@@ -776,6 +793,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             className="tw-hamburger" 
             onClick={() => setMobileOpen(v => !v)} 
             aria-expanded={mobileOpen}
+            aria-controls="mainNav"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             style={{
               display: "none",
@@ -797,16 +815,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* Mobile Navigation Drawer */}
+        <div
+          className={`tw-main-nav-backdrop ${mobileOpen ? "open" : ""}`}
+          onClick={() => setMobileOpen(false)}
+          aria-hidden="true"
+        />
         <nav 
           id="mainNav"
           className={`tw-main-nav ${mobileOpen ? "open" : ""}`}
-          style={{ 
-            display: mobileOpen ? "block" : "none",
-            background: "var(--landing-surface)", 
-            borderTop: "1px solid var(--landing-border)", 
-            padding: "16px 5%", 
-            borderBottom: "1px solid var(--landing-border)" 
-          }}
+          aria-hidden={!mobileOpen}
+          inert={!mobileOpen}
         >
           {dbUser && (
             <div style={{ padding: "8px 0 16px", borderBottom: "1px solid var(--landing-border)", marginBottom: "8px" }}>
