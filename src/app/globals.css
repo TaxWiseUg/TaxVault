@@ -2338,7 +2338,7 @@ html.dark .dashboard-panel {
     border-radius: 24px !important;
     box-shadow: 0 18px 55px rgba(10, 24, 40, 0.22) !important;
     transform: translateY(14px);
-    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease, visibility 0s linear 240ms;
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease, visibility 0s linear 320ms;
   }
 
   .tw-main-nav.open,
@@ -2370,10 +2370,11 @@ html.dark .dashboard-panel {
     padding: 6px;
     border: 1px solid rgba(255, 255, 255, 0.72);
     border-radius: 24px;
-    background: color-mix(in srgb, var(--color-white, #fff) 92%, transparent);
-    box-shadow: 0 9px 32px rgba(12, 28, 44, 0.2), 0 2px 8px rgba(12, 28, 44, 0.08);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+    background: color-mix(in srgb, var(--color-white, #fff) 72%, transparent);
+    box-shadow: 0 14px 38px rgba(12, 28, 44, 0.2), 0 2px 8px rgba(12, 28, 44, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(22px) saturate(1.65);
+    backdrop-filter: blur(22px) saturate(1.65);
+    animation: mobileDockEnter 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .tw-mobile-dock button {
@@ -2381,28 +2382,22 @@ html.dark .dashboard-panel {
     min-width: 0;
     min-height: 52px;
     flex: 1 1 0;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 3px;
-    padding: 4px 2px;
+    gap: 0;
+    padding: 4px;
     border: 0;
-    border-radius: 17px;
+    border-radius: 18px;
     background: transparent;
     color: var(--color-muted, #667085);
     font: inherit;
     cursor: pointer;
-    transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    transition: background 220ms cubic-bezier(0.2, 0.8, 0.2, 1), color 220ms ease, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms ease;
   }
 
   .tw-mobile-dock button span {
-    max-width: 100%;
-    overflow: hidden;
-    font-size: 0.59rem;
-    font-weight: 700;
-    line-height: 1.1;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: none;
   }
 
   .tw-mobile-dock button.is-active {
@@ -2415,10 +2410,22 @@ html.dark .dashboard-panel {
     transform: scale(0.96);
   }
 
+  .tw-mobile-dock button:hover {
+    transform: translateY(-2px);
+  }
+
+  .tw-mobile-dock button.is-active svg {
+    transform: scale(1.08);
+  }
+
+  .tw-mobile-dock button svg {
+    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
   html.dark .tw-mobile-dock {
     border-color: rgba(255, 255, 255, 0.1);
-    background: color-mix(in srgb, var(--color-white, #111827) 92%, transparent);
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.42);
+    background: color-mix(in srgb, var(--color-white, #111827) 72%, transparent);
+    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
   html.dark .tw-mobile-dock button {
@@ -2432,6 +2439,11 @@ html.dark .dashboard-panel {
   .main-scroll-container {
     padding-bottom: 92px;
   }
+}
+
+@keyframes mobileDockEnter {
+  from { opacity: 0; transform: translateY(18px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @media (max-width: 760px) {
@@ -2566,6 +2578,12 @@ html.dark .dashboard-panel {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tw-mobile-dock,
+  .tw-mobile-dock button,
+  .tw-mobile-dock button svg {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
   .tw-mobile-nav-drawer,
   .tw-mobile-nav-backdrop,
   .tw-main-nav,
