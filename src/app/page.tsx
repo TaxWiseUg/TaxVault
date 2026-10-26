@@ -817,31 +817,6 @@ export default function TaxWiseSaaS() {
         >
           {/* LEFT: BRAND & WORKSPACE */}
           <div className="tw-header-brand" style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-            {isMobile && (
-              <button
-                className="tw-mobile-menu-trigger"
-                type="button"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-                aria-expanded={isMobileMenuOpen}
-                aria-controls="mobile-navigation-drawer"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: C.navy,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "6px",
-                  borderRadius: 6,
-                }}
-                title="Toggle menu"
-              >
-                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            )}
-
             <div 
               onClick={() => setPage("dashboard")}
               style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
@@ -1463,6 +1438,19 @@ export default function TaxWiseSaaS() {
                 </>
               )}
             </div>
+            {isMobile && (
+              <button
+                className="tw-mobile-menu-trigger"
+                type="button"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-navigation-drawer"
+                title="Toggle menu"
+              >
+                {isMobileMenuOpen ? <X size={19} strokeWidth={2.2} /> : <Menu size={20} strokeWidth={2.2} />}
+              </button>
+            )}
           </div>
         </div>
 

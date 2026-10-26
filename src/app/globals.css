@@ -1066,7 +1066,7 @@ textarea:focus-visible {
   bottom: 0 !important;
   left: auto !important;
   z-index: 120 !important;
-  width: min(82vw, 300px) !important;
+  width: min(76vw, 260px) !important;
   max-width: calc(100vw - 48px) !important;
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -1117,6 +1117,47 @@ textarea:focus-visible {
   display: none;
 }
 
+.tw-hamburger-toggle {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  margin-left: auto !important;
+  padding: 0 !important;
+  border: 1px solid var(--landing-border) !important;
+  border-radius: 12px !important;
+  background: var(--landing-surface) !important;
+  color: var(--landing-text) !important;
+  box-shadow: 0 4px 12px rgba(15, 32, 68, 0.08);
+  gap: 0 !important;
+  position: relative;
+  z-index: 370;
+}
+
+.tw-hamburger-toggle:hover {
+  border-color: rgba(26, 123, 107, 0.5) !important;
+  box-shadow: 0 6px 16px rgba(15, 32, 68, 0.14);
+}
+
+.tw-hamburger-toggle__line {
+  position: absolute;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 220ms ease, opacity 160ms ease, width 220ms ease;
+}
+
+.tw-hamburger-toggle__line:nth-child(1) { transform: translateY(-6px); }
+.tw-hamburger-toggle__line:nth-child(2) { transform: translateY(0); }
+.tw-hamburger-toggle__line:nth-child(3) { transform: translateY(6px); }
+.tw-hamburger-toggle__line:nth-child(1).is-open { transform: rotate(45deg); }
+.tw-hamburger-toggle__line:nth-child(2).is-open { opacity: 0; width: 0; }
+.tw-hamburger-toggle__line:nth-child(3).is-open { transform: rotate(-45deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tw-hamburger-toggle__line { transition: none; }
+}
+
 html.dark .tw-app-header {
   background: rgba(15, 23, 42, 0.96) !important;
   border-bottom-color: var(--color-border) !important;
@@ -1125,6 +1166,12 @@ html.dark .tw-app-header {
 html.dark .tw-mobile-nav-drawer {
   background: var(--color-white) !important;
   border-color: var(--color-border) !important;
+}
+
+html.dark .tw-mobile-menu-trigger {
+  background: #111c2d !important;
+  border-color: #2b3b51 !important;
+  color: #e2e8f0 !important;
 }
 
 html.dark .tw-nav-dropdown-menu,
@@ -1823,6 +1870,29 @@ html.dark .dashboard-panel {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
+  .tw-header-actions { gap: 8px !important; }
+
+  .tw-mobile-menu-trigger {
+    display: inline-grid;
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    padding: 0 !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 11px !important;
+    background: var(--color-white) !important;
+    color: var(--color-navy) !important;
+    box-shadow: 0 3px 10px rgba(15, 32, 68, 0.08);
+    transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .tw-mobile-menu-trigger[aria-expanded="true"] {
+    border-color: rgba(26, 123, 107, 0.45) !important;
+    background: var(--color-teal-light) !important;
+    color: var(--color-teal) !important;
+  }
+
   .dashboard-heading {
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 16px !important;
@@ -1841,15 +1911,10 @@ html.dark .dashboard-panel {
 }
 
 @media (max-width: 768px) {
-  .tw-landing-page > nav {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-
   .tw-main-nav-backdrop {
     display: block;
     position: fixed;
-    inset: 0;
+    inset: var(--landing-mobile-nav-top, 96px) 0 0;
     z-index: 350;
     background: rgba(9, 13, 22, 0.42);
     backdrop-filter: blur(3px);
@@ -1870,12 +1935,12 @@ html.dark .dashboard-panel {
   .tw-main-nav {
     display: block !important;
     position: fixed !important;
-    top: 72px !important;
+    top: var(--landing-mobile-nav-top, 96px) !important;
     right: 0 !important;
     bottom: 0 !important;
     left: auto !important;
     z-index: 360 !important;
-    width: min(82vw, 300px) !important;
+    width: min(76vw, 260px) !important;
     max-width: calc(100vw - 48px) !important;
     overflow-y: auto;
     overscroll-behavior: contain;

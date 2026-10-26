@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { supabase } from "../lib/supabaseClient";
 import { 
   LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
   Car, Calculator, ShieldCheck, Mail, Check, Copy, CheckCircle2,
   FileText, Cpu, TrendingUp, Building2, Globe, Sparkles, 
-  Menu, X, ArrowRight, Receipt, FileCheck, Home, Clock
+  ArrowRight, Receipt, FileCheck, Home, Clock
 } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 
@@ -248,6 +249,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       document.body.style.overflow = previousOverflow;
     };
   }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const updateDrawerTop = () => {
+      const nav = menuBtnRef.current?.closest("nav");
+      if (nav) {
+        document.documentElement.style.setProperty(
+          "--landing-mobile-nav-top",
+          `${nav.getBoundingClientRect().bottom}px`
+        );
+      }
+    };
+    updateDrawerTop();
+    window.addEventListener("resize", updateDrawerTop);
+    window.addEventListener("scroll", updateDrawerTop, { passive: true });
+    return () => {
+      window.removeEventListener("resize", updateDrawerTop);
+      window.removeEventListener("scroll", updateDrawerTop);
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => () => {
+    document.documentElement.style.removeProperty("--landing-mobile-nav-top");
+  }, []);
 
   useEffect(() => {
     const closeOnDesktop = () => {
@@ -790,42 +815,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <button 
             ref={menuBtnRef}
             id="menuBtn"
-            className="tw-hamburger" 
-            onClick={() => setMobileOpen(v => !v)} 
+            className="tw-hamburger tw-hamburger-toggle"
+            onClick={() => {
+              if (!mobileOpen) {
+                const nav = menuBtnRef.current?.closest("nav");
+                if (nav) {
+                  document.documentElement.style.setProperty(
+                    "--landing-mobile-nav-top",
+                    `${nav.getBoundingClientRect().bottom}px`
+                  );
+                }
+              }
+              setMobileOpen(v => !v);
+            }}
             aria-expanded={mobileOpen}
             aria-controls="mainNav"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             style={{
               display: "none",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 12px",
-              background: mobileOpen ? "rgba(26, 123, 107, 0.12)" : "var(--landing-surface)",
-              border: mobileOpen ? "1px solid #1A7B6B" : "1px solid var(--landing-border)",
-              borderRadius: 8,
-              color: "var(--landing-text)",
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              cursor: "pointer",
             }}
           >
-            {mobileOpen ? <X size={18} /> : <Menu size={18} />}
-            <span>{mobileOpen ? "Close" : "Menu"}</span>
+            <span className={`tw-hamburger-toggle__line ${mobileOpen ? "is-open" : ""}`} />
+            <span className={`tw-hamburger-toggle__line ${mobileOpen ? "is-open" : ""}`} />
+            <span className={`tw-hamburger-toggle__line ${mobileOpen ? "is-open" : ""}`} />
           </button>
         </div>
 
         {/* Mobile Navigation Drawer */}
-        <div
-          className={`tw-main-nav-backdrop ${mobileOpen ? "open" : ""}`}
-          onClick={() => setMobileOpen(false)}
-          aria-hidden="true"
-        />
-        <nav 
-          id="mainNav"
-          className={`tw-main-nav ${mobileOpen ? "open" : ""}`}
-          aria-hidden={!mobileOpen}
-          inert={!mobileOpen}
-        >
+        {typeof document !== "undefined" && createPortal(
+          <>
+            <div
+            className={`tw-main-nav-backdrop ${mobileOpen ? "open" : ""}`}
+              onClick={() => setMobileOpen(false)}
+              aria-hidden="true"
+            />
+            <nav
+              id="mainNav"
+              className={`tw-main-nav ${mobileOpen ? "open" : ""}`}
+              aria-hidden={!mobileOpen}
+              inert={!mobileOpen}
+            >
           {dbUser && (
             <div style={{ padding: "8px 0 16px", borderBottom: "1px solid var(--landing-border)", marginBottom: "8px" }}>
               <span style={{ fontSize: "0.72rem", color: "var(--landing-muted)" }}>Signed in as</span>
@@ -885,13 +914,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </button>
           </div>
 
+          <div style={{ padding: "8px 10px 6px", color: "var(--landing-muted)", fontSize: ".66rem", fontWeight: 800, letterSpacing: ".12em", textTransform: "uppercase" }}>
+            Shortcuts
+          </div>
           {[
-            { label: "Analyzer", page: "analyzer" },
-            { label: "Cases", page: "library" },
-            { label: "Calculators", page: "calculators" },
-            { label: "Intelligence", page: "intelligence" },
-            { label: "Compliance", page: "compliance" },
-            { label: "Learning", page: "education" },
+            { label: "Analyzer", page: "analyzer", icon: <Scale size={16} /> },
+            { label: "Cases", page: "library", icon: <FileText size={16} /> },
+            { label: "Calculators", page: "calculators", icon: <Calculator size={16} /> },
+            { label: "Intelligence", page: "intelligence", icon: <TrendingUp size={16} /> },
+            { label: "Compliance", page: "compliance", icon: <ShieldCheck size={16} /> },
+            { label: "Learning", page: "education", icon: <FileCheck size={16} /> },
           ].map(item => (
             <button 
               key={item.label} 
@@ -901,9 +933,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 else onGetStarted();
               }} 
               className="tw-mobile-link" 
-              style={{ display: "block", padding: "12px 0", color: "var(--landing-text)", background: "none", border: "none", fontSize: ".9rem", fontWeight: 600, borderBottom: "1px solid var(--landing-border)", width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}
+              style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 11px", color: "var(--landing-text)", background: "transparent", border: "1px solid transparent", borderRadius: 10, fontSize: ".84rem", fontWeight: 600, width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit", transition: "background 180ms ease, border-color 180ms ease, color 180ms ease" }}
             >
-              {item.label}
+              <span style={{ width: 20, display: "inline-flex", justifyContent: "center", color: "#1A7B6B" }}>{item.icon}</span>
+              <span>{item.label}</span>
             </button>
           ))}
           {!dbUser ? (
@@ -930,7 +963,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>Sign Out</span>
             </button>
           )}
-        </nav>
+            </nav>
+          </>,
+          document.body
+        )}
       </nav>
 
       {/* ══════════════════════════════════════════════════════════════
