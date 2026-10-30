@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tax Guides — Learning Hub · TaxWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="tax-guides.css">
+  <style>
+    /* Demo shell only: stands in for your existing top navigation */
+    body { margin: 0; background: var(--tg-paper); }
+    .tw-nav {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--tg-paper) 88%, transparent);
+      backdrop-filter: blur(8px); border-bottom: 1px solid var(--tg-rule);
+    }
+    .tw-nav-inner {
+      max-width: 1080px; margin: 0 auto; padding: 0 16px; height: 64px;
+      display: flex; align-items: center; gap: 28px;
+    }
+    .tw-logo { font: 600 22px 'Fraunces', serif; color: var(--tg-ink); text-decoration: none; flex: none; }
+    .tw-logo span { color: var(--tg-accent); }
+    .tw-links { display: flex; gap: 22px; overflow-x: auto; flex: 1; }
+    .tw-links a {
+      flex: none; font: 500 14px 'Inter', sans-serif; color: var(--tg-muted);
+      text-decoration: none; padding: 21px 0; border-bottom: 2px solid transparent;
+    }
+    .tw-links a:hover { color: var(--tg-ink); }
+    .tw-links a.is-active { color: var(--tg-ink); border-bottom-color: var(--tg-accent); }
+  </style>
+</head>
+<body>
+  <header class="tw-nav">
+    <div class="tw-nav-inner">
+      <a class="tw-logo" href="#/guides">Tax<span>Wise</span></a>
+      <nav class="tw-links" aria-label="Main">
+        <a href="#">Dashboard</a>
+        <a href="#">Calculators</a>
+        <a href="#">Compliance Review</a>
+        <a href="#">Know Your Taxes</a>
+        <a href="#/guides" class="is-active">Learning Hub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="tax-guides"></main>
+
+  <script src="tax-guides.js"></script>
+  <script>TaxGuides.mount('#tax-guides');</script>
+</body>
+</html>
