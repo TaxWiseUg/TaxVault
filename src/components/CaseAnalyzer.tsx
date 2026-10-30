@@ -240,7 +240,7 @@ const LibraryPicker: React.FC<LibraryPickerProps> = ({ open, onClose, onSelect }
     return matchQ && matchT && matchY && matchO;
   });
 
-  if (typeof window === "undefined") return null;
+  if (!open || typeof window === "undefined") return null;
 
   return createPortal(
     <AnimatePresence>

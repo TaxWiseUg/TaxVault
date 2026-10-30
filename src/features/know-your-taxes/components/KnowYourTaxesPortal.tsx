@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import { Questionnaire } from "./Questionnaire";
 import { ResultsView } from "./ResultsView";
 import { KnowYourTaxesCard } from "./KnowYourTaxesCard";
@@ -15,6 +16,9 @@ import {
   Shield,
 } from "lucide-react";
 
+import { TaxGuideDetail } from "@/features/tax-guides/components/TaxGuideDetail";
+import { findTaxGuide } from "@/features/tax-guides/data/taxGuidesData";
+
 interface AssessmentSummary {
   id: string;
   createdAt: string;
@@ -24,10 +28,12 @@ interface AssessmentSummary {
 
 interface KnowYourTaxesPortalProps {
   initialAssessmentId?: string;
+  onNavigate?: (pageId: string) => void;
 }
 
 export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
   initialAssessmentId,
+  onNavigate,
 }) => {
   const [viewState, setViewState] = useState<"intro" | "questionnaire" | "result">("intro");
   const [activeAssessmentId, setActiveAssessmentId] = useState<string | null>(
@@ -37,6 +43,7 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
   const [activeSources, setActiveSources] = useState<Record<string, LegalSource>>({});
   const [history, setHistory] = useState<AssessmentSummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedGuideSlug, setSelectedGuideSlug] = useState<string | null>(null);
 
   // Fetch assessment history on mount
   const loadHistory = async () => {
@@ -92,13 +99,16 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
   };
 
   return (
-    <div
+    <motion.div
       className="workspace-feature-page workspace-know-taxes"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
       style={{
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        maxWidth: 1200,
+        maxWidth: 1400,
         margin: "0 auto",
         width: "100%",
         fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -462,16 +472,35 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
                 Loading assessment results…
               </div>
             </div>
+          ) : selectedGuideSlug ? (
+            (() => {
+              const guide = findTaxGuide(selectedGuideSlug);
+              if (!guide) return null;
+              return (
+                <TaxGuideDetail
+                  guide={guide}
+                  fromKyt={true}
+                  onBack={() => setSelectedGuideSlug(null)}
+                  onNavigatePage={onNavigate}
+                />
+              );
+            })()
           ) : (
             <ResultsView
               id={activeAssessmentId!}
               result={activeResult}
               sources={activeSources}
               onEditAnswers={() => setViewState("questionnaire")}
+              onSelectGuide={(slug) => setSelectedGuideSlug(slug)}
+              onBrowseAllGuides={() => {
+                if (onNavigate) {
+                  onNavigate("education");
+                }
+              }}
             />
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

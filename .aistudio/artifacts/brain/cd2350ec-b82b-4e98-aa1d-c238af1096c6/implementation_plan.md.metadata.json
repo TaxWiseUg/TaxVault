@@ -1,6 +1,6 @@
 {
-  "summary":  "Implementation plan to strictly remove Admin role from public accounts and ensure Google user role selection prompt displays both on sign-in and on existing unconfirmed sessions.",
-  "updatedAt":  "2026-10-26T06:02:51.032362769Z",
+  "summary":  "Plan for fixing 'On this page' TOC scrolling in Tax Guides and enforcing uniform page widths and navigation transitions across the platform.",
+  "updatedAt":  "2026-10-30T12:14:18.339460569Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

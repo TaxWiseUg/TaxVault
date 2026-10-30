@@ -35,7 +35,7 @@ import { LandingPage } from "../components/LandingPage";
 import { Dashboard } from "../components/Dashboard";
 import { CaseAnalyzer } from "../components/CaseAnalyzer";
 import { CaseLibrary } from "../components/CaseLibrary";
-import { EducationHub } from "../components/EducationHub";
+import { TaxGuidesPortal } from "../features/tax-guides/components/TaxGuidesPortal";
 import { ComplianceChecker } from "../components/ComplianceChecker";
 import { AdminPortal } from "../components/AdminPortal";
 import { ProfileSettings } from "../components/ProfileSettings";
@@ -171,6 +171,7 @@ export default function TaxWiseSaaS() {
   const [isTrialSession, setIsTrialSession] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [openNavDropdown, setOpenNavDropdown] = useState<string | null>(null);
@@ -183,6 +184,7 @@ export default function TaxWiseSaaS() {
   const workspaceParallaxFront = useTransform(workspaceScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : -170]);
 
   useEffect(() => {
+    setMounted(true);
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1180);
     };
@@ -608,7 +610,7 @@ export default function TaxWiseSaaS() {
   const legalItems: GroupedNavItem[] = [
     { id: "library", label: "TAT Case Library", desc: "Full-text TAT rulings & High Court precedents" },
     { id: "intelligence", label: "Tax Intelligence", desc: "Gazette updates, URA circulars & treaty rates" },
-    { id: "education", label: "Learning Hub", desc: "Uganda tax academy & CPD modules" },
+    { id: "education", label: "Tax Guides", desc: "Statutory notes, rates & worked calculations" },
   ];
 
   const isAdmin = activeUser.role?.toLowerCase() === "admin" || isEmailAdmin;
@@ -647,7 +649,7 @@ export default function TaxWiseSaaS() {
       case "dashboard":
         return <Dashboard user={activeUser} onNavigate={setPage} />;
       case "know-your-taxes":
-        return <KnowYourTaxesPortal />;
+        return <KnowYourTaxesPortal onNavigate={setPage} />;
       case "analyzer":
         return <CaseAnalyzer user={activeUser} />;
       case "library":
@@ -657,7 +659,7 @@ export default function TaxWiseSaaS() {
       case "intelligence":
         return <IntelligencePortal />;
       case "education":
-        return <EducationHub user={activeUser} />;
+        return <TaxGuidesPortal onNavigate={setPage} />;
       case "compliance":
         return <ComplianceChecker user={activeUser} />;
       case "settings":
@@ -1407,7 +1409,7 @@ export default function TaxWiseSaaS() {
         </div>
 
         {/* MOBILE SLIDE-DOWN DRAWER */}
-        {isMobile && typeof document !== "undefined" && createPortal(
+        {mounted && isMobile && createPortal(
           <>
             <div
               id="mobile-navigation-drawer"
@@ -1557,12 +1559,13 @@ export default function TaxWiseSaaS() {
           style={{ 
             position: "relative",
             zIndex: 1,
-            maxWidth: 1480,
+            maxWidth: 1400,
+            width: "100%",
             margin: "0 auto", 
             padding: isMobile ? "20px 16px 40px" : "28px 36px 56px"
           }}
         >
-          <div className="workspace-page-content">{renderActivePage()}</div>
+          <div className="workspace-page-content" style={{ width: "100%", maxWidth: 1400, margin: "0 auto" }}>{renderActivePage()}</div>
         </main>
       </div>
     </div>

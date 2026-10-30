@@ -1788,10 +1788,30 @@ html.dark .tw-desktop-primary-nav > div > button { color: #cbd5e1 !important; }
 html.dark .tw-desktop-primary-nav > button[aria-current="page"],
 html.dark .tw-desktop-primary-nav > div > button[aria-current="page"] { color: #f8fafc !important; }
 
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-fade-in {
+  animation: pageFadeIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
 /* Shared page polish for every workspace section */
-.workspace-page-shell { width: 100%; }
+.workspace-page-shell {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
 .workspace-page-content,
-.workspace-page-content > * { min-width: 0; }
+.workspace-page-content > * { min-width: 0; width: 100%; }
 .workspace-page-content > :first-child { width: 100%; }
 
 .tw-ui-card {

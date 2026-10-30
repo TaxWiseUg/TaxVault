@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion } from "motion/react";
 import { AssessmentResult, LegalSource, Obligation, ObligationStatus } from "../types";
 import { C } from "@/lib/constants";
 import {
   AlertCircle,
   ArrowLeft,
+  ArrowRight,
+  BookOpen,
   Calendar,
   CheckCircle2,
   ChevronDown,
@@ -19,6 +22,8 @@ import {
   Send,
   Sparkles,
 } from "lucide-react";
+import { findTaxGuide, TAX_GUIDES_DATA } from "@/features/tax-guides/data/taxGuidesData";
+
 
 const UGX = (n: number) => `UGX ${Math.round(n).toLocaleString("en-UG")}`;
 
@@ -73,6 +78,8 @@ interface ResultsViewProps {
   result: AssessmentResult;
   sources: Record<string, LegalSource>;
   onEditAnswers?: () => void;
+  onSelectGuide?: (slug: string) => void;
+  onBrowseAllGuides?: () => void;
 }
 
 export const ResultsView: React.FC<ResultsViewProps> = ({
@@ -80,10 +87,36 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   result,
   sources,
   onEditAnswers,
+  onSelectGuide,
+  onBrowseAllGuides,
 }) => {
   const [openCode, setOpenCode] = useState<string | null>(
     result.obligations.find((o) => o.status === "LIKELY")?.code ?? null
   );
+
+  const matchingGuides = React.useMemo(() => {
+    const slugSet = new Set<string>();
+    const applicableObligations = result.obligations.filter(
+      (o) => o.status === "LIKELY" || o.status === "NEEDS_INFO" || o.status === "PROFESSIONAL_REVIEW"
+    );
+
+    for (const ob of applicableObligations) {
+      const code = ob.code.toUpperCase();
+      if (code.includes("VAT")) slugSet.add("vat");
+      if (code.includes("PAYE")) slugSet.add("paye");
+      if (code.includes("RENTAL")) slugSet.add("rental-income-tax");
+      if (code.includes("CIT") || code.includes("CORP")) slugSet.add("corporate-income-tax");
+      if (code.includes("PRESUMPTIVE")) slugSet.add("presumptive-tax");
+      if (code.includes("WHT") || code.includes("WITHHOLDING")) slugSet.add("withholding-tax");
+    }
+
+    const matched = Array.from(slugSet)
+      .map((slug) => findTaxGuide(slug))
+      .filter((g): g is NonNullable<typeof g> => Boolean(g));
+
+    if (matched.length > 0) return matched;
+    return TAX_GUIDES_DATA.slice(0, 3);
+  }, [result.obligations]);
 
   const counts = Object.fromEntries(
     ORDER.map((s) => [s, result.obligations.filter((o) => o.status === s).length])
@@ -94,9 +127,13 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   };
 
   return (
-    <div
+    <motion.div
+      className="workspace-feature-page workspace-results-view"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
       style={{
-        maxWidth: 1200,
+        maxWidth: 1400,
         margin: "0 auto",
         width: "100%",
         display: "flex",
@@ -320,7 +357,163 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
           />
         </aside>
       </div>
-    </div>
+
+      {/* READ UP ON YOUR TAXES - STATUTORY GUIDES INTEGRATION */}
+      {onSelectGuide && (
+        <section
+          style={{
+            marginTop: 28,
+            padding: "24px 28px",
+            background: "var(--color-white)",
+            border: `1.5px solid ${C.border}`,
+            borderRadius: 12,
+            boxShadow: "0 2px 8px rgba(15,32,68,0.03)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span
+              style={{
+                fontFamily: "monospace",
+                fontSize: "0.72rem",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                fontWeight: 800,
+                color: C.teal,
+                background: "rgba(26, 123, 107, 0.1)",
+                padding: "3px 8px",
+                borderRadius: 6,
+              }}
+            >
+              Next step
+            </span>
+            <span style={{ fontSize: "0.76rem", color: C.muted, fontWeight: 600 }}>
+              Statutory Learning Hub
+            </span>
+          </div>
+
+          <h2
+            style={{
+              margin: "0 0 6px",
+              fontSize: "1.25rem",
+              fontWeight: 800,
+              color: C.navy,
+              letterSpacing: "-0.01em",
+            }}
+          >
+            Read up on your taxes
+          </h2>
+          <p
+            style={{
+              margin: "0 0 20px",
+              fontSize: "0.88rem",
+              color: C.muted,
+              maxWidth: 680,
+              lineHeight: 1.55,
+            }}
+          >
+            Based on your assessment, these statutory taxes apply to your operations. Each guide covers statutory thresholds, rates, deadlines, worked ledger computations, and common audit pitfalls.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              marginBottom: 16,
+            }}
+          >
+            {matchingGuides.map((guide) => (
+              <div
+                key={guide.slug}
+                onClick={() => onSelectGuide(guide.slug)}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "80px 1fr auto",
+                  alignItems: "center",
+                  gap: 16,
+                  padding: "14px 18px",
+                  background: "var(--color-offwhite)",
+                  border: `1px solid ${C.border}`,
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = C.teal;
+                  e.currentTarget.style.background = "var(--color-white)";
+                  e.currentTarget.style.transform = "translateX(4px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = C.border;
+                  e.currentTarget.style.background = "var(--color-offwhite)";
+                  e.currentTarget.style.transform = "translateX(0)";
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "0.95rem",
+                    fontWeight: 900,
+                    color: C.teal,
+                    letterSpacing: "0.06em",
+                  }}
+                >
+                  {guide.short}
+                </span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "0.95rem", color: C.navy }}>
+                    {guide.title}
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: C.muted, marginTop: 2 }}>
+                    {guide.keyFacts[0]?.label}: <strong>{guide.keyFacts[0]?.value}</strong> · Due: {guide.keyFacts[2]?.value}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    color: C.teal,
+                    fontWeight: 800,
+                    fontSize: "0.82rem",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span>Read guide</span>
+                  <ArrowRight size={14} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {onBrowseAllGuides && (
+            <button
+              type="button"
+              onClick={onBrowseAllGuides}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 14px",
+                borderRadius: 8,
+                border: "none",
+                background: "transparent",
+                color: C.teal,
+                fontWeight: 700,
+                fontSize: "0.84rem",
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.textDecoration = "underline"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.textDecoration = "none"; }}
+            >
+              <BookOpen size={15} />
+              <span>Browse all tax guides →</span>
+            </button>
+          )}
+        </section>
+      )}
+    </motion.div>
   );
 };
 
@@ -933,3 +1126,4 @@ function AskQuestionPanel({ assessmentId, code }: { assessmentId: string; code: 
     </div>
   );
 }
+

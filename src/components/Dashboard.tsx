@@ -108,7 +108,7 @@ const SEARCH_CATALOG = [
   { title: "TAT Precedents & Ruling Library", category: "Case Law", page: "library", keywords: "library rulings court judgments high court tat ulii" },
   { title: "ETA Engineering Works v URA", category: "TAT Precedent", page: "library", keywords: "eta engineering ifmis variance loan addback" },
   { title: "Registered Trustees of Entebbe Golf Club v URA", category: "TAT Precedent", page: "library", keywords: "entebbe golf club membership subscription non-profit" },
-  { title: "Learning Academy & CPD Modules", category: "Education", page: "education", keywords: "learning course education cpd training certificate" },
+  { title: "Tax Guides & Statutory Reference", category: "Statutory Reference", page: "education", keywords: "tax guides vat paye rental corporate cit presumptive withholding wht statutory reference learning" },
 ];
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {

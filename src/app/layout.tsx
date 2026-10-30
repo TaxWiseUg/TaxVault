@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { PwaInstallProvider } from "@/components/PwaInstallProvider";
 import "./globals.css";
 
@@ -34,6 +33,24 @@ export const metadata: Metadata = {
   }
 };
 
+const THEME_INITIALIZER_SCRIPT = `
+  try {
+    var theme = localStorage.getItem('taxwise_theme');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+  } catch (e) {
+    document.documentElement.classList.add('light');
+  }
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,23 +59,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="light" suppressHydrationWarning>
       <head>
-        <Script id="theme-initializer" strategy="beforeInteractive">{`
-              try {
-                var theme = localStorage.getItem('taxwise_theme');
-                if (theme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.classList.remove('light');
-                } else if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.classList.remove('light');
-                } else {
-                  document.documentElement.classList.add('light');
-                  document.documentElement.classList.remove('dark');
-                }
-              } catch (e) {
-                document.documentElement.classList.add('light');
-              }
-            `}</Script>
+        <script
+          id="theme-initializer"
+          dangerouslySetInnerHTML={{ __html: THEME_INITIALIZER_SCRIPT }}
+          suppressHydrationWarning
+        />
       </head>
       <body>
         <PwaInstallProvider>{children}</PwaInstallProvider>

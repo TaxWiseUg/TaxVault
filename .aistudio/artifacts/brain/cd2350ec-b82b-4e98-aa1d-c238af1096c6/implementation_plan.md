@@ -1,54 +1,55 @@
-# Implementation Plan — Restricting Admin Access & Guaranteeing Role Selection Prompt
+# Implementation Plan — Page Width Alignment & "On This Page" Navigation Fix
 
-## Problem Diagnosis
-1. **Admin Option Exposure**: In `src/components/ProfileSettings.tsx`, the `roles` array included `"Admin"`, allowing public users (such as `princefattahkent@gmail.com`) to select Admin rights from their Profile & Settings dropdown.
-2. **Role Selection Prompt Not Triggering**: 
-   - When users like `princefattahkent@gmail.com` sign in via Google, Firebase Auth preserves their session across page loads. Upon opening the applet, `onAuthStateChanged` directly restored their session and took them straight to the workspace without going through `AuthPage.tsx`.
-   - Furthermore, previous automated syncs had written `role = "Tax Consultant"` into the database and local storage by default, so neither Firebase (`isNewUser` was false on subsequent logins) nor the database treated the user as "new", causing the onboarding modal to be skipped.
+## Root Cause Analysis
 
----
+1. **"On this page" nav pane not scrolling**:
+   - The root scroll container is `.main-scroll-container` inside `src/app/page.tsx` (`overflow-y: auto`), whereas `TaxGuideDetail.tsx` called `window.scrollTo()`, which has no effect since `window.scrollY` is always 0.
+   - Section targets lacked `scroll-margin-top` / container offset computation.
+   - No scroll-spy or intersection observer existed to sync active TOC items as the user scrolls.
 
-## Proposed Changes
-
-### 1. Remove "Admin" From Public Account Settings (`src/components/ProfileSettings.tsx`)
-- Update `roles` dropdown list in `ProfileSettings.tsx` to strictly include valid practitioner roles:
-  - `Tax Consultant`
-  - `Accountant`
-  - `Tax Lawyer`
-  - `Finance Manager`
-  - `Business Owner`
-  - `Student`
-- Completely remove `"Admin"` and `"Other"`.
-- If the current user is `taxwiseplatform@gmail.com`, display "Super Administrator" and lock the dropdown.
-- In `handleUpdateProfile`: reject any attempt to assign the `"Admin"` role if the email is not `taxwiseplatform@gmail.com`.
-
-### 2. Dual-Layer Role Selection Prompt (Both Sign-In and Workspace)
-- **Persistent Confirmation Flag**: Track `role_confirmed` in `taxwise_active_user` and local storage key `taxwise_role_confirmed_${email}`.
-- **In `src/lib/googleAuth.ts`**:
-  - A user is marked `isNewUser: true` if their email is not `taxwiseplatform@gmail.com` AND their role has not been explicitly confirmed (`!profile.role_confirmed && safeStorage.getItem("taxwise_role_confirmed_" + email) !== "true"`).
-  - When `updateUserRole(email, role, ...)` is called, set `role_confirmed: true` and persist `taxwise_role_confirmed_${email} = "true"`.
-- **In `src/app/page.tsx` (In-App Onboarding Guard)**:
-  - When a user is already signed in via Firebase Auth (e.g. session restored from browser storage like in the user's screenshot), check if `activeUser` has confirmed their role.
-  - If `activeUser.email !== "taxwiseplatform@gmail.com"` and `safeStorage.getItem("taxwise_role_confirmed_" + activeUser.email) !== "true"`:
-    - Render the **Professional Role Selection Modal** directly in the workspace shell as an overlay.
-    - Upon selecting their role and clicking "Continue to Dashboard", save the choice via `updateUserRole`, mark `role_confirmed: true`, and immediately refresh the personalized dashboard.
-- **In `src/components/AuthPage.tsx`**:
-  - Keep the OAuth modal check in `handleGoogleSignIn` for fresh sign-ins through the login page.
-
-### 3. Server API Guard (`src/app/api/auth/google-sync/route.ts`)
-- Disallow `role === "Admin"` unless `email.toLowerCase() === "taxwiseplatform@gmail.com"`.
-- Return `role_confirmed: true` only when the user has explicitly selected a role (or is master admin).
+2. **Page width disparity & navigation transitions**:
+   - `Dashboard.tsx` uses `maxWidth: 1400` with `width: 100%`.
+   - `TaxGuideDetail.tsx` was artificially constrained to `maxWidth: 1100`, `TaxGuidesIndex.tsx` to `maxWidth: 1280`, and `ResultsView.tsx` to `maxWidth: 1200`, causing jarring visual width jumps when switching pages.
+   - Navigation transitions between guides and other sections needed unified `motion.div` entrance animations matching the rest of TaxWise (`opacity: 0 -> 1`, subtle vertical translation, easeOut).
 
 ---
 
-## Verification Plan
-1. **Public Settings Verification**:
-   - Open Profile & Settings as `princefattahkent@gmail.com`.
-   - Confirm "Admin" is no longer in the dropdown.
-2. **Role Selection Prompt Verification**:
-   - Load the application as `princefattahkent@gmail.com`.
-   - Verify that the interactive Role Selection Modal immediately appears (prompting to pick between Tax Consultant, Accountant, Tax Lawyer, Finance Manager, Business Owner, Student).
-   - Select e.g. "Tax Lawyer" and confirm.
-   - Verify the modal dismisses, the role updates to "Tax Lawyer", and the dashboard presents TAT disputes, legal appeals, and precedent tools.
-3. **Admin Exemption**:
-   - Ensure `taxwiseplatform@gmail.com` logs in as Super Administrator without being prompted.
+## Action Plan
+
+### 1. Fix "On this page" Navigation Pane (`TaxGuideDetail.tsx`)
+- Compute target offset relative to `.main-scroll-container`:
+  ```ts
+  const container = document.querySelector('.main-scroll-container');
+  if (container) {
+    const containerRect = container.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const targetScroll = container.scrollTop + (elRect.top - containerRect.top) - 84;
+    container.scrollTo({ top: targetScroll, behavior: 'smooth' });
+  } else {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  ```
+- Set `scrollMarginTop: 90` on all 7 sections (`sec-what`, `sec-who`, `sec-rates`, `sec-filing`, `sec-example`, `sec-mistakes`, `sec-legal`).
+- Attach an `IntersectionObserver` or scroll listener on `.main-scroll-container` to automatically update `activeSection` as the user scrolls through the guide.
+
+### 2. Unify Page Widths Across All Pages (`100%`, `maxWidth: 1400`, `margin: "0 auto"`)
+- Update `TaxGuideDetail.tsx` root container to `maxWidth: 1400, width: "100%", margin: "0 auto"`.
+- Update `TaxGuidesIndex.tsx` root container to `maxWidth: 1400, width: "100%", margin: "0 auto"`.
+- Update `ResultsView.tsx` root container to `maxWidth: 1400, width: "100%", margin: "0 auto"`.
+- Update `KnowYourTaxesPortal.tsx` to ensure all views (`intro`, `questionnaire`, `result`) share the identical `maxWidth: 1400, width: "100%"`.
+
+### 3. Unified Navigation Transitions / Animations
+- Wrap `TaxGuidesPortal`, `TaxGuidesIndex`, and `TaxGuideDetail` with `motion.div` using standard TaxWise page entrance variants:
+  ```ts
+  const pageVariants = {
+    hidden: { opacity: 0, y: 10 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.22, ease: "easeOut" } }
+  };
+  ```
+- Ensure smooth route transitions when moving between Dashboard, Know Your Taxes, and Tax Guides.
+
+### 4. Verification
+- Verify clicking each item in "On this page" ("What it is", "Who it applies to", "Statutory rates", "Deadlines & filing", "Worked example", "Common pitfalls", "Legal reference") smoothly scrolls `.main-scroll-container` to the exact section with the heading properly positioned.
+- Verify scrolling manually highlights the active section on the left sticky pane.
+- Verify page switching between Dashboard, Tax Guides index, Tax Guide detail, and Know Your Taxes maintains the exact same width and transition.
+- Verify `compile_applet` and `lint_applet` pass with 0 errors.

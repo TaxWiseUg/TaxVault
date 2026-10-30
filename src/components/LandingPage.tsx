@@ -137,6 +137,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSignOut 
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [taxToolsOpen, setTaxToolsOpen] = useState(false);
   const [homeDropdownOpen, setHomeDropdownOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -252,6 +253,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   }, [mobileOpen]);
 
   useEffect(() => {
+    setMounted(true);
     const closeOnDesktop = () => {
       if (window.innerWidth > 768) setMobileOpen(false);
     };
@@ -792,7 +794,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
 
         {/* Mobile Navigation Drawer */}
-        {typeof document !== "undefined" && createPortal(
+        {mounted && createPortal(
           <>
             <div
               className={`tw-main-nav-backdrop ${mobileOpen ? "open" : ""}`}
