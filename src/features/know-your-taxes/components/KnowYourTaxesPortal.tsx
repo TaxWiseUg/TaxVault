@@ -101,9 +101,9 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
   return (
     <motion.div
       className="workspace-feature-page workspace-know-taxes"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
       style={{
         display: "flex",
         flexDirection: "column",
@@ -481,6 +481,7 @@ export const KnowYourTaxesPortal: React.FC<KnowYourTaxesPortalProps> = ({
                   guide={guide}
                   fromKyt={true}
                   onBack={() => setSelectedGuideSlug(null)}
+                  onSelectGuide={(slug) => setSelectedGuideSlug(slug)}
                   onNavigatePage={onNavigate}
                 />
               );

@@ -1121,12 +1121,14 @@ html.dark .tw-nav-sticky-scrolled {
 }
 
 .page-fade-in {
-  animation: workspacePageEnter 240ms ease-out both;
+  animation: workspacePageEnter 200ms ease-out both;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @keyframes workspacePageEnter {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 button:focus-visible,

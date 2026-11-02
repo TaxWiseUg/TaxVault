@@ -17,6 +17,12 @@ export interface TaxRate {
   note: string;
 }
 
+export interface TaxGuideRateTable {
+  caption?: string;
+  columns: string[];
+  rows: string[][];
+}
+
 export interface WorkedExampleLine {
   label: string;
   calc: string;
@@ -29,20 +35,53 @@ export interface WorkedExampleTotal {
   note: string;
 }
 
-export interface WorkedExample {
+export interface TaxGuideExample {
+  title?: string;
   scenario: string;
   lines: WorkedExampleLine[];
   total: WorkedExampleTotal;
 }
 
+export interface TaxGuideSpecial {
+  title: string;
+  text: string;
+}
+
+export interface TaxGuidePenalty {
+  item: string;
+  penalty: string;
+}
+
+export interface TaxGuideFAQ {
+  q: string;
+  a: string;
+}
+
+export interface TaxGuideSource {
+  title: string;
+  url: string;
+}
+
 export interface TaxGuideSections {
   whatItIs: string;
+  changes?: {
+    title: string;
+    points: string[];
+  };
   whoApplies: string[];
-  rates: TaxRate[];
+  rates?: TaxRate[];
+  rateTable?: TaxGuideRateTable;
+  rateTables?: TaxGuideRateTable[];
+  rateNotes?: string[];
   filing: string[];
-  example: WorkedExample;
+  example?: TaxGuideExample;
+  examples?: TaxGuideExample[];
+  special?: TaxGuideSpecial[];
+  penalties?: TaxGuidePenalty[];
   mistakes: string[];
+  faqs?: TaxGuideFAQ[];
   legal: string[];
+  sources?: TaxGuideSource[];
 }
 
 export interface TaxGuideCTA {

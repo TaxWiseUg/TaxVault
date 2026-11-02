@@ -43,26 +43,27 @@ export const TaxGuidesPortal: React.FC<TaxGuidesPortalProps> = ({
         {activeGuide ? (
           <motion.div
             key={activeGuide.slug}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             style={{ width: "100%" }}
           >
             <TaxGuideDetail
               guide={activeGuide}
               fromKyt={fromKyt}
               onBack={handleBack}
+              onSelectGuide={(slug) => setSelectedSlug(slug)}
               onNavigatePage={onNavigate}
             />
           </motion.div>
         ) : (
           <motion.div
             key="index"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             style={{ width: "100%" }}
           >
             <TaxGuidesIndex onSelectGuide={(slug) => setSelectedSlug(slug)} />

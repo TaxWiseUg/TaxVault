@@ -1,6 +1,6 @@
 {
-  "summary":  "Plan for fixing 'On this page' TOC scrolling in Tax Guides and enforcing uniform page widths and navigation transitions across the platform.",
-  "updatedAt":  "2026-10-30T12:14:18.339460569Z",
+  "summary":  "Implementation plan for resolving side pane and bottom banner blurriness, and integrating the new tax guides data adjustments from the taxwise-tax-guides repository.",
+  "updatedAt":  "2026-11-02T07:38:59.641666026Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

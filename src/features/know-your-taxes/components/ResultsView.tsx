@@ -129,9 +129,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({
   return (
     <motion.div
       className="workspace-feature-page workspace-results-view"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
       style={{
         maxWidth: 1400,
         margin: "0 auto",

@@ -57,9 +57,9 @@ export const TaxGuidesIndex: React.FC<TaxGuidesIndexProps> = ({ onSelectGuide })
   return (
     <motion.div
       className="workspace-feature-page workspace-tax-guides-index"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18, ease: "easeOut" }}
       style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1400, width: "100%", margin: "0 auto" }}
     >
       {/* SIGNATURE TAXWISE HEADER BANNER */}
@@ -365,17 +365,35 @@ export const TaxGuidesIndex: React.FC<TaxGuidesIndexProps> = ({ onSelectGuide })
                       marginBottom: 14,
                     }}
                   >
-                    <span
-                      style={{
-                        fontFamily: "monospace",
-                        fontSize: "0.95rem",
-                        fontWeight: 900,
-                        color: C.teal,
-                        letterSpacing: "0.06em",
-                      }}
-                    >
-                      {guide.short}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          fontSize: "0.95rem",
+                          fontWeight: 900,
+                          color: C.teal,
+                          letterSpacing: "0.06em",
+                        }}
+                      >
+                        {guide.short}
+                      </span>
+                      {guide.sections.changes && (
+                        <span
+                          style={{
+                            fontFamily: "monospace",
+                            fontSize: "0.7rem",
+                            fontWeight: 800,
+                            padding: "2px 8px",
+                            borderRadius: 999,
+                            background: "#DCFCE7",
+                            color: "#166534",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          Updated 2026
+                        </span>
+                      )}
+                    </div>
                     <span
                       style={{
                         fontFamily: "monospace",
