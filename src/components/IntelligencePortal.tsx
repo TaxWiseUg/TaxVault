@@ -281,7 +281,7 @@ export function IntelligencePortal({ initialTab = "practice-notes" }: { initialT
     <div className="workspace-feature-page ih" style={{ padding: "0 24px" }}>
       <style>{CSS}</style>
 
-      <div style={{ width: "100%", maxWidth: 1020, margin: "0 auto" }}>
+      <div style={{ width: "100%", margin: "0 auto" }}>
         <WorkspacePageHero
           eyebrow="LEGAL · TAX INSIGHTS"
           title="Intelligence hub"
