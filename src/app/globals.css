@@ -1827,6 +1827,103 @@ html.dark .tw-desktop-primary-nav > div > button[aria-current="page"] { color: #
   box-shadow: 0 6px 20px rgba(15, 32, 68, 0.045) !important;
 }
 
+.reference-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.reference-link-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  background: var(--color-white, #fff);
+  color: var(--color-navy, #0f2044);
+  text-decoration: none;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.reference-link-card:hover {
+  border-color: var(--color-teal, #1a7b6b);
+  background: var(--color-white, #fff);
+  box-shadow: 0 3px 10px rgba(15, 32, 68, 0.07);
+}
+
+.reference-link-card:focus-visible {
+  outline: 2px solid var(--color-teal, #1a7b6b);
+  outline-offset: 2px;
+}
+
+.reference-link-card__content,
+.reference-link-card__heading {
+  display: flex;
+  min-width: 0;
+}
+
+.reference-link-card__content { flex-direction: column; gap: 3px; }
+.reference-link-card__heading { align-items: center; gap: 6px; }
+
+.reference-link-card__publisher {
+  flex: 0 0 auto;
+  max-width: 88px;
+  overflow: hidden;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(15, 32, 68, 0.06);
+  color: #64748b;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reference-link-card__title {
+  min-width: 0;
+  color: var(--color-navy, #0f2044);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.reference-link-card__description {
+  color: #64748b;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.reference-link-card__icon { flex: 0 0 auto; color: #94a3b8; }
+
+.kyt-reference-list {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+  color: #64748b;
+}
+
+.kyt-reference-list__label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+html.dark .reference-link-card {
+  background: #111c2d;
+  border-color: #26364a;
+}
+
+html.dark .reference-link-card:hover { background: #17263a; }
+html.dark .reference-link-card__publisher { background: rgba(226, 232, 240, 0.1); color: #aab8ca; }
+html.dark .reference-link-card__title { color: #f1f5f9; }
+html.dark .reference-link-card__description { color: #aab8ca; }
+
 html.dark .tw-ui-card {
   background: #111c2d !important;
   border-color: var(--color-border) !important;

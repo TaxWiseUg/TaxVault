@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView, useReducedMotion } from "motion/react";
 import { C } from "../lib/constants";
+import { ReferenceLinkGrid } from "./ReferenceLinkGrid";
 import { 
   Calendar as CalendarIcon, 
   Search, 
-  ExternalLink, 
   Plus, 
   Square, 
   CheckSquare, 
@@ -1484,46 +1484,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
             <span style={{ fontSize: "0.72rem", color: "#64748B", fontWeight: 600 }}>Open in a new tab · Verified official Uganda portals</span>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-            {[
-              { title: "URA portal login", sub: "File returns & pay", url: "https://ura.go.ug", badge: "URA" },
-              { title: "EFRIS", sub: "E-invoicing & e-receipts", url: "https://efris.ura.go.ug", badge: "URA" },
-              { title: "URA website", sub: "Public notices & guides", url: "https://ura.go.ug", badge: "URA" },
-              { title: "Tax Appeals Tribunal", sub: "Appeals & cause lists", url: "https://tat.go.ug", badge: "TAT" },
-              { title: "TAT judgments", sub: "Full-text decisions", url: "https://tat.go.ug", badge: "ULII" },
-              { title: "NSSF Uganda", sub: "15% contributions portal", url: "https://nssfug.org", badge: "NSSF" },
-              { title: "Ministry of Finance", sub: "Budget & tax acts", url: "https://finance.go.ug", badge: "MoFPED" },
-            ].map((p, idx) => (
-              <a
-                key={idx}
-                href={p.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "12px 14px",
-                  background: C.offwhite,
-                  borderRadius: 8,
-                  border: `1px solid ${C.border}`,
-                  textDecoration: "none",
-                  transition: "all 0.15s ease"
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = C.teal; e.currentTarget.style.background = "#FFFFFF"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.background = C.offwhite; }}
-              >
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: "0.62rem", fontWeight: 800, background: "rgba(15,32,68,0.06)", padding: "1px 5px", borderRadius: 3, color: "#64748B" }}>{p.badge}</span>
-                    <span style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>{p.title}</span>
-                  </div>
-                  <div style={{ fontSize: "0.7rem", color: "#64748B" }}>{p.sub}</div>
-                </div>
-                <ExternalLink size={14} style={{ color: "#94A3B8" }} />
-              </a>
-            ))}
-          </div>
+          <ReferenceLinkGrid
+            references={[
+              { title: "URA portal login", description: "File returns & pay", url: "https://ura.go.ug", publisher: "URA" },
+              { title: "EFRIS", description: "E-invoicing & e-receipts", url: "https://efris.ura.go.ug", publisher: "URA" },
+              { title: "URA website", description: "Public notices & guides", url: "https://ura.go.ug", publisher: "URA" },
+              { title: "Tax Appeals Tribunal", description: "Appeals & cause lists", url: "https://tat.go.ug", publisher: "TAT" },
+              { title: "TAT judgments", description: "Full-text decisions", url: "https://tat.go.ug", publisher: "ULII" },
+              { title: "NSSF Uganda", description: "15% contributions portal", url: "https://nssfug.org", publisher: "NSSF" },
+              { title: "Ministry of Finance", description: "Budget & tax acts", url: "https://finance.go.ug", publisher: "MoFPED" },
+            ]}
+          />
         </div>
       </motion.div>
 

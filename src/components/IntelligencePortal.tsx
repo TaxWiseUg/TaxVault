@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { WorkspacePageHero } from "./WorkspacePageHero";
+import { ReferenceLinkGrid } from "./ReferenceLinkGrid";
 import {
   HUB_META,
   HUB_TABS,
@@ -128,24 +129,27 @@ function Block({ block }: { block: ContentBlock }) {
 }
 
 function SourceList({ keys }: { keys?: string[] }) {
-  const sources = resolveSources(keys);
-  if (!sources.length) return null;
+  const references = resolveSources(keys).map((source) => {
+    const [publisher, ...titleParts] = source.label.split(" — ");
+    let description = "External source";
+    try {
+      description = new URL(source.url).hostname.replace(/^www\./, "");
+    } catch {
+      // Keep the generic source description for malformed URLs.
+    }
+
+    return {
+      title: titleParts.join(" — ") || publisher,
+      url: source.url,
+      publisher,
+      description,
+    };
+  });
+  if (!references.length) return null;
   return (
     <div className="ih-sources">
       <span className="ih-sources__label">References</span>
-      <ol aria-label="Article references">
-        {sources.map((s) => {
-          const [publisher, ...titleParts] = s.label.split(" — ");
-          const title = titleParts.join(" — ") || publisher;
-          return (
-          <li key={s.url}>
-            <a href={s.url} target="_blank" rel="noopener noreferrer">
-              <strong>{publisher}.</strong> {title}
-            </a>
-          </li>
-          );
-        })}
-      </ol>
+      <ReferenceLinkGrid references={references} />
     </div>
   );
 }

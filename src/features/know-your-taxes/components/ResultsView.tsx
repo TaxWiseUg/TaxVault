@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { AssessmentResult, LegalSource, Obligation, ObligationStatus } from "../types";
 import { C } from "@/lib/constants";
+import { ReferenceLinkGrid } from "@/components/ReferenceLinkGrid";
 import {
   AlertCircle,
   ArrowLeft,
@@ -13,7 +14,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   HelpCircle,
   Info,
   MessageSquare,
@@ -821,29 +821,18 @@ function ObligationCard({
 
           {/* Legal Basis */}
           <DetailSection title="Authoritative Legal Basis">
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 6 }}>
-              {o.content.legalBasis.map((id) => {
+            <ReferenceLinkGrid
+              references={o.content.legalBasis.flatMap((id) => {
                 const src = sources[id];
-                if (!src) return null;
-                return (
-                  <li key={id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                    <ExternalLink size={13} style={{ color: C.teal, flexShrink: 0 }} />
-                    <a
-                      href={src.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: C.teal, fontWeight: 700, textDecoration: "none" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
-                      onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-                    >
-                      {src.title}
-                      {src.section ? ` (${src.section})` : ""}
-                    </a>
-                    <span style={{ color: "#64748B" }}>— {src.publisher}</span>
-                  </li>
-                );
+                return src ? [{
+                  title: `${src.title}${src.section ? ` (${src.section})` : ""}`,
+                  url: src.url,
+                  publisher: src.publisher,
+                  description: src.note || "Authoritative legal source",
+                }] : [];
               })}
-            </ul>
+              className="kyt-reference-grid"
+            />
           </DetailSection>
 
           {/* Grounded Q&A Panel */}
@@ -1042,28 +1031,15 @@ function AskQuestionPanel({ assessmentId, code }: { assessmentId: string; code: 
                 </div>
               )}
               {t.citations.length > 0 && (
-                <div
-                  style={{
-                    marginTop: 10,
-                    paddingTop: 8,
-                    borderTop: `1px solid ${C.border}`,
-                    fontSize: "0.72rem",
-                    color: "#64748B",
-                  }}
-                >
-                  <span style={{ fontWeight: 700 }}>Sources cited: </span>
-                  {t.citations.map((c, j) => (
-                    <a
-                      key={c.id}
-                      href={c.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: C.teal, textDecoration: "underline", marginRight: 8 }}
-                    >
-                      {c.title}
-                      {j < t.citations.length - 1 ? "; " : ""}
-                    </a>
-                  ))}
+                <div className="kyt-reference-list">
+                  <span className="kyt-reference-list__label">Sources cited</span>
+                  <ReferenceLinkGrid
+                    references={t.citations.map((citation) => ({
+                      title: citation.title,
+                      url: citation.url,
+                      description: "Assessment reference",
+                    }))}
+                  />
                 </div>
               )}
             </div>

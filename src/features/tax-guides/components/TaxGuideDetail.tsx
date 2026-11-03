@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { TaxGuide, TaxGuideRateTable, TaxGuideExample } from "../types";
 import { TAX_GUIDES } from "../data/taxGuidesData";
 import { C } from "@/lib/constants";
+import { ReferenceLinkGrid } from "@/components/ReferenceLinkGrid";
 import {
   ArrowLeft,
   AlertTriangle,
@@ -11,7 +12,6 @@ import {
   ShieldCheck,
   Scale,
   Sparkles,
-  ExternalLink,
   ChevronDown,
 } from "lucide-react";
 
@@ -1501,43 +1501,14 @@ export const TaxGuideDetail: React.FC<TaxGuideDetailProps> = ({
               >
                 Official statutory & technical sources
               </h2>
-              <ul
-                style={{
-                  margin: 0,
-                  paddingLeft: 22,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                }}
-              >
-                {s.sources.map((src, idx) => (
-                  <li key={idx}>
-                    <a
-                      href={src.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        color: C.teal,
-                        textDecoration: "none",
-                        fontWeight: 600,
-                        fontSize: "0.9rem",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.textDecoration = "underline";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.textDecoration = "none";
-                      }}
-                    >
-                      <span>{src.title}</span>
-                      <ExternalLink size={13} style={{ flexShrink: 0 }} />
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              <ReferenceLinkGrid
+                references={s.sources.map((src) => ({
+                  title: src.title,
+                  url: src.url,
+                  publisher: src.title.startsWith("PwC") ? "PwC" : "URA",
+                  description: "Official statutory or technical source",
+                }))}
+              />
             </section>
           )}
 
