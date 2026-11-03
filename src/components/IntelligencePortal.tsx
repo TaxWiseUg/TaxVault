@@ -1,6 +1,5 @@
 "use client";
-// IntelligenceHub.jsx — renders the Intelligence Hub tabs from intelligenceHubData.js.
-// Works in Next.js (app or pages router) or any React 18+ app. No extra dependencies.
+// Renders the TaxWise Intelligence Hub using its shared content data.
 
 import { useMemo, useState } from "react";
 import { WorkspacePageHero } from "./WorkspacePageHero";
@@ -100,7 +99,11 @@ function Block({ block }: { block: ContentBlock }) {
               {block.rows.map((row, r) => (
                 <tr key={r}>
                   {row.map((cell, c) => (
-                    <td key={c} data-label={block.headers[c]}>
+                    <td
+                      key={c}
+                      data-label={block.headers[c]}
+                      className={/^(rate|year|date|provision)/i.test(block.headers[c]) ? "ih-nowrap" : undefined}
+                    >
                       {cell}
                     </td>
                   ))}
@@ -129,16 +132,20 @@ function SourceList({ keys }: { keys?: string[] }) {
   if (!sources.length) return null;
   return (
     <div className="ih-sources">
-      <span className="ih-sources__label">Sources</span>
-      <ul>
-        {sources.map((s) => (
+      <span className="ih-sources__label">References</span>
+      <ol aria-label="Article references">
+        {sources.map((s) => {
+          const [publisher, ...titleParts] = s.label.split(" — ");
+          const title = titleParts.join(" — ") || publisher;
+          return (
           <li key={s.url}>
             <a href={s.url} target="_blank" rel="noopener noreferrer">
-              {s.label}
+              <strong>{publisher}.</strong> {title}
             </a>
           </li>
-        ))}
-      </ul>
+          );
+        })}
+      </ol>
     </div>
   );
 }
@@ -386,9 +393,9 @@ const CSS = `
 .ih-checklist label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
 .ih-checklist input{margin-top:4px;accent-color:var(--green)}
 .ih-table-wrap{overflow-x:auto;margin:0 0 14px}
-.ih-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.ih-table{width:100%;min-width:760px;border-collapse:collapse;font-size:13.5px;table-layout:auto}
 .ih-table th{background:#f3f5f9;color:var(--navy);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:600}
-.ih-table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5}
+.ih-table td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.5;word-break:normal;overflow-wrap:normal;hyphens:none}
 .ih-table a{color:var(--navy)}
 .ih-nowrap{white-space:nowrap}
 .ih-kind{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-top:2px}
@@ -399,8 +406,10 @@ const CSS = `
 .ih-callout--info{background:#eef4ff;border-color:#3b6fd8}
 .ih-sources{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:13px}
 .ih-sources__label{font-weight:600;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.06em}
-.ih-sources ul{margin:6px 0 0;padding-left:18px}
-.ih-sources a{color:var(--navy)}
+.ih-sources ol{margin:6px 0 0;padding-left:22px;line-height:1.7}
+.ih-sources li{padding-left:3px}
+.ih-sources a{color:var(--navy);text-decoration:underline;text-decoration-color:rgba(19,37,74,.35);text-underline-offset:2px}
+.ih-sources a:hover{text-decoration-color:currentColor}
 .ih-route__steps{list-style:none;padding:0;margin:0;counter-reset:s}
 .ih-route__steps>li{position:relative;border:1px solid var(--line);border-radius:12px;padding:12px 16px 12px 52px;margin-bottom:14px;counter-increment:s}
 .ih-route__steps>li::before{content:counter(s);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;
@@ -416,6 +425,7 @@ const CSS = `
 @media (max-width:640px){
   .ih-panel{padding:18px}
   .ih-pill{padding:10px 18px;font-size:14px}
+  .ih-table{min-width:0}
   .ih-table thead{display:none}
   .ih-table tr{display:block;border-bottom:1px solid var(--line);padding:6px 0}
   .ih-table td{display:block;border:0;padding:4px 0}

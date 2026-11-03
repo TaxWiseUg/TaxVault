@@ -6,6 +6,11 @@
   margin: 0;
 }
 
+p {
+  text-align: justify;
+  text-justify: inter-word;
+}
+
 .tat-case-detail {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
