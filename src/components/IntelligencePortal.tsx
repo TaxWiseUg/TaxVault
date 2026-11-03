@@ -365,7 +365,7 @@ export function IntelligencePortal({ initialTab = "practice-notes" }: { initialT
 
 const CSS = `
 .ih{--navy:#13254a;--green:#16a34a;--ink:#1b2333;--muted:#5b6475;--line:#e6e8ec;--card:#fff;--bg:#f6f6f4;
-  font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);}
+  color:var(--ink);}
 .ih-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
 .ih-pills{display:flex;flex-wrap:wrap;gap:12px}
 .ih-pill{padding:14px 34px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--navy);
