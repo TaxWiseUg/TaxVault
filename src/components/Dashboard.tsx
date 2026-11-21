@@ -24,14 +24,18 @@ import {
   Scale,
   Sparkles,
   Download,
-  CalendarPlus
+  CalendarPlus,
+  AlertCircle
 } from "lucide-react";
 
 import { setScrollLocked } from "./UI";
 import { KnowYourTaxesCard } from "../features/know-your-taxes/components/KnowYourTaxesCard";
 import { 
   getUserDashboardData, 
-  saveUserDashboardData, 
+  saveUserDashboardData,
+  getMonthlyFilingCycle,
+  buildDefaultDeadlines,
+  getPeriodKeyFromDeadline,
   type UserDashboardMetrics, 
   type UserDeadlineItem, 
   type PinnedCalculator 
@@ -89,13 +93,7 @@ const DashboardCountUp: React.FC<{ value: number; suffix?: string }> = ({ value,
   return <span ref={ref}>{current.toLocaleString("en-UG")}{suffix}</span>;
 };
 
-const INITIAL_DEADLINES: DeadlineItem[] = [
-  { id: "dl-1", date: "15 OCT", dayNumber: 15, monthIndex: 9, year: 2026, title: "Monthly returns — September 2026", sub: "PAYE · WHT · VAT", badge: "Due today", highlight: true, taxType: "Monthly Returns" },
-  { id: "dl-2", date: "15 NOV", dayNumber: 15, monthIndex: 10, year: 2026, title: "Monthly returns — October 2026", sub: "PAYE · WHT · VAT", badge: "31 days", taxType: "Monthly Returns" },
-  { id: "dl-3", date: "15 DEC", dayNumber: 15, monthIndex: 11, year: 2026, title: "Monthly returns — November 2026", sub: "PAYE · WHT · VAT", badge: "61 days", taxType: "Monthly Returns" },
-  { id: "dl-4", date: "31 DEC", dayNumber: 31, monthIndex: 11, year: 2026, title: "Annual Income tax return — FY 2025/26", sub: "Income tax · Corporation & Individual", badge: "77 days", taxType: "Income Tax" },
-  { id: "dl-5", date: "15 JAN", dayNumber: 15, monthIndex: 0, year: 2027, title: "Monthly returns — December 2026", sub: "PAYE · WHT · VAT", badge: "92 days", taxType: "Monthly Returns" },
-];
+const INITIAL_DEADLINES: DeadlineItem[] = buildDefaultDeadlines();
 
 const SEARCH_CATALOG = [
   { title: "Know Your Taxes — Statutory Obligation Engine", category: "Advisory", page: "know-your-taxes", keywords: "know your taxes obligations questionnaire assessment statutory paye vat presumptive cit" },
@@ -118,12 +116,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
   // User-scoped dynamic dashboard metrics and persistent state
   const [metrics, setMetrics] = useState<UserDashboardMetrics>(() => getUserDashboardData(user));
-  const [isSeptemberFiled, setIsSeptemberFiled] = useState<boolean>(() => metrics.isReturnFiled);
+  const [filedMonths, setFiledMonths] = useState<Record<string, boolean>>(() => metrics.filedMonths || {});
   const [deadlines, setDeadlines] = useState<DeadlineItem[]>(() => 
     metrics.deadlines && metrics.deadlines.length > 0 ? (metrics.deadlines as DeadlineItem[]) : INITIAL_DEADLINES
   );
   
-  // Dynamic Calendar Navigation state (defaults to October 2026)
+  // Dynamic Calendar Navigation state
   const [calYear, setCalYear] = useState(() => new Date().getFullYear());
   const [calMonth, setCalMonth] = useState(() => new Date().getMonth());
   const [selectedDay, setSelectedDay] = useState<number | null>(() => new Date().getDate());
@@ -152,7 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
   useEffect(() => {
     const fresh = getUserDashboardData(user);
     setMetrics(fresh);
-    setIsSeptemberFiled(fresh.isReturnFiled);
+    setFiledMonths(fresh.filedMonths || {});
     if (fresh.deadlines && fresh.deadlines.length > 0) {
       setDeadlines(fresh.deadlines as DeadlineItem[]);
     }
@@ -190,57 +188,70 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  const [cycleDateKey, setCycleDateKey] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  });
+  const filingCycle = getMonthlyFilingCycle();
+  const currentPeriodKey = filingCycle.current.periodKey;
+  const previousPeriodKey = filingCycle.previous.periodKey;
+
+  const isPeriodFiledInDeadlines = (periodKey: string) =>
+    deadlines.some((dl) => getPeriodKeyFromDeadline(dl) === periodKey && Boolean(dl.completed));
+
+  const isCurrentFiled =
+    Boolean(filedMonths[currentPeriodKey]) || isPeriodFiledInDeadlines(currentPeriodKey);
+  const isPreviousFiled =
+    Boolean(filedMonths[previousPeriodKey]) || isPeriodFiledInDeadlines(previousPeriodKey);
+
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0, isLate: false, isCountUp: false });
 
-  // Timer interval for URA statutory deadline countdown / count-up overdue until end of month
+  // Live countdown to the active URA statutory monthly filing deadline (15th at 23:59:59)
   useEffect(() => {
     const updateCountdown = () => {
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth(); // 0-11
-      
-      // Target deadline for September returns: October 15, 2026 at 23:59:59
-      const deadline = new Date(2026, 9, 15, 23, 59, 59);
-      // End of October 2026: October 31, 2026 at 23:59:59
-      const endOfMonth = new Date(2026, 9, 31, 23, 59, 59);
+      const nextDateKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+      if (nextDateKey !== cycleDateKey) {
+        setCycleDateKey(nextDateKey);
+      }
 
-      if (isSeptemberFiled) {
+      if (isCurrentFiled) {
         setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0, isLate: false, isCountUp: false });
         return;
       }
 
-      if (now.getTime() <= deadline.getTime()) {
-        // Countdown to deadline
-        const diff = deadline.getTime() - now.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / 1000 / 60) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
-        setTimeLeft({ days, hours, mins, secs, isLate: false, isCountUp: false });
-      } else if (now.getTime() > deadline.getTime() && now.getTime() <= endOfMonth.getTime()) {
-        // Count up overdue time from deadline until end of month
-        const diff = now.getTime() - deadline.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / 1000 / 60) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
-        setTimeLeft({ days, hours, mins, secs, isLate: true, isCountUp: true });
-      } else {
-        // After month ends, reset to start countdown for next month (October returns due Nov 15)
-        const nextDeadline = new Date(2026, 10, 15, 23, 59, 59);
-        const diff = nextDeadline.getTime() - now.getTime();
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const mins = Math.floor((diff / 1000 / 60) % 60);
-        const secs = Math.floor((diff / 1000) % 60);
-        setTimeLeft({ days: Math.max(0, days), hours: Math.max(0, hours), mins: Math.max(0, mins), secs: Math.max(0, secs), isLate: false, isCountUp: false });
-      }
+      const { current } = getMonthlyFilingCycle(now);
+      const diff = Math.max(0, current.dueDate.getTime() - now.getTime());
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / 1000 / 60) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+      setTimeLeft({ days, hours, mins, secs, isLate: false, isCountUp: false });
     };
 
     updateCountdown();
     const timer = setInterval(updateCountdown, 1000);
     return () => clearInterval(timer);
-  }, [isSeptemberFiled]);
+  }, [isCurrentFiled, cycleDateKey]);
+
+  const handleToggleMonthFiled = (periodKey: string, filed: boolean) => {
+    const nextFiledMonths = { ...filedMonths, [periodKey]: filed };
+    setFiledMonths(nextFiledMonths);
+
+    const updatedDeadlines = deadlines.map((dl) => {
+      if (getPeriodKeyFromDeadline(dl) === periodKey) {
+        return { ...dl, completed: filed };
+      }
+      return dl;
+    });
+    setDeadlines(updatedDeadlines);
+
+    saveUserDashboardData(user, {
+      filedMonths: nextFiledMonths,
+      deadlines: updatedDeadlines,
+      isReturnFiled: periodKey === currentPeriodKey ? filed : isCurrentFiled,
+    });
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -269,15 +280,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
     month: "short",
     year: "numeric",
   });
-  const filingDeadline = deadlines.find((deadline) => deadline.id === "dl-1") || INITIAL_DEADLINES[0];
-  const filingDeadlineDate = new Date(filingDeadline.year, filingDeadline.monthIndex, filingDeadline.dayNumber);
-  const filingDeadlineLabel = filingDeadlineDate.toLocaleDateString("en-UG", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-  const filingDeadlineMonth = filingDeadlineDate.toLocaleDateString("en-UG", { month: "short" }).toUpperCase();
+  const activeFiling = filingCycle.current;
+  const previousFiling = filingCycle.previous;
 
   // Google Calendar Link Generator
   const openGoogleCalendar = (title: string, details: string, dateStr: string) => {
@@ -328,16 +332,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
 
   // Toggle Deadline Completion
   const toggleDeadline = (id: string) => {
-    setDeadlines(prev => {
-      const updated = prev.map(dl => {
-        if (dl.id === id) {
-          return { ...dl, completed: !dl.completed };
-        }
-        return dl;
+    const target = deadlines.find((dl) => dl.id === id);
+    const nextCompleted = target ? !target.completed : true;
+    const periodKey = target ? getPeriodKeyFromDeadline(target) : null;
+
+    const updated = deadlines.map((dl) => (dl.id === id ? { ...dl, completed: nextCompleted } : dl));
+    setDeadlines(updated);
+
+    if (periodKey) {
+      const nextFiledMonths = { ...filedMonths, [periodKey]: nextCompleted };
+      setFiledMonths(nextFiledMonths);
+      saveUserDashboardData(user, {
+        deadlines: updated,
+        filedMonths: nextFiledMonths,
+        isReturnFiled: periodKey === currentPeriodKey ? nextCompleted : isCurrentFiled,
       });
+    } else {
       saveUserDashboardData(user, { deadlines: updated });
-      return updated;
-    });
+    }
   };
 
   // Add Custom Deadline Handler
@@ -450,7 +462,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
             </span>
           </div>
           <p style={{ color: "#64748B", fontSize: "0.85rem", fontWeight: 500, margin: 0 }}>
-            {currentDateLabel} · {metrics.roleDescription} · {isSeptemberFiled ? "September returns filed" : timeLeft.isLate ? "1 overdue filing needs attention" : "1 filing due soon"}
+            {currentDateLabel} · {metrics.roleDescription} · {isCurrentFiled ? `${activeFiling.periodShort} returns filed` : !isPreviousFiled ? `1 active filing · ${previousFiling.periodShort} unfiled` : "1 filing due soon"}
           </p>
         </div>
 
@@ -631,7 +643,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
           let timerTextColor = "#92400E";
           let timerBorder = "1.5px solid rgba(217, 119, 6, 0.4)";
 
-          if (isSeptemberFiled) {
+          if (isCurrentFiled) {
             bannerBg = "linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)";
             bannerBorder = "#22C55E";
             bannerShadow = "0 8px 25px rgba(34, 197, 94, 0.15)";
@@ -672,7 +684,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
           }
 
           return (
-            <div className={`dashboard-deadline-card ${isSeptemberFiled ? "is-filed" : timeLeft.isLate ? "is-overdue" : "is-upcoming"}`} style={{
+            <div className={`dashboard-deadline-card ${isCurrentFiled ? "is-filed" : timeLeft.isLate ? "is-overdue" : "is-upcoming"}`} style={{
               background: bannerBg, 
               borderRadius: 16, 
               padding: "24px 28px", 
@@ -701,68 +713,85 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   flexShrink: 0
                 }}>
                   <div style={{ fontSize: "0.65rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    {isSeptemberFiled ? "DONE" : filingDeadlineMonth}
+                    {isCurrentFiled ? "DONE" : activeFiling.dueMonthShort}
                   </div>
                   <div style={{ fontSize: "1.4rem", fontWeight: 900, lineHeight: 1, marginTop: 2 }}>
-                    {isSeptemberFiled ? "✓" : filingDeadline.dayNumber}
+                    {isCurrentFiled ? "✓" : activeFiling.dueDay}
                   </div>
                 </div>
 
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: "0.72rem", fontWeight: 800, color: labelColor, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>
-                    {isSeptemberFiled ? "Statutory Obligation Completed" : "URA Statutory Filing Obligation"}
+                    {isCurrentFiled ? "Statutory Obligation Completed" : "URA Statutory Filing Obligation"}
                   </div>
                   <div style={{ fontSize: "1.05rem", fontWeight: 800, color: C.navy, marginBottom: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span>{filingDeadline.title}</span>
-                    {isSeptemberFiled && (
+                    <span>{activeFiling.title}</span>
+                    {isCurrentFiled && (
                       <span style={{ fontSize: "0.7rem", background: "rgba(22,163,74,0.2)", color: "#15803D", padding: "2px 8px", borderRadius: 99, fontWeight: 800 }}>
                         Filed Successfully
                       </span>
                     )}
                   </div>
                   <p style={{ fontSize: "0.82rem", color: "#64748B", margin: 0, lineHeight: 1.4, maxWidth: "100%" }}>
-                    {isSeptemberFiled 
-                      ? "September 2026 PAYE, withholding tax and VAT returns recorded as successfully filed with URA."
-                      : (timeLeft.isLate || timeLeft.isCountUp
-                          ? `Deadline of ${filingDeadlineLabel} before midnight has passed. Returns are currently overdue — prompt filing is advised to mitigate escalating statutory penalties & interest.`
-                          : `File and pay PAYE, withholding tax and VAT before ${filingDeadlineLabel} before midnight to avoid penalties & interest.`)}
+                    {isCurrentFiled 
+                      ? `${activeFiling.periodLabel} PAYE, withholding tax and VAT returns recorded as successfully filed with URA.`
+                      : `File and pay PAYE, withholding tax and VAT by ${activeFiling.dueFullLabel} to avoid penalties & interest.`}
                   </p>
+                  {!isPreviousFiled && (
+                    <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", fontSize: "0.74rem", color: "#64748B" }}>
+                      <AlertCircle size={13} style={{ color: "#D97706", flexShrink: 0 }} />
+                      <span>
+                        Previous filing ({previousFiling.periodLabel}, due {previousFiling.dueShortLabel}) hasn&apos;t been marked as filed yet.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleMonthFiled(previousFiling.periodKey, true)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          color: C.teal,
+                          fontWeight: 700,
+                          fontSize: "0.74rem",
+                          cursor: "pointer",
+                          textDecoration: "underline",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        Mark {previousFiling.periodShort} filed
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-                {!isSeptemberFiled ? (
+                {!isCurrentFiled ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 6, background: "#FFFFFF", padding: "10px 16px", borderRadius: 12, border: timerBorder, boxShadow: "0 4px 12px rgba(0,0,0,0.06)", flexShrink: 0 }}>
-                    {timeLeft.isCountUp || timeLeft.isLate ? (
-                      <span style={{ color: "#DC2626", fontWeight: 800, fontSize: "0.92rem", fontFamily: "monospace" }}>
-                        +{timeLeft.days > 0 ? `${timeLeft.days}d ` : ""}{String(timeLeft.hours).padStart(2, '0')}h {String(timeLeft.mins).padStart(2, '0')}m {String(timeLeft.secs).padStart(2, '0')}s OVERDUE
-                      </span>
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "monospace", fontWeight: 800, color: timerTextColor, fontSize: "1.1rem" }}>
-                        {timeLeft.days > 0 && (
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                            <span>{timeLeft.days}d</span>
-                            <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Days</span>
-                          </div>
-                        )}
-                        {timeLeft.days > 0 && <span>:</span>}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "monospace", fontWeight: 800, color: timerTextColor, fontSize: "1.1rem" }}>
+                      {timeLeft.days > 0 && (
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <span>{String(timeLeft.hours).padStart(2, '0')}</span>
-                          <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Hours</span>
+                          <span>{timeLeft.days}d</span>
+                          <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Days</span>
                         </div>
-                        <span>:</span>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <span>{String(timeLeft.mins).padStart(2, '0')}</span>
-                          <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Mins</span>
-                        </div>
-                        <span>:</span>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                          <span>{String(timeLeft.secs).padStart(2, '0')}</span>
-                          <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Secs</span>
-                        </div>
-                        <span style={{ fontSize: "0.72rem", fontWeight: 700, color: labelColor, marginLeft: 4 }}>left</span>
+                      )}
+                      {timeLeft.days > 0 && <span>:</span>}
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <span>{String(timeLeft.hours).padStart(2, '0')}</span>
+                        <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Hours</span>
                       </div>
-                    )}
+                      <span>:</span>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <span>{String(timeLeft.mins).padStart(2, '0')}</span>
+                        <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Mins</span>
+                      </div>
+                      <span>:</span>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <span>{String(timeLeft.secs).padStart(2, '0')}</span>
+                        <span style={{ fontSize: "0.52rem", fontWeight: 700, color: labelColor, textTransform: "uppercase" }}>Secs</span>
+                      </div>
+                      <span style={{ fontSize: "0.72rem", fontWeight: 700, color: labelColor, marginLeft: 4 }}>left</span>
+                    </div>
                   </div>
                 ) : (
                   <span style={{ fontSize: "0.85rem", fontWeight: 800, color: "#15803D", background: "rgba(22,163,74,0.15)", padding: "10px 16px", borderRadius: 10, display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
@@ -774,8 +803,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   <button
                     type="button"
                     onClick={() => {
-                      setNewDeadlineTitle(`${filingDeadline.title} (PAYE, WHT, VAT)`);
-                      setNewDeadlineDate(`${filingDeadline.year}-${String(filingDeadline.monthIndex + 1).padStart(2, "0")}-${String(filingDeadline.dayNumber).padStart(2, "0")}`);
+                      setNewDeadlineTitle(`${activeFiling.title} (PAYE, WHT, VAT)`);
+                      setNewDeadlineDate(`${activeFiling.dueYear}-${String(activeFiling.dueMonthIndex + 1).padStart(2, "0")}-${String(activeFiling.dueDay).padStart(2, "0")}`);
                       setNewDeadlineTax("VAT");
                       setIsAddDeadlineOpen(true);
                     }}
@@ -801,15 +830,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                   
                   <button
                     type="button"
-                    onClick={() => {
-                      const next = !isSeptemberFiled;
-                      setIsSeptemberFiled(next);
-                      saveUserDashboardData(user, { isReturnFiled: next });
-                    }}
+                    onClick={() => handleToggleMonthFiled(activeFiling.periodKey, !isCurrentFiled)}
                     style={{
-                      background: isSeptemberFiled ? "#FFFFFF" : C.navy,
-                      color: isSeptemberFiled ? "#DC2626" : "#FFFFFF",
-                      border: isSeptemberFiled ? "1px solid rgba(220,38,38,0.3)" : "none",
+                      background: isCurrentFiled ? "#FFFFFF" : C.navy,
+                      color: isCurrentFiled ? "#DC2626" : "#FFFFFF",
+                      border: isCurrentFiled ? "1px solid rgba(220,38,38,0.3)" : "none",
                       padding: "8px 14px",
                       borderRadius: 8,
                       fontSize: "0.78rem",
@@ -821,7 +846,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onNavigate }) => {
                       gap: 5
                     }}
                   >
-                    {isSeptemberFiled ? (
+                    {isCurrentFiled ? (
                       <>
                         <X size={13} />
                         <span>Undo</span>

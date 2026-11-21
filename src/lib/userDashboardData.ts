@@ -48,16 +48,165 @@ export interface UserDashboardMetrics {
   deadlines: UserDeadlineItem[];
   pinnedCalculators: PinnedCalculator[];
   isReturnFiled: boolean;
+  filedMonths?: Record<string, boolean>;
   isAdmin: boolean;
 }
 
-const DEFAULT_DEADLINES: UserDeadlineItem[] = [
-  { id: "dl-1", date: "15 OCT", dayNumber: 15, monthIndex: 9, year: 2026, title: "Monthly returns — September 2026", sub: "PAYE · WHT · VAT", badge: "Due today", highlight: true, taxType: "Monthly Returns" },
-  { id: "dl-2", date: "15 NOV", dayNumber: 15, monthIndex: 10, year: 2026, title: "Monthly returns — October 2026", sub: "PAYE · WHT · VAT", badge: "31 days", taxType: "Monthly Returns" },
-  { id: "dl-3", date: "15 DEC", dayNumber: 15, monthIndex: 11, year: 2026, title: "Monthly returns — November 2026", sub: "PAYE · WHT · VAT", badge: "61 days", taxType: "Monthly Returns" },
-  { id: "dl-4", date: "31 DEC", dayNumber: 31, monthIndex: 11, year: 2026, title: "Annual Income tax return — FY 2025/26", sub: "Income tax · Corporation & Individual", badge: "77 days", taxType: "Income Tax" },
-  { id: "dl-5", date: "15 JAN", dayNumber: 15, monthIndex: 0, year: 2027, title: "Monthly returns — December 2026", sub: "PAYE · WHT · VAT", badge: "92 days", taxType: "Monthly Returns" },
-];
+export interface MonthlyFilingPeriod {
+  periodKey: string;
+  periodLabel: string;
+  periodShort: string;
+  dueDate: Date;
+  dueYear: number;
+  dueMonthIndex: number;
+  dueDay: number;
+  dueMonthShort: string;
+  dueFullLabel: string;
+  dueShortLabel: string;
+  title: string;
+}
+
+const MONTH_SHORT_UPPER = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+function formatMonthPeriod(periodDate: Date, dueDate: Date): MonthlyFilingPeriod {
+  const periodYear = periodDate.getFullYear();
+  const periodMonthIndex = periodDate.getMonth();
+  const periodKey = `${periodYear}-${String(periodMonthIndex + 1).padStart(2, "0")}`;
+  const periodLabel = periodDate.toLocaleDateString("en-UG", { month: "long", year: "numeric" });
+  const periodShort = periodDate.toLocaleDateString("en-UG", { month: "short", year: "numeric" });
+
+  const dueEndOfDay = new Date(dueDate.getFullYear(), dueDate.getMonth(), 15, 23, 59, 59);
+  const dueFullLabel = dueEndOfDay.toLocaleDateString("en-UG", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const dueShortLabel = dueEndOfDay.toLocaleDateString("en-UG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+  return {
+    periodKey,
+    periodLabel,
+    periodShort,
+    dueDate: dueEndOfDay,
+    dueYear: dueEndOfDay.getFullYear(),
+    dueMonthIndex: dueEndOfDay.getMonth(),
+    dueDay: 15,
+    dueMonthShort: MONTH_SHORT_UPPER[dueEndOfDay.getMonth()],
+    dueFullLabel,
+    dueShortLabel,
+    title: `Monthly returns — ${periodLabel}`,
+  };
+}
+
+/**
+ * Computes the active and previous URA monthly statutory filing periods for any date.
+ * Days 1–15 target the 15th of the current month (for the previous month's returns).
+ * Days 16–end target the 15th of next month (for the current month's returns).
+ */
+export function getMonthlyFilingCycle(now: Date = new Date()): {
+  current: MonthlyFilingPeriod;
+  previous: MonthlyFilingPeriod;
+} {
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const afterCutoff = now.getDate() > 15;
+
+  const currentPeriodDate = afterCutoff ? new Date(y, m, 1) : new Date(y, m - 1, 1);
+  const currentDueDate = afterCutoff ? new Date(y, m + 1, 15) : new Date(y, m, 15);
+
+  const prevPeriodDate = new Date(currentPeriodDate.getFullYear(), currentPeriodDate.getMonth() - 1, 1);
+  const prevDueDate = new Date(currentPeriodDate.getFullYear(), currentPeriodDate.getMonth(), 15);
+
+  return {
+    current: formatMonthPeriod(currentPeriodDate, currentDueDate),
+    previous: formatMonthPeriod(prevPeriodDate, prevDueDate),
+  };
+}
+
+export function getPeriodKeyFromDeadline(item: Pick<UserDeadlineItem, "year" | "monthIndex" | "dayNumber" | "taxType">): string | null {
+  if (item.dayNumber !== 15 && item.taxType !== "Monthly Returns") return null;
+  const periodDate = new Date(item.year, item.monthIndex - 1, 1);
+  return `${periodDate.getFullYear()}-${String(periodDate.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export function buildDefaultDeadlines(now: Date = new Date()): UserDeadlineItem[] {
+  const { current, previous } = getMonthlyFilingCycle(now);
+  const next1Period = new Date(current.dueYear, current.dueMonthIndex, 1);
+  const next1Due = new Date(current.dueYear, current.dueMonthIndex + 1, 15);
+  const next1 = formatMonthPeriod(next1Period, next1Due);
+
+  const next2Period = new Date(current.dueYear, current.dueMonthIndex + 1, 1);
+  const next2Due = new Date(current.dueYear, current.dueMonthIndex + 2, 15);
+  const next2 = formatMonthPeriod(next2Period, next2Due);
+
+  const annualYear = now.getFullYear();
+  const fyStart = annualYear - 1;
+  const fyEndShort = String(annualYear).slice(-2);
+
+  return [
+    {
+      id: `dl-monthly-${current.periodKey}`,
+      date: `${current.dueDay} ${current.dueMonthShort}`,
+      dayNumber: current.dueDay,
+      monthIndex: current.dueMonthIndex,
+      year: current.dueYear,
+      title: current.title,
+      sub: "PAYE · WHT · VAT",
+      badge: "Active cycle",
+      highlight: true,
+      taxType: "Monthly Returns",
+    },
+    {
+      id: `dl-annual-${annualYear}`,
+      date: "31 DEC",
+      dayNumber: 31,
+      monthIndex: 11,
+      year: annualYear,
+      title: `Annual Income tax return — FY ${fyStart}/${fyEndShort}`,
+      sub: "Income tax · Corporation & Individual",
+      badge: "Annual",
+      taxType: "Income Tax",
+    },
+    {
+      id: `dl-monthly-${next1.periodKey}`,
+      date: `${next1.dueDay} ${next1.dueMonthShort}`,
+      dayNumber: next1.dueDay,
+      monthIndex: next1.dueMonthIndex,
+      year: next1.dueYear,
+      title: next1.title,
+      sub: "PAYE · WHT · VAT",
+      badge: "Upcoming",
+      taxType: "Monthly Returns",
+    },
+    {
+      id: `dl-monthly-${next2.periodKey}`,
+      date: `${next2.dueDay} ${next2.dueMonthShort}`,
+      dayNumber: next2.dueDay,
+      monthIndex: next2.dueMonthIndex,
+      year: next2.dueYear,
+      title: next2.title,
+      sub: "PAYE · WHT · VAT",
+      badge: "Upcoming",
+      taxType: "Monthly Returns",
+    },
+    {
+      id: `dl-monthly-${previous.periodKey}`,
+      date: `${previous.dueDay} ${previous.dueMonthShort}`,
+      dayNumber: previous.dueDay,
+      monthIndex: previous.dueMonthIndex,
+      year: previous.dueYear,
+      title: previous.title,
+      sub: "PAYE · WHT · VAT",
+      badge: "Previous cycle",
+      taxType: "Monthly Returns",
+    },
+  ];
+}
 
 /**
  * Generates initial role-specific dashboard metrics and datasets.
@@ -123,7 +272,7 @@ function getRoleDefaults(user: { email?: string; role?: string; plan?: string })
           updatedAt: "Updated 4 days ago",
         },
       ],
-      deadlines: DEFAULT_DEADLINES,
+      deadlines: buildDefaultDeadlines(),
       pinnedCalculators: [
         { id: "corporate", title: "Corporate Tax", sub: "With loss carry-forward", page: "calculators" },
         { id: "vat", title: "VAT (18%)", sub: "Output vs input reconciliation", page: "calculators" },
@@ -179,7 +328,7 @@ function getRoleDefaults(user: { email?: string; role?: string; plan?: string })
           updatedAt: "Updated 12 Jul",
         },
       ],
-      deadlines: DEFAULT_DEADLINES,
+      deadlines: buildDefaultDeadlines(),
       pinnedCalculators: [
         { id: "paye", title: "PAYE", sub: "2026 statutory bands", page: "calculators" },
         { id: "corporate", title: "Corporate tax", sub: "With loss carry-forward", page: "calculators" },
@@ -225,7 +374,7 @@ function getRoleDefaults(user: { email?: string; role?: string; plan?: string })
           updatedAt: "Updated 4 days ago",
         },
       ],
-      deadlines: DEFAULT_DEADLINES,
+      deadlines: buildDefaultDeadlines(),
       pinnedCalculators: [
         { id: "vat", title: "VAT Output vs Input", sub: "18% statutory formula", page: "calculators" },
         { id: "paye", title: "Payroll PAYE", sub: "Monthly employee schedules", page: "calculators" },
@@ -261,7 +410,7 @@ function getRoleDefaults(user: { email?: string; role?: string; plan?: string })
           updatedAt: "Updated 1h ago",
         },
       ],
-      deadlines: DEFAULT_DEADLINES,
+      deadlines: buildDefaultDeadlines(),
       pinnedCalculators: [
         { id: "paye", title: "PAYE Calculator", sub: "Step-by-step bracket breakdown", page: "calculators" },
         { id: "vat", title: "VAT Computation", sub: "Input credit rule practice", page: "calculators" },
@@ -297,7 +446,7 @@ function getRoleDefaults(user: { email?: string; role?: string; plan?: string })
         updatedAt: "Updated today",
       },
     ],
-    deadlines: DEFAULT_DEADLINES,
+    deadlines: buildDefaultDeadlines(),
     pinnedCalculators: [
       { id: "paye", title: "PAYE", sub: "2026 statutory bands", page: "calculators" },
       { id: "corporate", title: "Corporate tax", sub: "With loss carry-forward", page: "calculators" },
@@ -327,11 +476,42 @@ export function getUserDashboardData(user: { id?: string; email?: string; role?:
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        const savedFiledMonths: Record<string, boolean> =
+          parsed.filedMonths && typeof parsed.filedMonths === "object"
+            ? { ...parsed.filedMonths }
+            : isReturnFiled
+              ? { "2026-09": true }
+              : {};
+
+        // Replace frozen legacy default deadlines (dl-1..dl-5 with no custom/completed items)
+        const legacyIds = new Set(["dl-1", "dl-2", "dl-3", "dl-4", "dl-5"]);
+        const savedDeadlines = Array.isArray(parsed.deadlines) ? (parsed.deadlines as UserDeadlineItem[]) : null;
+        const isOnlyLegacyDefaults =
+          savedDeadlines &&
+          savedDeadlines.length > 0 &&
+          savedDeadlines.every((d) => legacyIds.has(d.id) && !d.completed);
+
+        const resolvedDeadlines = (isOnlyLegacyDefaults || !savedDeadlines || savedDeadlines.length === 0
+          ? buildDefaultDeadlines()
+          : savedDeadlines
+        ).map((dl) => {
+          const pk = getPeriodKeyFromDeadline(dl);
+          if (pk && typeof savedFiledMonths[pk] === "boolean") {
+            return { ...dl, completed: savedFiledMonths[pk] };
+          }
+          return dl;
+        });
+
+        const { current } = getMonthlyFilingCycle();
+        const currentFiled = Boolean(savedFiledMonths[current.periodKey]);
+
         return {
           ...defaults,
           ...parsed,
+          deadlines: resolvedDeadlines,
+          filedMonths: savedFiledMonths,
           isAdmin: defaults.isAdmin,
-          isReturnFiled,
+          isReturnFiled: currentFiled,
         };
       } catch {
         // use defaults
@@ -341,7 +521,8 @@ export function getUserDashboardData(user: { id?: string; email?: string; role?:
 
   return {
     ...defaults,
-    isReturnFiled,
+    filedMonths: isReturnFiled ? { "2026-09": true } : {},
+    isReturnFiled: false,
   };
 }
 
@@ -362,7 +543,7 @@ export function saveUserDashboardData(
   }
 
   const existingRaw = safeStorage.getItem(storageKey);
-  let existing = {};
+  let existing: Record<string, unknown> = {};
   if (existingRaw) {
     try {
       existing = JSON.parse(existingRaw);
