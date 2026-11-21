@@ -15,6 +15,7 @@ import {
   LogOut, 
   ChevronDown,
   Menu,
+  X,
   Calendar,
   User as UserIcon,
   ShieldCheck,
@@ -775,11 +776,11 @@ export default function TaxWiseSaaS() {
             maxWidth: 1600,
             margin: "0 auto",
             padding: isMobile ? "0 14px" : "0 22px",
-            height: 72,
+            height: isMobile ? 56 : 72,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 20,
+            gap: isMobile ? 12 : 20,
           }}
         >
           {/* LEFT: BRAND & WORKSPACE */}
@@ -1206,11 +1207,32 @@ export default function TaxWiseSaaS() {
               </div>
             )}
 
+            {/* Mobile Home (Landing Page) Icon Button */}
+            {isMobile && (
+              <button
+                type="button"
+                className="tw-mobile-home-btn tw-mobile-switch-btn"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsProfileMenuOpen(false);
+                  setView("landing");
+                }}
+                aria-label="Go to landing page"
+                title="Home (Landing Page)"
+              >
+                <Home size={18} aria-hidden="true" />
+              </button>
+            )}
+
             {/* Profile Dropdown Chip */}
             <div style={{ position: "relative", flexShrink: 0 }}>
               <button
+                type="button"
                 className="tw-profile-trigger"
-                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsProfileMenuOpen((open) => !open);
+                }}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -1430,33 +1452,6 @@ export default function TaxWiseSaaS() {
                 <small>UGANDA TAX PLATFORM</small>
               </span>
             </div>
-            <div className="tw-mobile-nav__tabs">
-              <button
-                type="button"
-                aria-label="Dashboard"
-                title="Dashboard"
-                aria-current={isDashboardActive ? "page" : undefined}
-                className={isDashboardActive ? "is-active" : ""}
-                onClick={() => {
-                  setPage("dashboard");
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                <LayoutDashboard size={19} />
-              </button>
-              <button
-                type="button"
-                aria-label="Home"
-                title="Home"
-                className=""
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setView("landing");
-                }}
-              >
-                <Home size={19} />
-              </button>
-            </div>
 
             <div className="tw-mobile-nav__links">
               {[...advisoryItems, ...legalItems].map((n) => {
@@ -1510,24 +1505,69 @@ export default function TaxWiseSaaS() {
               </button>
             </div>
             </div>
-            <nav className="tw-mobile-dock" aria-label="Quick navigation">
-              <button type="button" className={isDashboardActive ? "is-active" : ""} aria-label="Dashboard" title="Dashboard" onClick={() => { setPage("dashboard"); setIsMobileMenuOpen(false); }}>
-                <LayoutDashboard size={19} /><span>Dashboard</span>
-              </button>
-              <button type="button" aria-label="Home" title="Home" onClick={() => { setView("landing"); setIsMobileMenuOpen(false); }}>
-                <Home size={19} /><span>Home</span>
-              </button>
-              <button type="button" className={page === "library" ? "is-active" : ""} aria-label="Case library" title="Case library" onClick={() => { setPage("library"); setIsMobileMenuOpen(false); }}>
-                <BookOpen size={19} /><span>Cases</span>
-              </button>
-              <button type="button" className={page === "analyzer" ? "is-active" : ""} aria-label="Case analyzer" title="Case analyzer" onClick={() => { setPage("analyzer"); setIsMobileMenuOpen(false); }}>
-                <Scale size={19} /><span>Analyze</span>
-              </button>
-              <button type="button" className={page === "calculators" ? "is-active" : ""} aria-label="Tax calculators" title="Tax calculators" onClick={() => { setPage("calculators"); setIsMobileMenuOpen(false); }}>
-                <Calculator size={19} /><span>Calculators</span>
-              </button>
-              <button type="button" className={isMobileMenuOpen ? "is-active" : ""} aria-label={isMobileMenuOpen ? "Close more navigation" : "More navigation"} title="More" aria-expanded={isMobileMenuOpen} aria-controls="mobile-navigation-drawer" onClick={() => setIsMobileMenuOpen(open => !open)}>
-                <Menu size={19} /><span>More</span>
+            <nav className="tw-mobile-dock tw-mobile-dock--workspace" aria-label="Quick navigation">
+              <div className="tw-mobile-dock__pill">
+                <button
+                  type="button"
+                  className={`tw-mobile-dock__tab ${isDashboardActive ? "is-active" : ""}`}
+                  aria-label="Dashboard"
+                  aria-current={isDashboardActive ? "page" : undefined}
+                  title="Dashboard"
+                  onClick={() => { setPage("dashboard"); setIsMobileMenuOpen(false); }}
+                >
+                  <LayoutDashboard size={19} aria-hidden="true" />
+                  <span className="tw-mobile-dock__label">Dashboard</span>
+                </button>
+                <button
+                  type="button"
+                  className={`tw-mobile-dock__tab ${page === "library" ? "is-active" : ""}`}
+                  aria-label="Case library"
+                  aria-current={page === "library" ? "page" : undefined}
+                  title="Case library"
+                  onClick={() => { setPage("library"); setIsMobileMenuOpen(false); }}
+                >
+                  <BookOpen size={19} aria-hidden="true" />
+                  <span className="tw-mobile-dock__label">Cases</span>
+                </button>
+                <button
+                  type="button"
+                  className={`tw-mobile-dock__tab ${page === "analyzer" ? "is-active" : ""}`}
+                  aria-label="Case analyzer"
+                  aria-current={page === "analyzer" ? "page" : undefined}
+                  title="Case analyzer"
+                  onClick={() => { setPage("analyzer"); setIsMobileMenuOpen(false); }}
+                >
+                  <Scale size={19} aria-hidden="true" />
+                  <span className="tw-mobile-dock__label">Analyze</span>
+                </button>
+                <button
+                  type="button"
+                  className={`tw-mobile-dock__tab ${page === "calculators" ? "is-active" : ""}`}
+                  aria-label="Tax calculators"
+                  aria-current={page === "calculators" ? "page" : undefined}
+                  title="Tax calculators"
+                  onClick={() => { setPage("calculators"); setIsMobileMenuOpen(false); }}
+                >
+                  <Calculator size={19} aria-hidden="true" />
+                  <span className="tw-mobile-dock__label">Calculators</span>
+                </button>
+              </div>
+              <button
+                type="button"
+                className={`tw-mobile-dock__more ${isMobileMenuOpen ? "is-open" : ""} ${!isDashboardActive && !["library", "analyzer", "calculators"].includes(page) ? "has-active-route" : ""}`}
+                aria-label={isMobileMenuOpen ? "Close more navigation" : "More navigation"}
+                title={isMobileMenuOpen ? "Close menu" : "More tools"}
+                aria-expanded={isMobileMenuOpen}
+                aria-controls="mobile-navigation-drawer"
+                onClick={() => {
+                  setIsProfileMenuOpen(false);
+                  setIsMobileMenuOpen((open) => !open);
+                }}
+              >
+                <span className="tw-mobile-dock__more-icons" aria-hidden="true">
+                  <Menu size={20} className="tw-mobile-dock__more-icon tw-mobile-dock__more-icon--menu" />
+                  <X size={20} className="tw-mobile-dock__more-icon tw-mobile-dock__more-icon--close" />
+                </span>
               </button>
             </nav>
           </>,

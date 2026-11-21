@@ -997,12 +997,63 @@ body.modal-open .main-scroll-container {
   }
 }
 
+.tw-landing-mobile-actions {
+  display: none;
+}
+
+#calculators-showcase,
+#precedents-section,
+#workflow-section {
+  scroll-margin-top: 76px;
+}
+
 @media (max-width: 768px) {
+  #calculators-showcase,
+  #precedents-section,
+  #workflow-section {
+    scroll-margin-top: 62px;
+  }
+
   .tw-landing-nav-inner {
     display: flex !important;
+    height: 56px !important;
     gap: 12px !important;
   }
   .tw-nav-desktop { display: none !important; }
+  .tw-landing-mobile-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .tw-landing-mobile-login {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--landing-border, var(--color-border));
+    border-radius: 999px;
+    background: var(--landing-surface, var(--color-white));
+    color: var(--landing-text, var(--color-navy));
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+  .tw-landing-mobile-login:hover {
+    border-color: rgba(26, 123, 107, 0.4);
+    color: var(--color-teal, #1A7B6B);
+  }
+  .tw-landing-mobile-login:active {
+    transform: scale(0.96);
+  }
+  .tw-landing-mobile-login:focus-visible {
+    outline: 2px solid var(--color-teal, #1A7B6B);
+    outline-offset: 2px;
+  }
   .tw-hamburger, #menuBtn { display: inline-flex !important; }
   .tw-bento-card { padding: 22px 16px !important; }
   .tw-analysis-grid { grid-template-columns: 1fr !important; }
@@ -1787,6 +1838,15 @@ html.dark .tw-nav-dashboard {
 }
 
 html.dark .tw-wordmark { color: #e2e8f0; }
+html.dark .tw-profile-trigger {
+  background: #111c2d !important;
+  border-color: #2b3b51 !important;
+}
+html.dark .tw-header-sign-in {
+  background: #111c2d !important;
+  border-color: #2b3b51 !important;
+  color: #e2e8f0 !important;
+}
 html.dark .tw-desktop-primary-nav > button:hover,
 html.dark .tw-desktop-primary-nav > div > button:hover,
 html.dark .tw-profile-trigger:hover { background: rgba(255,255,255,0.07) !important; }
@@ -2594,36 +2654,67 @@ html.dark .dashboard-panel {
 
 @media (max-width: 1179px) {
   .tw-app-header-inner {
-    height: 68px !important;
+    height: 56px !important;
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .tw-header-actions { gap: 8px !important; }
 
   .tw-mobile-menu-trigger {
-    display: inline-grid;
-    flex: 0 0 40px;
-    width: 40px;
-    height: 40px;
-    place-items: center;
-    padding: 0 !important;
-    border: 1px solid var(--color-border) !important;
-    border-radius: 11px !important;
-    background: var(--color-white) !important;
-    color: var(--color-navy) !important;
-    box-shadow: 0 3px 10px rgba(15, 32, 68, 0.08);
-    transition: color 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-  }
-
-  .tw-header-actions .tw-profile-trigger,
-  .tw-header-actions .tw-profile-dropdown {
     display: none !important;
   }
 
-  .tw-mobile-menu-trigger[aria-expanded="true"] {
-    border-color: rgba(26, 123, 107, 0.45) !important;
-    background: var(--color-teal-light) !important;
-    color: var(--color-teal) !important;
+  .tw-mobile-home-btn,
+  .tw-mobile-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-offwhite);
+    color: var(--color-navy);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  }
+
+  .tw-mobile-home-btn:hover,
+  .tw-mobile-switch-btn:hover {
+    border-color: rgba(26, 123, 107, 0.35);
+    color: var(--color-teal);
+  }
+
+  .tw-mobile-home-btn:active,
+  .tw-mobile-switch-btn:active {
+    transform: scale(0.95);
+  }
+
+  .tw-mobile-home-btn:focus-visible,
+  .tw-mobile-switch-btn:focus-visible {
+    outline: 2px solid var(--color-teal);
+    outline-offset: 2px;
+  }
+
+  html.dark .tw-mobile-home-btn,
+  html.dark .tw-mobile-switch-btn {
+    background: #111c2d;
+    border-color: #2b3b51;
+    color: #e2e8f0;
+  }
+
+  html.dark .tw-mobile-home-btn:hover,
+  html.dark .tw-mobile-switch-btn:hover {
+    background: #1a2a3e;
+    border-color: rgba(45, 212, 191, 0.45);
+    color: #5eead4;
+  }
+
+  .tw-header-actions .tw-profile-trigger {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 4px 8px 4px 5px !important;
   }
 
   .dashboard-heading {
@@ -2696,136 +2787,344 @@ html.dark .dashboard-panel {
   }
 }
 
-/* Floating mobile navigation dock and its compact More bubble */
+/* Floating mobile capsule navigation dock and detached More circle */
 .tw-mobile-dock {
   display: none;
 }
 
-@media (max-width: 768px) {
-  .tw-mobile-menu-trigger {
-    display: none !important;
-  }
-
-  .tw-mobile-nav-backdrop,
-  .tw-main-nav-backdrop {
-    background: rgba(12, 24, 38, 0.1) !important;
+@media (max-width: 1179px) {
+  .tw-mobile-nav-backdrop {
+    background: rgba(12, 24, 38, 0.14) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
 
-  .tw-main-nav,
   .tw-mobile-nav-drawer {
     top: auto !important;
     right: 12px !important;
-    bottom: calc(86px + env(safe-area-inset-bottom)) !important;
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
     left: 12px !important;
     width: min(430px, calc(100vw - 24px)) !important;
     max-width: none !important;
     height: auto !important;
-    max-height: calc(100dvh - 132px - env(safe-area-inset-top)) !important;
+    max-height: calc(100dvh - 148px - env(safe-area-inset-top)) !important;
     margin-inline: auto !important;
     padding: 16px !important;
     gap: 12px !important;
     border: 1px solid var(--color-border, var(--landing-border)) !important;
     border-radius: 24px !important;
     box-shadow: 0 18px 55px rgba(10, 24, 40, 0.22) !important;
-    transform: translateY(14px);
-    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease, visibility 0s linear 320ms;
+    transform-origin: calc(100% - 27px) calc(100% + 43px);
+    transform: translate3d(0, 10px, 0) scale(0.08);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition: transform 240ms cubic-bezier(0.4, 0, 1, 1), opacity 180ms ease 40ms, visibility 0s linear 240ms;
   }
 
-  .tw-main-nav.open,
   .tw-mobile-nav-drawer.is-open {
-    transform: translateY(0);
-    transition-delay: 0s;
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease, visibility 0s linear 0s;
   }
 
-  .tw-main-nav__links,
   .tw-mobile-nav__links {
     justify-content: flex-start;
     gap: 7px;
     min-height: 0;
   }
 
+  .tw-mobile-dock.tw-mobile-dock--workspace {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  .tw-main-nav-backdrop {
+    background: rgba(12, 24, 38, 0.14) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .tw-main-nav {
+    top: auto !important;
+    right: 12px !important;
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    left: 12px !important;
+    width: min(430px, calc(100vw - 24px)) !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: calc(100dvh - 148px - env(safe-area-inset-top)) !important;
+    margin-inline: auto !important;
+    padding: 16px !important;
+    gap: 12px !important;
+    border: 1px solid var(--color-border, var(--landing-border)) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 18px 55px rgba(10, 24, 40, 0.22) !important;
+    transform-origin: calc(100% - 27px) calc(100% + 43px);
+    transform: translate3d(0, 10px, 0) scale(0.08);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition: transform 240ms cubic-bezier(0.4, 0, 1, 1), opacity 180ms ease 40ms, visibility 0s linear 240ms;
+  }
+
+  .tw-main-nav.open {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease, visibility 0s linear 0s;
+  }
+
+  .tw-main-nav__links {
+    justify-content: flex-start;
+    gap: 7px;
+    min-height: 0;
+  }
+
+  .tw-mobile-dock {
+    display: flex;
+  }
+}
+
+@media (max-width: 1179px) {
   .tw-mobile-dock {
     position: fixed;
     z-index: 400;
     right: 12px;
-    bottom: max(10px, env(safe-area-inset-bottom));
+    bottom: max(12px, env(safe-area-inset-bottom));
     left: 12px;
-    display: flex;
-    width: min(460px, calc(100vw - 24px));
-    min-height: 66px;
+    width: min(440px, calc(100vw - 24px));
     align-items: center;
-    justify-content: space-around;
-    gap: 3px;
+    justify-content: center;
+    gap: 10px;
     margin-inline: auto;
-    padding: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.72);
-    border-radius: 24px;
-    background: color-mix(in srgb, var(--color-white, #fff) 72%, transparent);
-    box-shadow: 0 14px 38px rgba(12, 28, 44, 0.2), 0 2px 8px rgba(12, 28, 44, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-    -webkit-backdrop-filter: blur(22px) saturate(1.65);
-    backdrop-filter: blur(22px) saturate(1.65);
-    animation: mobileDockEnter 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    pointer-events: none;
+    animation: mobileDockEnter 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .tw-mobile-dock button {
+  .tw-mobile-dock__pill {
+    pointer-events: auto;
     display: flex;
+    flex: 1 1 auto;
     min-width: 0;
-    min-height: 52px;
+    height: 56px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    padding: 5px;
+    border: 1px solid rgba(15, 32, 68, 0.08);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-offwhite, #F8F7F4) 86%, transparent);
+    box-shadow: 0 12px 32px rgba(15, 32, 68, 0.14), 0 2px 8px rgba(15, 32, 68, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    -webkit-backdrop-filter: blur(20px) saturate(1.55);
+    backdrop-filter: blur(20px) saturate(1.55);
+  }
+
+  .tw-mobile-dock__tab {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
     flex: 1 1 0;
-    flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 0;
-    padding: 4px;
+    padding: 0 8px;
     border: 0;
-    border-radius: 18px;
+    border-radius: 999px;
     background: transparent;
-    color: var(--color-muted, #667085);
+    color: var(--color-muted, #5A6577);
     font: inherit;
+    white-space: nowrap;
     cursor: pointer;
-    transition: background 220ms cubic-bezier(0.2, 0.8, 0.2, 1), color 220ms ease, transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 220ms ease;
+    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease;
   }
 
-  .tw-mobile-dock button span {
+  .tw-mobile-dock__label {
     display: none;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    white-space: nowrap;
   }
 
-  .tw-mobile-dock button.is-active {
-    background: var(--color-teal, #1a7b6b);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(26, 123, 107, 0.22);
+  .tw-mobile-dock__tab.is-active {
+    flex: 0 0 auto;
+    gap: 7px;
+    padding: 0 16px;
+    background: var(--color-white, #FFFFFF);
+    color: var(--color-teal, #1A7B6B);
+    box-shadow: 0 4px 12px rgba(15, 32, 68, 0.1), 0 1px 3px rgba(15, 32, 68, 0.06);
   }
 
-  .tw-mobile-dock button:active {
-    transform: scale(0.96);
+  .tw-mobile-dock__tab.is-active .tw-mobile-dock__label {
+    display: inline-block;
   }
 
-  .tw-mobile-dock button:hover {
-    transform: translateY(-2px);
+  .tw-mobile-dock__tab:active,
+  .tw-mobile-dock__more:active {
+    transform: scale(0.95);
   }
 
-  .tw-mobile-dock button.is-active svg {
-    transform: scale(1.08);
+  .tw-mobile-dock__tab:focus-visible,
+  .tw-mobile-dock__more:focus-visible {
+    outline: 2px solid var(--color-teal, #1A7B6B);
+    outline-offset: 2px;
   }
 
-  .tw-mobile-dock button svg {
-    transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  .tw-mobile-dock__tab svg,
+  .tw-mobile-dock__more svg {
+    flex-shrink: 0;
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  html.dark .tw-mobile-dock {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: color-mix(in srgb, var(--color-white, #111827) 72%, transparent);
-    box-shadow: 0 14px 38px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  .tw-mobile-dock__more {
+    pointer-events: auto;
+    position: relative;
+    display: inline-flex;
+    flex: 0 0 54px;
+    width: 54px;
+    height: 54px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(15, 32, 68, 0.12);
+    border-radius: 999px;
+    background: var(--color-navy, #0F2044);
+    color: #FFFFFF;
+    box-shadow: 0 12px 28px rgba(15, 32, 68, 0.24), 0 2px 6px rgba(15, 32, 68, 0.12);
+    cursor: pointer;
+    transition: background-color 240ms ease, color 240ms ease, border-color 240ms ease, transform 240ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 240ms ease;
   }
 
-  html.dark .tw-mobile-dock button {
+  .tw-mobile-dock__more-icons {
+    position: relative;
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tw-mobile-dock__more-icon {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
+  }
+
+  .tw-mobile-dock__more-icon--menu {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  .tw-mobile-dock__more-icon--close {
+    opacity: 0;
+    transform: rotate(-90deg) scale(0.5);
+  }
+
+  .tw-mobile-dock__more.has-active-route {
+    box-shadow: 0 0 0 2.5px rgba(26, 123, 107, 0.48), 0 12px 28px rgba(15, 32, 68, 0.24);
+  }
+
+  .tw-mobile-dock__more.is-open {
+    background: var(--color-teal, #1A7B6B);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #FFFFFF;
+    transform: scale(1.04);
+    box-shadow: 0 0 0 4px rgba(26, 123, 107, 0.22), 0 12px 28px rgba(26, 123, 107, 0.32);
+  }
+
+  .tw-mobile-dock__more.is-open:active {
+    transform: scale(0.95);
+  }
+
+  .tw-mobile-dock__more.is-open .tw-mobile-dock__more-icon--menu {
+    opacity: 0;
+    transform: rotate(90deg) scale(0.5);
+  }
+
+  .tw-mobile-dock__more.is-open .tw-mobile-dock__more-icon--close {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+
+  .tw-mobile-dock__more--dash {
+    background: var(--color-teal, #1A7B6B);
+    border-color: rgba(255, 255, 255, 0.24);
+    color: #FFFFFF;
+    box-shadow: 0 12px 28px rgba(26, 123, 107, 0.34), 0 2px 6px rgba(15, 32, 68, 0.12);
+  }
+
+  .tw-mobile-dock__more--dash:hover {
+    background: var(--color-teal-dark, #155f52);
+  }
+
+  html.dark .tw-mobile-dock__more--dash {
+    background: var(--color-teal, #1A7B6B);
+    border-color: rgba(45, 212, 191, 0.35);
+    color: #FFFFFF;
+    box-shadow: 0 12px 28px rgba(26, 123, 107, 0.42);
+  }
+
+  @media (max-width: 380px) {
+    .tw-mobile-dock {
+      gap: 8px;
+    }
+
+    .tw-mobile-dock__tab.is-active {
+      gap: 6px;
+      padding: 0 13px;
+    }
+
+    .tw-mobile-dock__label {
+      font-size: 0.74rem;
+    }
+
+    .tw-mobile-dock__more {
+      flex: 0 0 50px;
+      width: 50px;
+      height: 50px;
+    }
+  }
+
+  html.dark .tw-mobile-dock__pill {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(17, 28, 45, 0.88);
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  html.dark .tw-mobile-dock__tab {
     color: #cbd5e1;
   }
 
-  html.dark .tw-mobile-dock button.is-active {
-    color: #fff;
+  html.dark .tw-mobile-dock__tab.is-active {
+    background: var(--color-teal, #1A7B6B);
+    color: #FFFFFF;
+    box-shadow: 0 6px 16px rgba(26, 123, 107, 0.38);
+  }
+
+  html.dark .tw-mobile-dock__more {
+    background: #f1f5f9;
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #0F2044;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.48);
+  }
+
+  html.dark .tw-mobile-dock__more.has-active-route {
+    box-shadow: 0 0 0 2.5px rgba(45, 212, 191, 0.55), 0 12px 28px rgba(0, 0, 0, 0.48);
+  }
+
+  html.dark .tw-mobile-dock__more.is-open {
+    background: var(--color-teal, #1A7B6B);
+    border-color: rgba(255, 255, 255, 0.24);
+    color: #FFFFFF;
   }
 
   .main-scroll-container {
@@ -2971,8 +3270,12 @@ html.dark .dashboard-panel {
 
 @media (prefers-reduced-motion: reduce) {
   .tw-mobile-dock,
-  .tw-mobile-dock button,
-  .tw-mobile-dock button svg {
+  .tw-mobile-dock__tab,
+  .tw-mobile-dock__tab svg,
+  .tw-mobile-dock__more,
+  .tw-mobile-dock__more svg,
+  .tw-mobile-dock__more-icon,
+  .tw-mobile-home-btn {
     animation: none !important;
     transition-duration: 0.01ms !important;
   }

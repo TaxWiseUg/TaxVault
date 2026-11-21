@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
   Car, Calculator, ShieldCheck, Mail, Check, Copy, CheckCircle2,
   FileText, Cpu, TrendingUp, Building2, Globe, Sparkles, 
-  ArrowRight, Receipt, FileCheck, Home, Clock, Menu
+  ArrowRight, Receipt, FileCheck, Home, Clock, Layers
 } from "lucide-react";
 import { LegalPortal } from "./LegalPortal";
 import { InstallAppButton } from "./PwaInstallProvider";
@@ -136,8 +136,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   dbUser, 
   onSignOut 
 }) => {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  type LandingSectionId = "overview" | "calculators-showcase" | "precedents-section" | "workflow-section";
   const [mounted, setMounted] = useState(false);
+  const [activeLandingSection, setActiveLandingSection] = useState<LandingSectionId>("overview");
   const [taxToolsOpen, setTaxToolsOpen] = useState(false);
   const [homeDropdownOpen, setHomeDropdownOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -221,7 +222,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [expandedPrecedentId, setExpandedPrecedentId] = useState<string | null>(null);
   const [copiedObjection, setCopiedObjection] = useState<boolean>(false);
 
-  const menuBtnRef = useRef<HTMLButtonElement>(null);
+  const scrollLockUntilRef = useRef<number>(0);
   const heroSectionRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress: heroScrollProgress } = useScroll({
@@ -233,41 +234,38 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const heroCardParallax = useTransform(heroScrollProgress, [0, 1], [0, prefersReducedMotion ? 0 : -55]);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && mobileOpen) {
-        setMobileOpen(false);
-        menuBtnRef.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [mobileOpen]);
-
-  useEffect(() => {
-    if (!mobileOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [mobileOpen]);
-
-  useEffect(() => {
     setMounted(true);
-    const closeOnDesktop = () => {
-      if (window.innerWidth > 768) setMobileOpen(false);
-    };
-    window.addEventListener("resize", closeOnDesktop);
-    return () => window.removeEventListener("resize", closeOnDesktop);
   }, []);
+
+  const enterDashboardOrTrial = () => {
+    if (dbUser && onNavigate) {
+      onNavigate("dashboard");
+    } else {
+      onGetStarted();
+    }
+  };
 
   const scrollToId = (id: string) => {
     if (typeof document !== "undefined") {
       const el = document.getElementById(id);
       if (el) {
-        el.scrollIntoView({ behavior: "smooth" });
+        el.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
         return;
       }
+    }
+  };
+
+  const handleLandingSectionSelect = (sectionId: LandingSectionId) => {
+    setActiveLandingSection(sectionId);
+    scrollLockUntilRef.current = Date.now() + 750;
+    const behavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+    if (sectionId === "overview") {
+      window.scrollTo({ top: 0, behavior });
+      return;
+    }
+    const target = document.getElementById(sectionId);
+    if (target) {
+      target.scrollIntoView({ behavior, block: "start" });
     }
   };
 
@@ -364,13 +362,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   }, []);
 
   useEffect(() => {
+    const trackedSections: LandingSectionId[] = [
+      "calculators-showcase",
+      "precedents-section",
+      "workflow-section",
+    ];
+
     const onScroll = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
       if (totalHeight > 0) {
         setScrollProgress((window.scrollY / totalHeight) * 100);
       }
       setIsScrolled(window.scrollY > 20);
+
+      if (Date.now() < scrollLockUntilRef.current) return;
+
+      const triggerY = Math.min(window.innerHeight * 0.36, 280);
+      let nextSection: LandingSectionId = "overview";
+
+      if (totalHeight > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 40) {
+        nextSection = "workflow-section";
+      } else {
+        for (let i = trackedSections.length - 1; i >= 0; i--) {
+          const sectionId = trackedSections[i];
+          const el = document.getElementById(sectionId);
+          if (el && el.getBoundingClientRect().top <= triggerY) {
+            nextSection = sectionId;
+            break;
+          }
+        }
+      }
+
+      setActiveLandingSection((prev) => (prev === nextSection ? prev : nextSection));
     };
+
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -791,137 +817,89 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <InstallAppButton />
           </div>
 
+          {/* Mobile Top-Right Action Switcher (Dashboard / Free Trial + Guest Login) */}
+          <div className="tw-landing-mobile-actions">
+            {!dbUser && (
+              <button
+                type="button"
+                onClick={onSignIn}
+                className="tw-landing-mobile-login"
+              >
+                Login
+              </button>
+            )}
+            <button
+              type="button"
+              className="tw-mobile-switch-btn"
+              onClick={enterDashboardOrTrial}
+              aria-label={dbUser ? "Go to Dashboard" : "Open Dashboard Free Trial"}
+              title={dbUser ? "Go to Dashboard" : "Enter Workspace"}
+            >
+              <LayoutDashboard size={18} aria-hidden="true" />
+            </button>
+          </div>
+
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Landing Capsule Navigation + Direct Dash Button */}
         {mounted && createPortal(
-          <>
-            <div
-              className={`tw-main-nav-backdrop ${mobileOpen ? "open" : ""}`}
-              onClick={() => setMobileOpen(false)}
-              aria-hidden="true"
-            />
-            <nav
-              id="mainNav"
-              className={`tw-main-nav ${mobileOpen ? "open" : ""}`}
-              aria-hidden={!mobileOpen}
-              inert={!mobileOpen}
+          <nav className="tw-mobile-dock" aria-label="Landing sections">
+            <div className="tw-mobile-dock__pill">
+              <button
+                type="button"
+                className={`tw-mobile-dock__tab ${activeLandingSection === "overview" ? "is-active" : ""}`}
+                aria-label="Overview"
+                aria-current={activeLandingSection === "overview" ? "location" : undefined}
+                title="Overview"
+                onClick={() => handleLandingSectionSelect("overview")}
+              >
+                <Home size={19} aria-hidden="true" />
+                <span className="tw-mobile-dock__label">Overview</span>
+              </button>
+              <button
+                type="button"
+                className={`tw-mobile-dock__tab ${activeLandingSection === "calculators-showcase" ? "is-active" : ""}`}
+                aria-label="Calculators section"
+                aria-current={activeLandingSection === "calculators-showcase" ? "location" : undefined}
+                title="Calculators"
+                onClick={() => handleLandingSectionSelect("calculators-showcase")}
+              >
+                <Calculator size={19} aria-hidden="true" />
+                <span className="tw-mobile-dock__label">Calculators</span>
+              </button>
+              <button
+                type="button"
+                className={`tw-mobile-dock__tab ${activeLandingSection === "precedents-section" ? "is-active" : ""}`}
+                aria-label="Precedents section"
+                aria-current={activeLandingSection === "precedents-section" ? "location" : undefined}
+                title="Precedents"
+                onClick={() => handleLandingSectionSelect("precedents-section")}
+              >
+                <FileText size={19} aria-hidden="true" />
+                <span className="tw-mobile-dock__label">Precedents</span>
+              </button>
+              <button
+                type="button"
+                className={`tw-mobile-dock__tab ${activeLandingSection === "workflow-section" ? "is-active" : ""}`}
+                aria-label="Workflow section"
+                aria-current={activeLandingSection === "workflow-section" ? "location" : undefined}
+                title="Workflow"
+                onClick={() => handleLandingSectionSelect("workflow-section")}
+              >
+                <Layers size={19} aria-hidden="true" />
+                <span className="tw-mobile-dock__label">Workflow</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              className="tw-mobile-dock__more tw-mobile-dock__more--dash"
+              aria-label={dbUser ? "Open Dashboard" : "Start Free Trial in Dashboard"}
+              title={dbUser ? "Go to Dashboard" : "Enter Dashboard"}
+              onClick={enterDashboardOrTrial}
             >
-              <div className="tw-main-nav__header">
-                <span className="tw-mobile-nav__brand-mark" aria-hidden="true">TW</span>
-                <span className="tw-mobile-nav__brand-copy">
-                  <strong className="tw-mobile-nav__brand-name">TaxWise</strong>
-                  <small>UGANDA TAX PLATFORM</small>
-                </span>
-              </div>
-              <div className="tw-main-nav__tabs">
-                <button type="button" aria-label="Home" title="Home" aria-current="page" className="is-active">
-                  <Home size={19} />
-                </button>
-                <button
-                  type="button"
-                  aria-label={dbUser ? "Dashboard" : "Login"}
-                  title={dbUser ? "Dashboard" : "Login"}
-                  onClick={() => {
-                    setMobileOpen(false);
-                    if (dbUser) {
-                      if (onNavigate) onNavigate("dashboard");
-                      else onGetStarted();
-                    } else {
-                      onSignIn();
-                    }
-                  }}
-                >
-                  <LayoutDashboard size={19} />
-                </button>
-              </div>
-
-              <div className="tw-main-nav__links">
-                {[
-                  { label: "Analyzer", page: "analyzer", icon: <Scale size={16} /> },
-                  { label: "Cases", page: "library", icon: <FileText size={16} /> },
-                  { label: "Calculators", page: "calculators", icon: <Calculator size={16} /> },
-                  { label: "Intelligence", page: "intelligence", icon: <TrendingUp size={16} /> },
-                  { label: "Compliance", page: "compliance", icon: <ShieldCheck size={16} /> },
-                  { label: "Learning", page: "education", icon: <FileCheck size={16} /> },
-                ].map(item => (
-                  <button
-                    key={item.label}
-                    onClick={() => {
-                      setMobileOpen(false);
-                      if (onNavigate) onNavigate(item.page);
-                      else onGetStarted();
-                    }}
-                    className="tw-mobile-link"
-                  >
-                    <span className="tw-main-nav__link-icon">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <InstallAppButton className="tw-install-app-button--mobile" />
-
-              <div className="tw-main-nav__footer">
-                {dbUser ? (
-                  <>
-                    <button
-                      className="tw-main-nav__account"
-                      onClick={() => {
-                        setMobileOpen(false);
-                        if (onNavigate) onNavigate("settings");
-                        else onGetStarted();
-                      }}
-                      aria-label="Open general settings"
-                      title="General settings"
-                    >
-                      <span className="tw-main-nav__avatar">{dbUser.full_name?.[0]?.toUpperCase() || "U"}</span>
-                      <span className="tw-main-nav__account-copy">
-                        <strong>{dbUser.full_name}</strong>
-                        <small>General settings</small>
-                      </span>
-                      <Settings size={17} />
-                    </button>
-                    <button
-                      className="tw-main-nav__signout"
-                      onClick={() => { setMobileOpen(false); onSignOut?.(); }}
-                      aria-label="Sign out"
-                      title="Sign out"
-                    >
-                      <LogOut size={17} />
-                    </button>
-                  </>
-                ) : (
-                  <div className="tw-main-nav__guest-actions">
-                    <button onClick={() => { setMobileOpen(false); onSignIn(); }}>Login</button>
-                    <button onClick={() => { setMobileOpen(false); onGetStarted(); }}>Start Free Trial</button>
-                  </div>
-                )}
-              </div>
-            </nav>
-            <nav className="tw-mobile-dock" aria-label="Quick navigation">
-              <button type="button" className="is-active" aria-label="Home" title="Home">
-                <Home size={19} /><span>Home</span>
-              </button>
-              <button type="button" aria-label={dbUser ? "Dashboard" : "Start free trial"} title={dbUser ? "Dashboard" : "Start free trial"} onClick={() => {
-                if (dbUser && onNavigate) onNavigate("dashboard"); else onGetStarted();
-              }}>
-                <LayoutDashboard size={19} /><span>Dashboard</span>
-              </button>
-              <button type="button" aria-label="Case library" title="Case library" onClick={() => dbUser && onNavigate ? onNavigate("library") : onGetStarted()}>
-                <FileText size={19} /><span>Cases</span>
-              </button>
-              <button type="button" aria-label="Case analyzer" title="Case analyzer" onClick={() => dbUser && onNavigate ? onNavigate("analyzer") : onGetStarted()}>
-                <Scale size={19} /><span>Analyze</span>
-              </button>
-              <button type="button" aria-label="Tax calculators" title="Tax calculators" onClick={() => dbUser && onNavigate ? onNavigate("calculators") : onGetStarted()}>
-                <Calculator size={19} /><span>Calculators</span>
-              </button>
-              <button ref={menuBtnRef} type="button" className={mobileOpen ? "is-active" : ""} aria-label={mobileOpen ? "Close more navigation" : "More navigation"} title="More" aria-expanded={mobileOpen} onClick={() => setMobileOpen(open => !open)}>
-                <Menu size={19} /><span>More</span>
-              </button>
-            </nav>
-          </>,
+              <LayoutDashboard size={20} aria-hidden="true" />
+            </button>
+          </nav>,
           document.body
         )}
       </nav>
