@@ -26,6 +26,9 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "TaxWise",
   },
+  verification: {
+    google: "xT7rClpI88W3M0-jTijoLjpl4OCkrpL2ToiVkXJfC0k",
+  },
   openGraph: {
     title: "TaxWise Uganda — Professional Tax & Compliance Platform",
     description: "Statutory analysis of Tax Appeals Tribunal (TAT) rulings, compliance checking tools for eFRIS, VAT, and PAYE, and structured tax education.",
