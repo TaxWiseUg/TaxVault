@@ -73,15 +73,23 @@ export async function POST(req: NextRequest) {
     if (supabaseAdmin) {
       try {
         // Check if user already exists in public.users by email
-        const { data: existingUser } = await supabaseAdmin
+        const { data: existingUser, error: usersLookupError } = await supabaseAdmin
           .from("users")
           .select("id, email, full_name, role, plan")
           .ilike("email", email)
           .maybeSingle();
 
+        if (usersLookupError) {
+          console.error("[google-sync] Failed to query public.users:", usersLookupError);
+          return NextResponse.json({ error: "Database lookup failed while checking your account." }, { status: 500 });
+        }
+
+        const isAdmin = email === "taxwiseplatform@gmail.com" || existingUser?.role === "Admin";
         const isNewUser = !isAdmin && (!existingUser || !existingUser.role) && !requestedRole;
         let canonicalId = existingUser?.id || (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(googleUid) ? googleUid : undefined);
-        const resolvedRole = isAdmin ? "Admin" : (requestedRole || existingUser?.role || defaultRole);
+        const resolvedRole = existingUser?.role === "Admin" || email === "taxwiseplatform@gmail.com"
+          ? "Admin"
+          : (requestedRole || existingUser?.role || defaultRole);
         const resolvedPlan = isAdmin ? "professional" : (existingUser?.plan || defaultPlan);
         const resolvedName = fullName || existingUser?.full_name || (isAdmin ? "TaxWise Platform" : email.split("@")[0]);
 

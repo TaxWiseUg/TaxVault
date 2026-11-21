@@ -822,6 +822,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLoginSuccess, onBack, init
       // ignore
     }
     safeStorage.removeItem("taxwise_pending_role_setup");
+    safeStorage.removeItem("taxwise_pending_google_role");
     setShowRoleModal(false);
     setPendingGoogleUser(null);
   };

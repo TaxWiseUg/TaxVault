@@ -176,37 +176,39 @@ export const signInWithGoogle = async (): Promise<{
 
   let profile = getGoogleUserProfile(fUser)!;
   let isNewUser = isNewFirebaseUser;
+  let syncConfirmedExistingUser = false;
 
   // Sync & register Google user with Supabase backend to avoid email duplicates and errors
-  try {
-    const syncRes = await fetch("/api/auth/google-sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
-      body: JSON.stringify({
-        email: fUser.email,
-        full_name: fUser.displayName || profile.full_name,
-        avatar_url: fUser.photoURL || undefined,
-        google_uid: fUser.uid,
-        is_first_login: isNewFirebaseUser,
-      }),
-    });
-    if (syncRes.ok) {
-      const syncData = await syncRes.json();
-      if (syncData?.isNewUser !== undefined) {
-        isNewUser = syncData.isNewUser;
-      }
-      if (syncData?.profile) {
-        profile = {
-          ...profile,
-          id: syncData.profile.id || profile.id,
-          full_name: syncData.profile.full_name || profile.full_name,
-          role: syncData.profile.role || profile.role,
-          plan: syncData.profile.plan || profile.plan,
-        };
-      }
+  const syncRes = await fetch("/api/auth/google-sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${idToken}` },
+    body: JSON.stringify({
+      email: fUser.email,
+      full_name: fUser.displayName || profile.full_name,
+      avatar_url: fUser.photoURL || undefined,
+      google_uid: fUser.uid,
+      is_first_login: isNewFirebaseUser,
+    }),
+  });
+  const syncData = await syncRes.json().catch(() => ({}));
+  if (!syncRes.ok) {
+    await signOut(auth).catch(() => {});
+    throw new Error(syncData?.error || "Could not verify your account with the database. Please try again.");
+  }
+  if (syncData?.isNewUser !== undefined) {
+    isNewUser = syncData.isNewUser;
+    if (syncData.isNewUser === false) {
+      syncConfirmedExistingUser = true;
     }
-  } catch (syncErr) {
-    console.warn("Could not sync with /api/auth/google-sync:", syncErr);
+  }
+  if (syncData?.profile) {
+    profile = {
+      ...profile,
+      id: syncData.profile.id || profile.id,
+      full_name: syncData.profile.full_name || profile.full_name,
+      role: syncData.profile.role || profile.role,
+      plan: syncData.profile.plan || profile.plan,
+    };
   }
 
   // Check if an existing profile with an established non-default role exists locally
@@ -216,25 +218,26 @@ export const signInWithGoogle = async (): Promise<{
       const parsed = JSON.parse(localStored);
       if (parsed?.email?.toLowerCase() === (fUser.email || "").toLowerCase() && parsed.role) {
         isNewUser = false;
-        profile.role = parsed.role;
+        profile.role = syncConfirmedExistingUser ? profile.role : parsed.role;
       }
     } catch {
       // ignore
     }
   }
 
-  // Keep an interrupted onboarding prompt resumable on this device, including
-  // when the app is running without a configured Supabase backend.
-  try {
-    const pendingRole = JSON.parse(safeStorage.getItem("taxwise_pending_google_role") || "null");
-    if (pendingRole?.email?.toLowerCase() === (fUser.email || "").toLowerCase()) {
-      isNewUser = true;
+  // Keep an interrupted onboarding prompt resumable only if the DB did not confirm an existing role
+  if (!syncConfirmedExistingUser) {
+    try {
+      const pendingRole = JSON.parse(safeStorage.getItem("taxwise_pending_google_role") || "null");
+      if (pendingRole?.email?.toLowerCase() === (fUser.email || "").toLowerCase()) {
+        isNewUser = true;
+      }
+    } catch {
+      safeStorage.removeItem("taxwise_pending_google_role");
     }
-  } catch {
-    safeStorage.removeItem("taxwise_pending_google_role");
   }
 
-  const isAdmin = (fUser.email || "").toLowerCase() === "taxwiseplatform@gmail.com";
+  const isAdmin = (fUser.email || "").toLowerCase() === "taxwiseplatform@gmail.com" || profile.role === "Admin";
   if (isAdmin) {
     isNewUser = false;
   }
@@ -250,8 +253,9 @@ export const signInWithGoogle = async (): Promise<{
     return { user: fUser, accessToken, profile, isNewUser: true };
   }
 
-  // Otherwise, finalize the session immediately
+  // Otherwise, finalize the session immediately and clear any stale onboarding flags
   safeStorage.removeItem("taxwise_pending_role_setup");
+  safeStorage.removeItem("taxwise_pending_google_role");
   const session = {
     access_token: accessToken || "google-token",
     token_type: "bearer",
@@ -421,6 +425,8 @@ export const signOutGoogle = async () => {
   safeStorage.removeItem("taxwise_active_user");
   safeStorage.removeItem("mock_supabase_session");
   safeStorage.removeItem("mock_profile");
+  safeStorage.removeItem("taxwise_pending_role_setup");
+  safeStorage.removeItem("taxwise_pending_google_role");
 
   if (typeof window !== "undefined") {
     try {

@@ -464,6 +464,8 @@ export default function TaxWiseSaaS() {
                 }));
                 return;
               }
+              safeStorage.removeItem("taxwise_pending_role_setup");
+              safeStorage.removeItem("taxwise_pending_google_role");
               if (syncData?.profile?.role) {
                 prof = {
                   ...prof,
