@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, AnimatePresence, LayoutGroup, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { supabase } from "../lib/supabaseClient";
 import { 
   LayoutDashboard, Settings, LogOut, ChevronDown, Scale, Search, 
@@ -139,6 +139,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   type LandingSectionId = "overview" | "calculators-showcase" | "precedents-section" | "workflow-section";
   const [mounted, setMounted] = useState(false);
   const [activeLandingSection, setActiveLandingSection] = useState<LandingSectionId>("overview");
+  const [hoveredLandingNav, setHoveredLandingNav] = useState<"home" | "tools" | "precedents" | "workflow" | "calculators" | null>(null);
   const [taxToolsOpen, setTaxToolsOpen] = useState(false);
   const [homeDropdownOpen, setHomeDropdownOpen] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -222,9 +223,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [expandedPrecedentId, setExpandedPrecedentId] = useState<string | null>(null);
   const [copiedObjection, setCopiedObjection] = useState<boolean>(false);
 
-  const scrollLockUntilRef = useRef<number>(0);
+  const isScrollLockedRef = useRef<boolean>(false);
+  const scrollUnlockTimerRef = useRef<number | null>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  const navSpring = prefersReducedMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 260, damping: 28, mass: 0.9 };
   const { scrollYProgress: heroScrollProgress } = useScroll({
     target: heroSectionRef,
     offset: ["start start", "end start"],
@@ -257,7 +262,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const handleLandingSectionSelect = (sectionId: LandingSectionId) => {
     setActiveLandingSection(sectionId);
-    scrollLockUntilRef.current = Date.now() + 750;
+    isScrollLockedRef.current = true;
+    if (scrollUnlockTimerRef.current !== null) {
+      window.clearTimeout(scrollUnlockTimerRef.current);
+    }
+    scrollUnlockTimerRef.current = window.setTimeout(() => {
+      isScrollLockedRef.current = false;
+      scrollUnlockTimerRef.current = null;
+    }, 750);
     const behavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
     if (sectionId === "overview") {
       window.scrollTo({ top: 0, behavior });
@@ -375,7 +387,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       }
       setIsScrolled(window.scrollY > 20);
 
-      if (Date.now() < scrollLockUntilRef.current) return;
+      if (isScrollLockedRef.current) return;
 
       const triggerY = Math.min(window.innerHeight * 0.36, 280);
       let nextSection: LandingSectionId = "overview";
@@ -398,7 +410,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (scrollUnlockTimerRef.current !== null) {
+        window.clearTimeout(scrollUnlockTimerRef.current);
+      }
+    };
   }, []);
 
   const precedentsData = [
@@ -548,163 +565,226 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           </button>
 
           {/* Desktop Nav Links */}
-          <div className="tw-nav-desktop tw-landing-nav-links" style={{ display: "flex", alignItems: "center", flex: 1, gap: 4, marginLeft: 8 }}>
-            {/* Dynamic Home ⇄ Dashboard Dropdown */}
-            <div className="tw-dd" style={{ position: "relative" }} onMouseEnter={() => setHomeDropdownOpen(true)} onMouseLeave={() => setHomeDropdownOpen(false)}>
-              <button
-                type="button"
-                className="tw-nav-link"
-                onFocus={() => setHomeDropdownOpen(true)}
-                aria-haspopup="menu"
-                aria-expanded={homeDropdownOpen}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "0 14px",
-                  height: 72,
-                  color: "#1A7B6B",
-                  fontSize: ".84rem",
-                  fontWeight: 700,
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  transition: "color .2s",
-                  whiteSpace: "nowrap"
-                }}
+          <LayoutGroup id="landing-desktop-nav">
+            <div
+              className="tw-nav-desktop tw-landing-nav-links"
+              style={{ display: "flex", alignItems: "center", flex: 1, gap: 4, marginLeft: 8 }}
+              onMouseLeave={() => setHoveredLandingNav(null)}
+            >
+              {/* Dynamic Home ⇄ Dashboard Dropdown */}
+              <div
+                className="tw-dd"
+                style={{ position: "relative" }}
+                onMouseEnter={() => { setHomeDropdownOpen(true); setHoveredLandingNav("home"); }}
+                onMouseLeave={() => setHomeDropdownOpen(false)}
               >
-                <Home size={15} style={{ color: "#1A7B6B" }} />
-                <span>Home</span>
-                <ChevronDown size={13} style={{ transform: homeDropdownOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-              </button>
-              <div 
-                className={`tw-dropdown ${homeDropdownOpen ? "force-open" : ""}`} 
-                style={{ 
-                  position: "absolute", 
-                  top: "100%", 
-                  left: 0, 
-                  background: "var(--landing-surface)", 
-                  borderRadius: "0 0 10px 10px", 
-                  boxShadow: "0 16px 36px rgba(0,0,0,0.12)", 
-                  minWidth: 260, 
-                  zIndex: 400, 
-                  border: "1px solid var(--landing-border)", 
-                  borderTop: "3px solid #1A7B6B", 
-                  padding: "8px",
-                  ...(homeDropdownOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0)", pointerEvents: "auto" } : {})
-                }}
-              >
-                <button 
+                <button
                   type="button"
-                  title="Enter the dashboard workspace"
-                  onClick={() => {
-                    setHomeDropdownOpen(false);
-                    if (dbUser) {
-                      if (onNavigate) onNavigate("dashboard");
-                      else onGetStarted();
-                    } else {
-                      onSignIn();
-                    }
-                  }} 
-                  style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
-                  onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
-                  onMouseOut={e => { e.currentTarget.style.background = "none"; }}
+                  className="tw-nav-link"
+                  onFocus={() => { setHomeDropdownOpen(true); setHoveredLandingNav("home"); }}
+                  aria-haspopup="menu"
+                  aria-expanded={homeDropdownOpen}
+                  style={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "0 14px",
+                    height: 72,
+                    color: "#1A7B6B",
+                    fontSize: ".84rem",
+                    fontWeight: 700,
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "color .2s",
+                    whiteSpace: "nowrap"
+                  }}
                 >
-                  <LayoutDashboard size={18} style={{ color: "#1A7B6B", marginTop: 2, flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>{dbUser ? "Dashboard" : "Login"}</div>
-                  </div>
+                  <Home size={15} style={{ color: "#1A7B6B" }} />
+                  <span>Home</span>
+                  <ChevronDown size={13} style={{ transform: homeDropdownOpen ? "rotate(180deg)" : "none", transition: "transform 0.34s cubic-bezier(0.22, 1, 0.36, 1)" }} />
+                  {(hoveredLandingNav === null || hoveredLandingNav === "home") && (
+                    <motion.span
+                      layoutId="landing-desktop-nav-indicator"
+                      className="tw-landing-nav-indicator"
+                      transition={navSpring}
+                      aria-hidden="true"
+                    />
+                  )}
                 </button>
-              </div>
-            </div>
-
-            {/* Grouped Tax Tools Menu */}
-            <div className="tw-dd" style={{ position: "relative" }} onMouseEnter={() => setTaxToolsOpen(true)} onMouseLeave={() => setTaxToolsOpen(false)}>
-              <button
-                type="button"
-                className="tw-nav-link"
-                onFocus={() => setTaxToolsOpen(true)}
-                aria-haspopup="menu"
-                aria-expanded={taxToolsOpen}
-                style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
-              >
-                <span>Tools</span>
-                <ChevronDown size={13} style={{ transform: taxToolsOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-              </button>
-              <div 
-                className={`tw-dropdown ${taxToolsOpen ? "force-open" : ""}`} 
-                style={{ 
-                  position: "absolute", 
-                  top: "100%", 
-                  left: 0, 
-                  background: "var(--landing-surface)", 
-                  borderRadius: "0 0 10px 10px", 
-                  boxShadow: "0 16px 36px rgba(0,0,0,0.12)", 
-                  minWidth: 220,
-                  zIndex: 400, 
-                  border: "1px solid var(--landing-border)", 
-                  borderTop: "3px solid #1A7B6B", 
-                  padding: "8px",
-                  ...(taxToolsOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0)", pointerEvents: "auto" } : {})
-                }}
-              >
-                {[
-                  { name: "Case Analyzer", desc: "Evaluate URA audit assessments & objection briefs", page: "analyzer", icon: <Scale size={17} style={{ color: "#1A7B6B" }} /> },
-                  { name: "Tax & Duty Calculators", desc: "PAYE, VAT, Corporate, Rental & Import duties", page: "calculators", icon: <Calculator size={17} style={{ color: "#1A7B6B" }} /> },
-                  { name: "Compliance Review", desc: "Statutory filing deadlines & penalty mitigation", page: "compliance", icon: <ShieldCheck size={17} style={{ color: "#C8922A" }} /> },
-                  { name: "Uganda Tax Intelligence", desc: "Legal updates, treaty tax rates & dispute guides", page: "intelligence", icon: <TrendingUp size={17} style={{ color: "#0F2044" }} /> },
-                ].map((t) => (
+                <div 
+                  className={`tw-dropdown ${homeDropdownOpen ? "force-open" : ""}`} 
+                  style={{ 
+                    position: "absolute", 
+                    top: "100%", 
+                    left: 0, 
+                    background: "var(--landing-surface)", 
+                    borderRadius: "0 0 10px 10px", 
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.12)", 
+                    minWidth: 260, 
+                    zIndex: 400, 
+                    border: "1px solid var(--landing-border)", 
+                    borderTop: "3px solid #1A7B6B", 
+                    padding: "8px",
+                    ...(homeDropdownOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0) scale(1)", pointerEvents: "auto" } : {})
+                  }}
+                >
                   <button 
-                    key={t.name} 
                     type="button"
-                    title={t.desc}
+                    title="Enter the dashboard workspace"
                     onClick={() => {
-                      setTaxToolsOpen(false);
-                      if (onNavigate) onNavigate(t.page);
-                      else onGetStarted();
+                      setHomeDropdownOpen(false);
+                      if (dbUser) {
+                        if (onNavigate) onNavigate("dashboard");
+                        else onGetStarted();
+                      } else {
+                        onSignIn();
+                      }
                     }} 
                     style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
                     onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
                     onMouseOut={e => { e.currentTarget.style.background = "none"; }}
                   >
-                    <span style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 }}>{t.icon}</span>
+                    <LayoutDashboard size={18} style={{ color: "#1A7B6B", marginTop: 2, flexShrink: 0 }} />
                     <div>
-                      <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>{t.name}</div>
+                      <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>{dbUser ? "Dashboard" : "Login"}</div>
                     </div>
                   </button>
-                ))}
+                </div>
               </div>
+
+              {/* Grouped Tax Tools Menu */}
+              <div
+                className="tw-dd"
+                style={{ position: "relative" }}
+                onMouseEnter={() => { setTaxToolsOpen(true); setHoveredLandingNav("tools"); }}
+                onMouseLeave={() => setTaxToolsOpen(false)}
+              >
+                <button
+                  type="button"
+                  className="tw-nav-link"
+                  onFocus={() => { setTaxToolsOpen(true); setHoveredLandingNav("tools"); }}
+                  aria-haspopup="menu"
+                  aria-expanded={taxToolsOpen}
+                  style={{ position: "relative", display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+                >
+                  <span>Tax Tools</span>
+                  <ChevronDown size={13} style={{ transform: taxToolsOpen ? "rotate(180deg)" : "none", transition: "transform 0.34s cubic-bezier(0.22, 1, 0.36, 1)" }} />
+                  {hoveredLandingNav === "tools" && (
+                    <motion.span
+                      layoutId="landing-desktop-nav-indicator"
+                      className="tw-landing-nav-indicator"
+                      transition={navSpring}
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+                <div 
+                  className={`tw-dropdown ${taxToolsOpen ? "force-open" : ""}`} 
+                  style={{ 
+                    position: "absolute", 
+                    top: "100%", 
+                    left: 0, 
+                    background: "var(--landing-surface)", 
+                    borderRadius: "0 0 10px 10px", 
+                    boxShadow: "0 16px 36px rgba(0,0,0,0.12)", 
+                    minWidth: 260, 
+                    zIndex: 400, 
+                    border: "1px solid var(--landing-border)", 
+                    borderTop: "3px solid #1A7B6B", 
+                    padding: "8px",
+                    ...(taxToolsOpen ? { opacity: 1, visibility: "visible", transform: "translateY(0) scale(1)", pointerEvents: "auto" } : {})
+                  }}
+                >
+                  {[
+                    { name: "Case Analyzer", desc: "Evaluate URA audit assessments & objection briefs", page: "analyzer", icon: <Scale size={17} style={{ color: "#1A7B6B" }} /> },
+                    { name: "Tax & Duty Calculators", desc: "PAYE, VAT, Corporate, Rental & Import duties", page: "calculators", icon: <Calculator size={17} style={{ color: "#1A7B6B" }} /> },
+                    { name: "Compliance Review", desc: "Statutory filing deadlines & penalty mitigation", page: "compliance", icon: <ShieldCheck size={17} style={{ color: "#C8922A" }} /> },
+                    { name: "Uganda Tax Intelligence", desc: "Legal updates, treaty tax rates & dispute guides", page: "intelligence", icon: <TrendingUp size={17} style={{ color: "#0F2044" }} /> },
+                  ].map((t) => (
+                    <button 
+                      key={t.name} 
+                      type="button"
+                      title={t.desc}
+                      onClick={() => {
+                        setTaxToolsOpen(false);
+                        if (onNavigate) onNavigate(t.page);
+                        else onGetStarted();
+                      }} 
+                      style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, width: "100%", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all .15s" }}
+                      onMouseOver={e => { e.currentTarget.style.background = "var(--landing-bg)"; }}
+                      onMouseOut={e => { e.currentTarget.style.background = "none"; }}
+                    >
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 2, flexShrink: 0 }}>{t.icon}</span>
+                      <div>
+                        <div style={{ fontSize: ".835rem", fontWeight: 700, color: "var(--landing-text)" }}>{t.name}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Direct Precedents Link */}
+              <button
+                className="tw-nav-link"
+                onMouseEnter={() => setHoveredLandingNav("precedents")}
+                onFocus={() => setHoveredLandingNav("precedents")}
+                onClick={() => scrollToId("precedents-section")}
+                style={{ position: "relative", display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+              >
+                <span>Precedents</span>
+                {hoveredLandingNav === "precedents" && (
+                  <motion.span
+                    layoutId="landing-desktop-nav-indicator"
+                    className="tw-landing-nav-indicator"
+                    transition={navSpring}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+
+              {/* Direct Workflow Link */}
+              <button
+                className="tw-nav-link"
+                onMouseEnter={() => setHoveredLandingNav("workflow")}
+                onFocus={() => setHoveredLandingNav("workflow")}
+                onClick={() => scrollToId("workflow-section")}
+                style={{ position: "relative", display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+              >
+                <span>Workflow</span>
+                {hoveredLandingNav === "workflow" && (
+                  <motion.span
+                    layoutId="landing-desktop-nav-indicator"
+                    className="tw-landing-nav-indicator"
+                    transition={navSpring}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+
+              {/* Direct Calculators Link */}
+              <button
+                className="tw-nav-link"
+                onMouseEnter={() => setHoveredLandingNav("calculators")}
+                onFocus={() => setHoveredLandingNav("calculators")}
+                onClick={() => scrollToId("calculators-showcase")}
+                style={{ position: "relative", display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
+              >
+                <span>Calculators</span>
+                {hoveredLandingNav === "calculators" && (
+                  <motion.span
+                    layoutId="landing-desktop-nav-indicator"
+                    className="tw-landing-nav-indicator"
+                    transition={navSpring}
+                    aria-hidden="true"
+                  />
+                )}
+              </button>
+
             </div>
-
-            {/* Direct Precedents Link */}
-            <button
-              className="tw-nav-link"
-              onClick={() => scrollToId("precedents-section")}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
-            >
-              Precedents
-            </button>
-
-            {/* Direct Workflow Link */}
-            <button
-              className="tw-nav-link"
-              onClick={() => scrollToId("workflow-section")}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
-            >
-              Workflow
-            </button>
-
-            {/* Direct Calculators Link */}
-            <button
-              className="tw-nav-link"
-              onClick={() => scrollToId("calculators-showcase")}
-              style={{ display: "flex", alignItems: "center", gap: 5, padding: "0 14px", height: 72, color: "var(--landing-text)", fontSize: ".84rem", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", whiteSpace: "nowrap" }}
-            >
-              Calculators
-            </button>
-
-          </div>
+          </LayoutGroup>
 
           {/* Desktop Nav Actions */}
           <div className="tw-nav-desktop tw-landing-nav-actions" style={{ display: "flex", alignItems: "center", gap: 14, marginLeft: "auto" }}>
@@ -844,52 +924,55 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* Mobile Landing Capsule Navigation + Direct Dash Button */}
         {mounted && createPortal(
           <nav className="tw-mobile-dock" aria-label="Landing sections">
-            <div className="tw-mobile-dock__pill">
-              <button
-                type="button"
-                className={`tw-mobile-dock__tab ${activeLandingSection === "overview" ? "is-active" : ""}`}
-                aria-label="Overview"
-                aria-current={activeLandingSection === "overview" ? "location" : undefined}
-                title="Overview"
-                onClick={() => handleLandingSectionSelect("overview")}
-              >
-                <Home size={19} aria-hidden="true" />
-                <span className="tw-mobile-dock__label">Overview</span>
-              </button>
-              <button
-                type="button"
-                className={`tw-mobile-dock__tab ${activeLandingSection === "calculators-showcase" ? "is-active" : ""}`}
-                aria-label="Calculators section"
-                aria-current={activeLandingSection === "calculators-showcase" ? "location" : undefined}
-                title="Calculators"
-                onClick={() => handleLandingSectionSelect("calculators-showcase")}
-              >
-                <Calculator size={19} aria-hidden="true" />
-                <span className="tw-mobile-dock__label">Calculators</span>
-              </button>
-              <button
-                type="button"
-                className={`tw-mobile-dock__tab ${activeLandingSection === "precedents-section" ? "is-active" : ""}`}
-                aria-label="Precedents section"
-                aria-current={activeLandingSection === "precedents-section" ? "location" : undefined}
-                title="Precedents"
-                onClick={() => handleLandingSectionSelect("precedents-section")}
-              >
-                <FileText size={19} aria-hidden="true" />
-                <span className="tw-mobile-dock__label">Precedents</span>
-              </button>
-              <button
-                type="button"
-                className={`tw-mobile-dock__tab ${activeLandingSection === "workflow-section" ? "is-active" : ""}`}
-                aria-label="Workflow section"
-                aria-current={activeLandingSection === "workflow-section" ? "location" : undefined}
-                title="Workflow"
-                onClick={() => handleLandingSectionSelect("workflow-section")}
-              >
-                <Layers size={19} aria-hidden="true" />
-                <span className="tw-mobile-dock__label">Workflow</span>
-              </button>
-            </div>
+            <LayoutGroup id="landing-mobile-dock">
+              <div className="tw-mobile-dock__pill">
+                {[
+                  { id: "overview" as const, label: "Overview", ariaLabel: "Overview", icon: <Home size={19} aria-hidden="true" /> },
+                  { id: "calculators-showcase" as const, label: "Calculators", ariaLabel: "Calculators section", icon: <Calculator size={19} aria-hidden="true" /> },
+                  { id: "precedents-section" as const, label: "Precedents", ariaLabel: "Precedents section", icon: <FileText size={19} aria-hidden="true" /> },
+                  { id: "workflow-section" as const, label: "Workflow", ariaLabel: "Workflow section", icon: <Layers size={19} aria-hidden="true" /> },
+                ].map((tab) => {
+                  const isActive = activeLandingSection === tab.id;
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      layout
+                      transition={navSpring}
+                      type="button"
+                      className={`tw-mobile-dock__tab ${isActive ? "is-active" : ""}`}
+                      aria-label={tab.ariaLabel}
+                      aria-current={isActive ? "location" : undefined}
+                      title={tab.label}
+                      onClick={() => handleLandingSectionSelect(tab.id)}
+                    >
+                      {isActive && (
+                        <motion.span
+                          layoutId="landing-mobile-dock-pill"
+                          className="tw-mobile-dock__active-bg"
+                          transition={navSpring}
+                          aria-hidden="true"
+                        />
+                      )}
+                      {tab.icon}
+                      <AnimatePresence initial={false} mode="popLayout">
+                        {isActive && (
+                          <motion.span
+                            key={`${tab.id}-label`}
+                            className="tw-mobile-dock__label"
+                            initial={prefersReducedMotion ? false : { opacity: 0, width: 0, marginLeft: 0 }}
+                            animate={{ opacity: 1, width: "auto", marginLeft: 7 }}
+                            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, width: 0, marginLeft: 0 }}
+                            transition={navSpring}
+                          >
+                            {tab.label}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </LayoutGroup>
             <button
               type="button"
               className="tw-mobile-dock__more tw-mobile-dock__more--dash"

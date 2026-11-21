@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { createPortal, flushSync } from "react-dom";
-import { motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
+import { AnimatePresence, LayoutGroup, motion, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { User } from "@supabase/supabase-js";
 import { 
   LayoutDashboard, 
@@ -163,18 +163,70 @@ const TopNavItem = ({
   );
 };
 
+const WORKSPACE_PAGE_ORDER: Record<string, number> = {
+  dashboard: 0,
+  library: 1,
+  analyzer: 2,
+  calculators: 3,
+  "know-your-taxes": 4,
+  compliance: 5,
+  intelligence: 6,
+  education: 7,
+  admin: 8,
+  settings: 9,
+};
+
+type AppView = "landing" | "app" | "auth";
+const VIEW_ORDER: Record<AppView, number> = { landing: 0, auth: 1, app: 2 };
+
 export default function TaxWiseSaaS() {
   const [user, setUser] = useState<User | null>(null);
   const [dbUser, setDbUser] = useState<DbProfile | null>(null);
-  const [page, setPage] = useState("dashboard");
+  const [pageState, setPageState] = useState<{ current: string; direction: number }>({
+    current: "dashboard",
+    direction: 1,
+  });
   const [loading, setLoading] = useState(false);
-  const [view, setView] = useState<"landing" | "app" | "auth">("landing");
+  const [viewState, setViewState] = useState<{ current: AppView; direction: number }>({
+    current: "landing",
+    direction: 1,
+  });
   const [isTrialSession, setIsTrialSession] = useState(false);
   const [isRecovering, setIsRecovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  const page = pageState.current;
+  const pageDirection = pageState.direction;
+  const view = viewState.current;
+  const viewDirection = viewState.direction;
+
+  const setPage = (nextPage: string) => {
+    setPageState((prev) => {
+      if (prev.current === nextPage) return prev;
+      const prevOrder = WORKSPACE_PAGE_ORDER[prev.current] ?? 0;
+      const nextOrder = WORKSPACE_PAGE_ORDER[nextPage] ?? 0;
+      return {
+        current: nextPage,
+        direction: nextOrder >= prevOrder ? 1 : -1,
+      };
+    });
+  };
+
+  const setView = (nextView: AppView) => {
+    setIsMobileMenuOpen(false);
+    setIsProfileMenuOpen(false);
+    setOpenNavDropdown(null);
+    setViewState((prev) => {
+      if (prev.current === nextView) return prev;
+      return {
+        current: nextView,
+        direction: VIEW_ORDER[nextView] >= VIEW_ORDER[prev.current] ? 1 : -1,
+      };
+    });
+  };
   const [openNavDropdown, setOpenNavDropdown] = useState<string | null>(null);
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const intendedPageRef = useRef<string | null>(null);
@@ -674,57 +726,65 @@ export default function TaxWiseSaaS() {
     }
   };
 
-  // Show loading screen while auth state is being determined
-  if (loading) {
-    return <AppLoadingSkeleton />;
-  }
+  const silkySpring = prefersReducedMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 260, damping: 28, mass: 0.9 };
 
-  // Show landing page if requested
-  if (view === "landing") {
-    return (
-      <LandingPage
-        onGetStarted={() => {
-          setIsTrialSession(true);
-          setPage("dashboard");
-          setView("app");
-        }}
-        onSignIn={() => setView("auth")}
-        onNavigate={handleNavigation}
-        dbUser={dbUser}
-        onSignOut={handleSignOut}
-      />
-    );
-  }
+  const dropdownTransition = prefersReducedMotion
+    ? { duration: 0 }
+    : { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const };
 
-  if (isRecovering) {
-    return (
-      <AuthPage
-        initialMode="update-password"
-        onLoginSuccess={() => {
-          setIsRecovering(false);
-          refreshUser();
-        }}
-        onBack={() => {
-          setIsRecovering(false);
-          supabase.auth.signOut();
-          setView("landing");
-        }}
-      />
-    );
-  }
+  const viewVariants = {
+    enter: (dir: number) => ({
+      opacity: 0,
+      x: dir >= 0 ? 22 : -22,
+    }),
+    center: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        opacity: { duration: prefersReducedMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] as const },
+        x: silkySpring,
+      },
+    },
+    exit: (dir: number) => ({
+      opacity: 0,
+      x: dir >= 0 ? -18 : 18,
+      transition: {
+        duration: prefersReducedMotion ? 0 : 0.16,
+        ease: [0.4, 0, 1, 1] as const,
+      },
+    }),
+  };
 
-  if (view === "auth") {
-    return (
-      <AuthPage
-        onLoginSuccess={() => {
-          setIsTrialSession(false);
-          refreshUser();
-          setView("app");
-        }}
-        onBack={() => setView("landing")}
-      />
-    );
-  }
+  const workspacePageVariants = {
+    enter: (dir: number) => ({
+      opacity: 0,
+      x: dir >= 0 ? 28 : -28,
+    }),
+    center: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        opacity: { duration: prefersReducedMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] as const },
+        x: silkySpring,
+      },
+    },
+    exit: (dir: number) => ({
+      opacity: 0,
+      x: dir >= 0 ? -20 : 20,
+      transition: {
+        duration: prefersReducedMotion ? 0 : 0.15,
+        ease: [0.4, 0, 1, 1] as const,
+      },
+    }),
+  };
+
+  const screenKey = loading
+    ? "loading"
+    : isRecovering
+      ? "recovering"
+      : view;
 
   // Get user initials for avatar
   const getInitials = (name: string) => {
@@ -743,8 +803,84 @@ export default function TaxWiseSaaS() {
     year: "numeric"
   });
 
+  if (loading) {
+    return <AppLoadingSkeleton />;
+  }
+
   return (
-    <div className="tw-app-shell" style={{ display: "flex", flexDirection: "column", height: "100vh", minHeight: 0, overflow: "hidden", fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif", background: C.offwhite }}>
+    <AnimatePresence mode="wait" custom={viewDirection} initial={false}>
+      {view === "landing" && !isRecovering ? (
+        <motion.div
+          key={screenKey}
+          custom={viewDirection}
+          variants={viewVariants}
+          initial={prefersReducedMotion ? false : "enter"}
+          animate="center"
+          exit={prefersReducedMotion ? undefined : "exit"}
+        >
+          <LandingPage
+            onGetStarted={() => {
+              setIsTrialSession(true);
+              setPage("dashboard");
+              setView("app");
+            }}
+            onSignIn={() => setView("auth")}
+            onNavigate={handleNavigation}
+            dbUser={dbUser}
+            onSignOut={handleSignOut}
+          />
+        </motion.div>
+      ) : isRecovering ? (
+        <motion.div
+          key={screenKey}
+          custom={viewDirection}
+          variants={viewVariants}
+          initial={prefersReducedMotion ? false : "enter"}
+          animate="center"
+          exit={prefersReducedMotion ? undefined : "exit"}
+        >
+          <AuthPage
+            initialMode="update-password"
+            onLoginSuccess={() => {
+              setIsRecovering(false);
+              refreshUser();
+            }}
+            onBack={() => {
+              setIsRecovering(false);
+              supabase.auth.signOut();
+              setView("landing");
+            }}
+          />
+        </motion.div>
+      ) : view === "auth" ? (
+        <motion.div
+          key={screenKey}
+          custom={viewDirection}
+          variants={viewVariants}
+          initial={prefersReducedMotion ? false : "enter"}
+          animate="center"
+          exit={prefersReducedMotion ? undefined : "exit"}
+        >
+          <AuthPage
+            onLoginSuccess={() => {
+              setIsTrialSession(false);
+              refreshUser();
+              setView("app");
+            }}
+            onBack={() => setView("landing")}
+          />
+        </motion.div>
+      ) : (
+        <motion.div
+          key={screenKey}
+          custom={viewDirection}
+          variants={viewVariants}
+          initial={prefersReducedMotion ? false : "enter"}
+          animate="center"
+          exit={prefersReducedMotion ? undefined : "exit"}
+          className="tw-app-shell"
+          style={{ display: "flex", flexDirection: "column", height: "100vh", minHeight: 0, overflow: "hidden", fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif", background: C.offwhite }}
+        >
       {/* Mobile Drawer Backdrop */}
       {isMobile && (
         <div 
@@ -821,333 +957,372 @@ export default function TaxWiseSaaS() {
 
           {/* CENTER: DROPDOWNS & NAVIGATION (DESKTOP) */}
           {!isMobile && (
-            <nav 
-              className="tw-desktop-primary-nav"
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: 3,
-                flexShrink: 1,
-                minWidth: 0,
-              }}
-            >
-              {/* Return to Landing Button */}
-              <button
-                className="tw-nav-home"
-                type="button"
-                onClick={() => setView("landing")}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 12px",
-                  borderRadius: 8,
-                  border: "1px solid rgba(15, 32, 68, 0.12)",
-                  background: "#FFFFFF",
-                  color: C.navy,
-                  fontWeight: 700,
-                  fontSize: "0.82rem",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  fontFamily: "inherit",
-                  transition: "all 0.15s ease",
-                  boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
-                title="Return to public landing page"
-              >
-                <span>Home</span>
-              </button>
-
-              {/* Direct Dashboard Button */}
-              <button
-                className="tw-nav-dashboard"
-                type="button"
-                onClick={() => setPage("dashboard")}
-                aria-current={isDashboardActive ? "page" : undefined}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 14px",
-                  borderRadius: 8,
-                  border: isDashboardActive 
-                    ? "1.5px solid rgba(26, 123, 107, 0.45)" 
-                    : "1px solid rgba(15, 32, 68, 0.12)",
-                  background: isDashboardActive 
-                    ? "rgba(26, 123, 107, 0.12)" 
-                    : "#FFFFFF",
-                  color: isDashboardActive ? "#0E7C5A" : C.navy,
-                  fontWeight: 800,
-                  fontSize: "0.84rem",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  fontFamily: "inherit",
-                  transition: "all 0.15s ease",
-                  boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isDashboardActive) {
-                    e.currentTarget.style.background = C.offwhite;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isDashboardActive) {
-                    e.currentTarget.style.background = "#FFFFFF";
-                  }
+            <LayoutGroup id="workspace-desktop-nav">
+              <nav 
+                className="tw-desktop-primary-nav"
+                style={{ 
+                  display: "flex", 
+                  alignItems: "center", 
+                  gap: 3,
+                  flexShrink: 1,
+                  minWidth: 0,
                 }}
               >
-                <span>Dashboard</span>
-              </button>
-
-              {/* Advisory & Tools Dropdown */}
-              <div
-                style={{ position: "relative" }}
-                onMouseEnter={() => setOpenNavDropdown("advisory")}
-                onMouseLeave={() => setOpenNavDropdown(null)}
-              >
+                {/* Return to Landing Button */}
                 <button
+                  className="tw-nav-home"
                   type="button"
-                  onFocus={() => setOpenNavDropdown("advisory")}
-                  aria-current={isAdvisoryActive ? "page" : undefined}
-                  aria-haspopup="menu"
-                  aria-expanded={openNavDropdown === "advisory"}
+                  onClick={() => setView("landing")}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    padding: "7px 13px",
+                    padding: "7px 12px",
                     borderRadius: 8,
-                    border: isAdvisoryActive 
+                    border: "1px solid rgba(15, 32, 68, 0.12)",
+                    background: "#FFFFFF",
+                    color: C.navy,
+                    fontWeight: 700,
+                    fontSize: "0.82rem",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    fontFamily: "inherit",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#FFFFFF"; }}
+                  title="Return to public landing page"
+                >
+                  <span>Home</span>
+                </button>
+
+                {/* Direct Dashboard Button */}
+                <button
+                  className="tw-nav-dashboard"
+                  type="button"
+                  onClick={() => setPage("dashboard")}
+                  aria-current={isDashboardActive ? "page" : undefined}
+                  style={{
+                    position: "relative",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "7px 14px",
+                    borderRadius: 8,
+                    border: isDashboardActive 
                       ? "1.5px solid rgba(26, 123, 107, 0.45)" 
-                      : (openNavDropdown === "advisory" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid transparent"),
-                    background: isAdvisoryActive 
+                      : "1px solid rgba(15, 32, 68, 0.12)",
+                    background: isDashboardActive 
                       ? "rgba(26, 123, 107, 0.12)" 
-                      : (openNavDropdown === "advisory" ? "rgba(15, 32, 68, 0.05)" : "transparent"),
-                    color: isAdvisoryActive ? "#0E7C5A" : C.navy,
+                      : "#FFFFFF",
+                    color: isDashboardActive ? "#0E7C5A" : C.navy,
                     fontWeight: 800,
                     fontSize: "0.84rem",
                     cursor: "pointer",
                     whiteSpace: "nowrap",
                     fontFamily: "inherit",
-                    transition: "all 0.15s ease",
+                    transition: "all 0.2s ease",
+                    boxShadow: "0 1px 2px rgba(15,32,68,0.04)",
                   }}
                   onMouseEnter={(e) => {
-                    if (!isAdvisoryActive) {
-                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
-                      e.currentTarget.style.color = C.navy;
+                    if (!isDashboardActive) {
+                      e.currentTarget.style.background = C.offwhite;
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isAdvisoryActive && openNavDropdown !== "advisory") {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color = C.navy;
+                    if (!isDashboardActive) {
+                      e.currentTarget.style.background = "#FFFFFF";
                     }
                   }}
                 >
-                  <span>Advisory</span>
-                  <ChevronDown 
-                    size={13} 
-                    style={{ 
-                      transform: openNavDropdown === "advisory" ? "rotate(180deg)" : "none", 
-                      transition: "transform 0.2s",
-                      color: isAdvisoryActive ? C.teal : C.navy
-                    }} 
-                  />
+                  <span>Dashboard</span>
+                  {isDashboardActive && (
+                    <motion.span
+                      layoutId="workspace-desktop-nav-indicator"
+                      className="tw-desktop-nav-indicator"
+                      transition={silkySpring}
+                      aria-hidden="true"
+                    />
+                  )}
                 </button>
 
-                {openNavDropdown === "advisory" && (
-                    <div
-                      className="tw-nav-dropdown-menu"
-                      role="menu"
-                      aria-label="Advisory navigation"
-                      style={{
-                        position: "absolute",
-                        top: "calc(100% + 8px)",
-                        left: 0,
-                        width: 220,
-                        background: "#FFFFFF",
-                        borderRadius: 10,
-                        border: `1px solid ${C.border}`,
-                        boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
-                        padding: "6px",
-                        zIndex: 120,
-                        animation: "fadeInUp 0.15s ease-out",
-                      }}
-                    >
-                      {advisoryItems.map((item) => {
-                        const isActive = page === item.id;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            role="menuitem"
-                            title={item.desc}
-                            onClick={() => {
-                              setPage(item.id);
-                              setOpenNavDropdown(null);
-                            }}
-                            style={{
-                              width: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                              padding: "9px 10px",
-                              borderRadius: 7,
-                              border: "none",
-                              background: isActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              fontFamily: "inherit",
-                              transition: "background 0.12s",
-                            }}
-                            onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = C.offwhite; }}
-                            onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-                          >
-                            <span style={{ color: isActive ? C.teal : C.muted, marginTop: 2, flexShrink: 0 }}>
-                              {getNavItemIcon(item.id, 16)}
-                            </span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-                                <span style={{ fontSize: "0.82rem", fontWeight: isActive ? 700 : 600, color: isActive ? C.teal : C.navy }}>
-                                  {item.label}
-                                </span>
-                                {item.badge && (
-                                  <span style={{ background: C.gold, color: "#FFFFFF", fontSize: "0.62rem", padding: "1px 5px", borderRadius: 99, fontWeight: 700 }}>
-                                    {item.badge}
+                {/* Advisory & Tools Dropdown */}
+                <div
+                  style={{ position: "relative" }}
+                  onMouseEnter={() => setOpenNavDropdown("advisory")}
+                  onMouseLeave={() => setOpenNavDropdown(null)}
+                >
+                  <button
+                    type="button"
+                    onFocus={() => setOpenNavDropdown("advisory")}
+                    aria-current={isAdvisoryActive ? "page" : undefined}
+                    aria-haspopup="menu"
+                    aria-expanded={openNavDropdown === "advisory"}
+                    style={{
+                      position: "relative",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "7px 13px",
+                      borderRadius: 8,
+                      border: isAdvisoryActive 
+                        ? "1.5px solid rgba(26, 123, 107, 0.45)" 
+                        : (openNavDropdown === "advisory" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid transparent"),
+                      background: isAdvisoryActive 
+                        ? "rgba(26, 123, 107, 0.12)" 
+                        : (openNavDropdown === "advisory" ? "rgba(15, 32, 68, 0.05)" : "transparent"),
+                      color: isAdvisoryActive ? "#0E7C5A" : C.navy,
+                      fontWeight: 800,
+                      fontSize: "0.84rem",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      fontFamily: "inherit",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isAdvisoryActive) {
+                        e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
+                        e.currentTarget.style.color = C.navy;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isAdvisoryActive && openNavDropdown !== "advisory") {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color = C.navy;
+                      }
+                    }}
+                  >
+                    <span>Advisory</span>
+                    <ChevronDown 
+                      size={13} 
+                      style={{ 
+                        transform: openNavDropdown === "advisory" ? "rotate(180deg)" : "none", 
+                        transition: "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
+                        color: isAdvisoryActive ? C.teal : C.navy
+                      }} 
+                    />
+                    {isAdvisoryActive && (
+                      <motion.span
+                        layoutId="workspace-desktop-nav-indicator"
+                        className="tw-desktop-nav-indicator"
+                        transition={silkySpring}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
+
+                  <AnimatePresence>
+                    {openNavDropdown === "advisory" && (
+                      <motion.div
+                        className="tw-nav-dropdown-menu"
+                        role="menu"
+                        aria-label="Advisory navigation"
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: -6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4, scale: 0.97 }}
+                        transition={dropdownTransition}
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 8px)",
+                          left: 0,
+                          width: 220,
+                          background: "#FFFFFF",
+                          borderRadius: 10,
+                          border: `1px solid ${C.border}`,
+                          boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
+                          padding: "6px",
+                          zIndex: 120,
+                          transformOrigin: "top left",
+                        }}
+                      >
+                        {advisoryItems.map((item) => {
+                          const isActive = page === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              role="menuitem"
+                              title={item.desc}
+                              onClick={() => {
+                                setPage(item.id);
+                                setOpenNavDropdown(null);
+                              }}
+                              style={{
+                                width: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "9px 10px",
+                                borderRadius: 7,
+                                border: "none",
+                                background: isActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
+                                cursor: "pointer",
+                                textAlign: "left",
+                                fontFamily: "inherit",
+                                transition: "background 0.15s",
+                              }}
+                              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = C.offwhite; }}
+                              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                            >
+                              <span style={{ color: isActive ? C.teal : C.muted, marginTop: 2, flexShrink: 0 }}>
+                                {getNavItemIcon(item.id, 16)}
+                              </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+                                  <span style={{ fontSize: "0.82rem", fontWeight: isActive ? 700 : 600, color: isActive ? C.teal : C.navy }}>
+                                    {item.label}
                                   </span>
-                                )}
+                                  {item.badge && (
+                                    <span style={{ background: C.gold, color: "#FFFFFF", fontSize: "0.62rem", padding: "1px 5px", borderRadius: 99, fontWeight: 700 }}>
+                                      {item.badge}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                )}
-              </div>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-              {/* Legal & Insights Dropdown */}
-              <div
-                style={{ position: "relative" }}
-                onMouseEnter={() => setOpenNavDropdown("legal")}
-                onMouseLeave={() => setOpenNavDropdown(null)}
-              >
-                <button
-                  type="button"
-                  onFocus={() => setOpenNavDropdown("legal")}
-                  aria-current={isLegalActive ? "page" : undefined}
-                  aria-haspopup="menu"
-                  aria-expanded={openNavDropdown === "legal"}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "7px 13px",
-                    borderRadius: 8,
-                    border: isLegalActive 
-                      ? "1.5px solid rgba(26, 123, 107, 0.45)" 
-                      : (openNavDropdown === "legal" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid transparent"),
-                    background: isLegalActive 
-                      ? "rgba(26, 123, 107, 0.12)" 
-                      : (openNavDropdown === "legal" ? "rgba(15, 32, 68, 0.05)" : "transparent"),
-                    color: isLegalActive ? "#0E7C5A" : C.navy,
-                    fontWeight: 800,
-                    fontSize: "0.84rem",
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    fontFamily: "inherit",
-                    transition: "all 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isLegalActive) {
-                      e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
-                      e.currentTarget.style.color = C.navy;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isLegalActive && openNavDropdown !== "legal") {
-                      e.currentTarget.style.background = "transparent";
-                      e.currentTarget.style.color = C.navy;
-                    }
-                  }}
+                {/* Legal & Insights Dropdown */}
+                <div
+                  style={{ position: "relative" }}
+                  onMouseEnter={() => setOpenNavDropdown("legal")}
+                  onMouseLeave={() => setOpenNavDropdown(null)}
                 >
-                  <span>Legal</span>
-                  <ChevronDown 
-                    size={13} 
-                    style={{ 
-                      transform: openNavDropdown === "legal" ? "rotate(180deg)" : "none", 
-                      transition: "transform 0.2s",
-                      color: isLegalActive ? C.teal : C.navy
-                    }} 
-                  />
-                </button>
+                  <button
+                    type="button"
+                    onFocus={() => setOpenNavDropdown("legal")}
+                    aria-current={isLegalActive ? "page" : undefined}
+                    aria-haspopup="menu"
+                    aria-expanded={openNavDropdown === "legal"}
+                    style={{
+                      position: "relative",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "7px 13px",
+                      borderRadius: 8,
+                      border: isLegalActive 
+                        ? "1.5px solid rgba(26, 123, 107, 0.45)" 
+                        : (openNavDropdown === "legal" ? "1px solid rgba(15, 32, 68, 0.2)" : "1px solid transparent"),
+                      background: isLegalActive 
+                        ? "rgba(26, 123, 107, 0.12)" 
+                        : (openNavDropdown === "legal" ? "rgba(15, 32, 68, 0.05)" : "transparent"),
+                      color: isLegalActive ? "#0E7C5A" : C.navy,
+                      fontWeight: 800,
+                      fontSize: "0.84rem",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      fontFamily: "inherit",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isLegalActive) {
+                        e.currentTarget.style.background = "rgba(15, 32, 68, 0.06)";
+                        e.currentTarget.style.color = C.navy;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isLegalActive && openNavDropdown !== "legal") {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color = C.navy;
+                      }
+                    }}
+                  >
+                    <span>Legal</span>
+                    <ChevronDown 
+                      size={13} 
+                      style={{ 
+                        transform: openNavDropdown === "legal" ? "rotate(180deg)" : "none", 
+                        transition: "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)",
+                        color: isLegalActive ? C.teal : C.navy
+                      }} 
+                    />
+                    {isLegalActive && (
+                      <motion.span
+                        layoutId="workspace-desktop-nav-indicator"
+                        className="tw-desktop-nav-indicator"
+                        transition={silkySpring}
+                        aria-hidden="true"
+                      />
+                    )}
+                  </button>
 
-                {openNavDropdown === "legal" && (
-                    <div
-                      className="tw-nav-dropdown-menu"
-                      role="menu"
-                      aria-label="Legal navigation"
-                      style={{
-                        position: "absolute",
-                        top: "calc(100% + 8px)",
-                        left: 0,
-                        width: 220,
-                        background: "#FFFFFF",
-                        borderRadius: 10,
-                        border: `1px solid ${C.border}`,
-                        boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
-                        padding: "6px",
-                        zIndex: 120,
-                        animation: "fadeInUp 0.15s ease-out",
-                      }}
-                    >
-                      {legalItems.map((item) => {
-                        const isActive = page === item.id;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            role="menuitem"
-                            title={item.desc}
-                            onClick={() => {
-                              setPage(item.id);
-                              setOpenNavDropdown(null);
-                            }}
-                            style={{
-                              width: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                              padding: "9px 10px",
-                              borderRadius: 7,
-                              border: "none",
-                              background: isActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              fontFamily: "inherit",
-                              transition: "background 0.12s",
-                            }}
-                            onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = C.offwhite; }}
-                            onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-                          >
-                            <span style={{ color: isActive ? C.teal : C.muted, marginTop: 2, flexShrink: 0 }}>
-                              {getNavItemIcon(item.id, 16)}
-                            </span>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: "0.82rem", fontWeight: isActive ? 700 : 600, color: isActive ? C.teal : C.navy }}>
-                                {item.label}
+                  <AnimatePresence>
+                    {openNavDropdown === "legal" && (
+                      <motion.div
+                        className="tw-nav-dropdown-menu"
+                        role="menu"
+                        aria-label="Legal navigation"
+                        initial={prefersReducedMotion ? false : { opacity: 0, y: -6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4, scale: 0.97 }}
+                        transition={dropdownTransition}
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 8px)",
+                          left: 0,
+                          width: 220,
+                          background: "#FFFFFF",
+                          borderRadius: 10,
+                          border: `1px solid ${C.border}`,
+                          boxShadow: "0 12px 30px rgba(15, 32, 68, 0.12)",
+                          padding: "6px",
+                          zIndex: 120,
+                          transformOrigin: "top left",
+                        }}
+                      >
+                        {legalItems.map((item) => {
+                          const isActive = page === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              role="menuitem"
+                              title={item.desc}
+                              onClick={() => {
+                                setPage(item.id);
+                                setOpenNavDropdown(null);
+                              }}
+                              style={{
+                                width: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "9px 10px",
+                                borderRadius: 7,
+                                border: "none",
+                                background: isActive ? "rgba(26, 123, 107, 0.08)" : "transparent",
+                                cursor: "pointer",
+                                textAlign: "left",
+                                fontFamily: "inherit",
+                                transition: "background 0.15s",
+                              }}
+                              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = C.offwhite; }}
+                              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                            >
+                              <span style={{ color: isActive ? C.teal : C.muted, marginTop: 2, flexShrink: 0 }}>
+                                {getNavItemIcon(item.id, 16)}
+                              </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: "0.82rem", fontWeight: isActive ? 700 : 600, color: isActive ? C.teal : C.navy }}>
+                                  {item.label}
+                                </div>
                               </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                )}
-              </div>
-
-
-            </nav>
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </nav>
+            </LayoutGroup>
           )}
 
           {/* RIGHT: DATE STATUS & USER PROFILE */}
@@ -1279,98 +1454,53 @@ export default function TaxWiseSaaS() {
               </button>
 
               {/* Profile Dropdown Menu */}
-              {isProfileMenuOpen && (
-                <>
-                  <div 
-                    onClick={() => setIsProfileMenuOpen(false)}
-                    style={{ position: "fixed", inset: 0, zIndex: 110 }}
-                  />
-                  <div
-                    className="tw-profile-dropdown"
-                    style={{
-                      position: "absolute",
-                      top: "calc(100% + 8px)",
-                      right: 0,
-                      width: 230,
-                      background: "#FFFFFF",
-                      borderRadius: 12,
-                      border: `1px solid ${C.border}`,
-                      boxShadow: "0 10px 30px rgba(15, 32, 68, 0.12)",
-                      padding: "8px",
-                      zIndex: 120,
-                      animation: "fadeInUp 0.15s ease-out",
-                    }}
-                  >
-                    <div style={{ padding: "8px 10px 10px", borderBottom: `1px solid ${C.border}`, marginBottom: 6 }}>
-                      <div style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>{activeUser.full_name}</div>
-                      <div style={{ fontSize: "0.72rem", color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeUser.email}</div>
-                      <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 4, background: "rgba(26,123,107,0.1)", color: C.teal, fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" }}>
-                        {activeUser.role} • {activeUser.plan}
+              <AnimatePresence>
+                {isProfileMenuOpen && (
+                  <>
+                    <motion.div
+                      key="profile-backdrop"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: prefersReducedMotion ? 0 : 0.18 }}
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      style={{ position: "fixed", inset: 0, zIndex: 110 }}
+                    />
+                    <motion.div
+                      key="profile-menu"
+                      className="tw-profile-dropdown"
+                      initial={prefersReducedMotion ? false : { opacity: 0, y: -6, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -4, scale: 0.97 }}
+                      transition={dropdownTransition}
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        right: 0,
+                        width: 230,
+                        background: "#FFFFFF",
+                        borderRadius: 12,
+                        border: `1px solid ${C.border}`,
+                        boxShadow: "0 10px 30px rgba(15, 32, 68, 0.12)",
+                        padding: "8px",
+                        zIndex: 120,
+                        transformOrigin: "top right",
+                      }}
+                    >
+                      <div style={{ padding: "8px 10px 10px", borderBottom: `1px solid ${C.border}`, marginBottom: 6 }}>
+                        <div style={{ fontSize: "0.82rem", fontWeight: 700, color: C.navy }}>{activeUser.full_name}</div>
+                        <div style={{ fontSize: "0.72rem", color: C.muted, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeUser.email}</div>
+                        <div style={{ marginTop: 6, display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 4, background: "rgba(26,123,107,0.1)", color: C.teal, fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase" }}>
+                          {activeUser.role} • {activeUser.plan}
+                        </div>
                       </div>
-                    </div>
 
-                    <InstallAppButton className="tw-install-app-button--menu" />
+                      <InstallAppButton className="tw-install-app-button--menu" />
 
-                    <button
-                      onClick={() => {
-                        setPage("settings");
-                        setIsProfileMenuOpen(false);
-                      }}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        border: "none",
-                        background: page === "settings" ? "rgba(26,123,107,0.08)" : "transparent",
-                        color: C.navy,
-                        fontSize: "0.82rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        textAlign: "left",
-                        fontFamily: "inherit",
-                        transition: "background 0.15s",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = page === "settings" ? "rgba(26,123,107,0.08)" : "transparent"; }}
-                    >
-                      <UserIcon size={14} style={{ color: C.teal }} />
-                      <span>Profile &amp; Settings</span>
-                    </button>
-
-                    <button
-                      onClick={(event) => toggleTheme(event, () => setIsProfileMenuOpen(false))}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        border: "none",
-                        background: "transparent",
-                        color: C.navy,
-                        fontSize: "0.82rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        textAlign: "left",
-                        fontFamily: "inherit",
-                        transition: "background 0.15s",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                    >
-                      {themeMode === "dark" ? <Sun size={14} style={{ color: "#F59E0B" }} /> : <Moon size={14} style={{ color: C.navy }} />}
-                      <span>{themeMode === "dark" ? "Light Mode" : "Dark Mode"}</span>
-                    </button>
-
-                    {!dbUser && (
                       <button
                         onClick={() => {
+                          setPage("settings");
                           setIsProfileMenuOpen(false);
-                          setView("auth");
                         }}
                         style={{
                           width: "100%",
@@ -1380,54 +1510,111 @@ export default function TaxWiseSaaS() {
                           padding: "8px 10px",
                           borderRadius: 8,
                           border: "none",
-                          background: "rgba(26,123,107,0.08)",
-                          color: C.teal,
+                          background: page === "settings" ? "rgba(26,123,107,0.08)" : "transparent",
+                          color: C.navy,
                           fontSize: "0.82rem",
-                          fontWeight: 700,
+                          fontWeight: 600,
                           cursor: "pointer",
                           textAlign: "left",
                           fontFamily: "inherit",
-                          marginBottom: 4,
+                          transition: "background 0.15s",
                         }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = page === "settings" ? "rgba(26,123,107,0.08)" : "transparent"; }}
                       >
-                        <ShieldCheck size={14} style={{ color: C.teal }} />
-                        <span>Sign In / Create Account</span>
+                        <UserIcon size={14} style={{ color: C.teal }} />
+                        <span>Profile &amp; Settings</span>
                       </button>
-                    )}
 
-                    <div style={{ height: 1, background: C.border, margin: "6px 0" }} />
+                      <button
+                        onClick={(event) => toggleTheme(event, () => setIsProfileMenuOpen(false))}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: "transparent",
+                          color: C.navy,
+                          fontSize: "0.82rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontFamily: "inherit",
+                          transition: "background 0.15s",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = C.offwhite; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        {themeMode === "dark" ? <Sun size={14} style={{ color: "#F59E0B" }} /> : <Moon size={14} style={{ color: C.navy }} />}
+                        <span>{themeMode === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                      </button>
 
-                    <button
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        handleSignOut();
-                      }}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        padding: "8px 10px",
-                        borderRadius: 8,
-                        border: "none",
-                        background: "transparent",
-                        color: "#DC2626",
-                        fontSize: "0.82rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        textAlign: "left",
-                        fontFamily: "inherit",
-                        transition: "background 0.15s",
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                    >
-                      <LogOut size={14} />
-                      <span>{dbUser ? "Sign Out" : "Exit Free Trial"}</span>
-                    </button>
-                  </div>
-                </>
-              )}
+                      {!dbUser && (
+                        <button
+                          onClick={() => {
+                            setIsProfileMenuOpen(false);
+                            setView("auth");
+                          }}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: "8px 10px",
+                            borderRadius: 8,
+                            border: "none",
+                            background: "rgba(26,123,107,0.08)",
+                            color: C.teal,
+                            fontSize: "0.82rem",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            textAlign: "left",
+                            fontFamily: "inherit",
+                            marginBottom: 4,
+                          }}
+                        >
+                          <ShieldCheck size={14} style={{ color: C.teal }} />
+                          <span>Sign In / Create Account</span>
+                        </button>
+                      )}
+
+                      <div style={{ height: 1, background: C.border, margin: "6px 0" }} />
+
+                      <button
+                        onClick={() => {
+                          setIsProfileMenuOpen(false);
+                          handleSignOut();
+                        }}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          border: "none",
+                          background: "transparent",
+                          color: "#DC2626",
+                          fontSize: "0.82rem",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          textAlign: "left",
+                          fontFamily: "inherit",
+                          transition: "background 0.15s",
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(239, 68, 68, 0.08)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <LogOut size={14} />
+                        <span>{dbUser ? "Sign Out" : "Exit Free Trial"}</span>
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         </div>
@@ -1506,52 +1693,52 @@ export default function TaxWiseSaaS() {
             </div>
             </div>
             <nav className="tw-mobile-dock tw-mobile-dock--workspace" aria-label="Quick navigation">
-              <div className="tw-mobile-dock__pill">
-                <button
-                  type="button"
-                  className={`tw-mobile-dock__tab ${isDashboardActive ? "is-active" : ""}`}
-                  aria-label="Dashboard"
-                  aria-current={isDashboardActive ? "page" : undefined}
-                  title="Dashboard"
-                  onClick={() => { setPage("dashboard"); setIsMobileMenuOpen(false); }}
-                >
-                  <LayoutDashboard size={19} aria-hidden="true" />
-                  <span className="tw-mobile-dock__label">Dashboard</span>
-                </button>
-                <button
-                  type="button"
-                  className={`tw-mobile-dock__tab ${page === "library" ? "is-active" : ""}`}
-                  aria-label="Case library"
-                  aria-current={page === "library" ? "page" : undefined}
-                  title="Case library"
-                  onClick={() => { setPage("library"); setIsMobileMenuOpen(false); }}
-                >
-                  <BookOpen size={19} aria-hidden="true" />
-                  <span className="tw-mobile-dock__label">Cases</span>
-                </button>
-                <button
-                  type="button"
-                  className={`tw-mobile-dock__tab ${page === "analyzer" ? "is-active" : ""}`}
-                  aria-label="Case analyzer"
-                  aria-current={page === "analyzer" ? "page" : undefined}
-                  title="Case analyzer"
-                  onClick={() => { setPage("analyzer"); setIsMobileMenuOpen(false); }}
-                >
-                  <Scale size={19} aria-hidden="true" />
-                  <span className="tw-mobile-dock__label">Analyze</span>
-                </button>
-                <button
-                  type="button"
-                  className={`tw-mobile-dock__tab ${page === "calculators" ? "is-active" : ""}`}
-                  aria-label="Tax calculators"
-                  aria-current={page === "calculators" ? "page" : undefined}
-                  title="Tax calculators"
-                  onClick={() => { setPage("calculators"); setIsMobileMenuOpen(false); }}
-                >
-                  <Calculator size={19} aria-hidden="true" />
-                  <span className="tw-mobile-dock__label">Calculators</span>
-                </button>
-              </div>
+              <LayoutGroup id="workspace-mobile-dock">
+                <div className="tw-mobile-dock__pill">
+                  {[
+                    { id: "dashboard", label: "Dashboard", ariaLabel: "Dashboard", active: isDashboardActive, icon: <LayoutDashboard size={19} aria-hidden="true" /> },
+                    { id: "library", label: "Cases", ariaLabel: "Case library", active: page === "library", icon: <BookOpen size={19} aria-hidden="true" /> },
+                    { id: "analyzer", label: "Analyze", ariaLabel: "Case analyzer", active: page === "analyzer", icon: <Scale size={19} aria-hidden="true" /> },
+                    { id: "calculators", label: "Calculators", ariaLabel: "Tax calculators", active: page === "calculators", icon: <Calculator size={19} aria-hidden="true" /> },
+                  ].map((tab) => (
+                    <motion.button
+                      key={tab.id}
+                      layout
+                      transition={silkySpring}
+                      type="button"
+                      className={`tw-mobile-dock__tab ${tab.active ? "is-active" : ""}`}
+                      aria-label={tab.ariaLabel}
+                      aria-current={tab.active ? "page" : undefined}
+                      title={tab.label}
+                      onClick={() => { setPage(tab.id); setIsMobileMenuOpen(false); }}
+                    >
+                      {tab.active && (
+                        <motion.span
+                          layoutId="workspace-mobile-dock-pill"
+                          className="tw-mobile-dock__active-bg"
+                          transition={silkySpring}
+                          aria-hidden="true"
+                        />
+                      )}
+                      {tab.icon}
+                      <AnimatePresence initial={false} mode="popLayout">
+                        {tab.active && (
+                          <motion.span
+                            key={`${tab.id}-label`}
+                            className="tw-mobile-dock__label"
+                            initial={prefersReducedMotion ? false : { opacity: 0, width: 0, marginLeft: 0 }}
+                            animate={{ opacity: 1, width: "auto", marginLeft: 7 }}
+                            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, width: 0, marginLeft: 0 }}
+                            transition={silkySpring}
+                          >
+                            {tab.label}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
+                  ))}
+                </div>
+              </LayoutGroup>
               <button
                 type="button"
                 className={`tw-mobile-dock__more ${isMobileMenuOpen ? "is-open" : ""} ${!isDashboardActive && !["library", "analyzer", "calculators"].includes(page) ? "has-active-route" : ""}`}
@@ -1595,21 +1782,30 @@ export default function TaxWiseSaaS() {
           <motion.div style={{ y: workspaceParallaxBack, position: "absolute", top: "12vh", right: "-8vw", width: "min(48vw, 620px)", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle, rgba(26,123,107,0.12), rgba(26,123,107,0.035) 46%, transparent 72%)", willChange: "transform" }} />
           <motion.div style={{ y: workspaceParallaxFront, position: "absolute", top: "58vh", left: "-12vw", width: "min(42vw, 540px)", aspectRatio: "1", borderRadius: "50%", background: "radial-gradient(circle, rgba(200,146,42,0.11), rgba(200,146,42,0.025) 48%, transparent 73%)", willChange: "transform" }} />
         </div>
-        <main 
-          key={page} 
-          className="page-fade-in workspace-page-shell"
-          style={{ 
-            position: "relative",
-            zIndex: 1,
-            maxWidth: 1400,
-            width: "100%",
-            margin: "0 auto", 
-            padding: isMobile ? "20px 16px 40px" : "28px 36px 56px"
-          }}
-        >
-          <div className="workspace-page-content" style={{ width: "100%", maxWidth: 1400, margin: "0 auto" }}>{renderActivePage()}</div>
-        </main>
+        <AnimatePresence mode="wait" custom={pageDirection} initial={false}>
+          <motion.main 
+            key={page}
+            custom={pageDirection}
+            variants={workspacePageVariants}
+            initial={prefersReducedMotion ? false : "enter"}
+            animate="center"
+            exit={prefersReducedMotion ? undefined : "exit"}
+            className="workspace-page-shell"
+            style={{ 
+              position: "relative",
+              zIndex: 1,
+              maxWidth: 1400,
+              width: "100%",
+              margin: "0 auto", 
+              padding: isMobile ? "20px 16px 40px" : "28px 36px 56px"
+            }}
+          >
+            <div className="workspace-page-content" style={{ width: "100%", maxWidth: 1400, margin: "0 auto" }}>{renderActivePage()}</div>
+          </motion.main>
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -725,8 +725,9 @@ body.modal-open .main-scroll-container {
 
 /* ── Landing Page & Bento Grid Styles ── */
 .tw-dd { position: relative; }
-.tw-dd:hover .tw-dropdown { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
-.tw-dropdown { opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; }
+.tw-dd:hover .tw-dropdown { opacity: 1; visibility: visible; transform: translateY(0) scale(1); pointer-events: auto; }
+.tw-dropdown { opacity: 0; visibility: hidden; transform: translateY(-6px) scale(0.97); transform-origin: top left; transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.34s; pointer-events: none; }
+.tw-dd:hover .tw-dropdown, .tw-dropdown.force-open { transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0s; }
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
@@ -842,16 +843,18 @@ body.modal-open .main-scroll-container {
   margin-top: 4px;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top right;
+  transform: translateY(-6px) scale(0.97);
+  transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.34s;
   pointer-events: none;
 }
 
 .tw-dd:hover .tw-dropdown-container {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   pointer-events: auto;
+  transition: opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1), transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0s;
 }
 
 .tw-dropdown-item {
@@ -1310,16 +1313,26 @@ textarea:focus-visible {
   font-weight: 700 !important;
 }
 
-.tw-desktop-primary-nav > button[aria-current="page"]::after,
-.tw-desktop-primary-nav > div > button[aria-current="page"]::after {
+.tw-desktop-nav-indicator {
   position: absolute;
-  right: 13px;
+  right: 12px;
   bottom: 2px;
-  left: 13px;
+  left: 12px;
   height: 2px;
-  border-radius: 2px;
+  border-radius: 999px;
   background: var(--color-teal);
-  content: "";
+  pointer-events: none;
+}
+
+.tw-landing-nav-indicator {
+  position: absolute;
+  right: 14px;
+  bottom: 0;
+  left: 14px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: var(--color-teal, #1A7B6B);
+  pointer-events: none;
 }
 
 .tw-sandbox-badge {
@@ -2927,6 +2940,7 @@ html.dark .dashboard-panel {
   }
 
   .tw-mobile-dock__tab {
+    position: relative;
     display: inline-flex;
     min-width: 44px;
     min-height: 44px;
@@ -2943,11 +2957,25 @@ html.dark .dashboard-panel {
     font: inherit;
     white-space: nowrap;
     cursor: pointer;
-    transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), color 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms ease;
+    overflow: hidden;
+    transition: color 240ms cubic-bezier(0.22, 1, 0.36, 1), transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tw-mobile-dock__active-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: 999px;
+    background: var(--color-white, #FFFFFF);
+    box-shadow: 0 4px 12px rgba(15, 32, 68, 0.1), 0 1px 3px rgba(15, 32, 68, 0.06);
+    pointer-events: none;
   }
 
   .tw-mobile-dock__label {
-    display: none;
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    overflow: hidden;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -2957,15 +2985,9 @@ html.dark .dashboard-panel {
 
   .tw-mobile-dock__tab.is-active {
     flex: 0 0 auto;
-    gap: 7px;
     padding: 0 16px;
-    background: var(--color-white, #FFFFFF);
+    background: transparent;
     color: var(--color-teal, #1A7B6B);
-    box-shadow: 0 4px 12px rgba(15, 32, 68, 0.1), 0 1px 3px rgba(15, 32, 68, 0.06);
-  }
-
-  .tw-mobile-dock__tab.is-active .tw-mobile-dock__label {
-    display: inline-block;
   }
 
   .tw-mobile-dock__tab:active,
@@ -2980,9 +3002,11 @@ html.dark .dashboard-panel {
   }
 
   .tw-mobile-dock__tab svg,
-  .tw-mobile-dock__more svg {
+  .tw-mobile-dock__more > svg {
+    position: relative;
+    z-index: 1;
     flex-shrink: 0;
-    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .tw-mobile-dock__more {
@@ -2992,6 +3016,7 @@ html.dark .dashboard-panel {
     flex: 0 0 54px;
     width: 54px;
     height: 54px;
+    padding: 0;
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(15, 32, 68, 0.12);
@@ -3005,17 +3030,24 @@ html.dark .dashboard-panel {
 
   .tw-mobile-dock__more-icons {
     position: relative;
-    display: inline-flex;
+    display: flex;
     width: 20px;
     height: 20px;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
   }
 
-  .tw-mobile-dock__more-icon {
+  .tw-mobile-dock__more .tw-mobile-dock__more-icon {
     position: absolute;
-    inset: 0;
-    margin: auto;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    z-index: 1;
+    display: block;
+    transform-origin: center;
     transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease;
   }
 
@@ -3079,7 +3111,6 @@ html.dark .dashboard-panel {
     }
 
     .tw-mobile-dock__tab.is-active {
-      gap: 6px;
       padding: 0 13px;
     }
 
@@ -3104,10 +3135,14 @@ html.dark .dashboard-panel {
     color: #cbd5e1;
   }
 
-  html.dark .tw-mobile-dock__tab.is-active {
+  html.dark .tw-mobile-dock__active-bg {
     background: var(--color-teal, #1A7B6B);
-    color: #FFFFFF;
     box-shadow: 0 6px 16px rgba(26, 123, 107, 0.38);
+  }
+
+  html.dark .tw-mobile-dock__tab.is-active {
+    background: transparent;
+    color: #FFFFFF;
   }
 
   html.dark .tw-mobile-dock__more {
