@@ -41,7 +41,7 @@ export const SOURCES = {
   onyango: { label: "Onyango & Co. — Inside Uganda's 2026 Tax Amendment Acts", url: "https://onyangoadvocates.com/assets/PDF/INSIDE%20UGANDA%E2%80%99S%202026%20TAX%20AMENDMENT%20ACTS%20130526.pdf" },
   parlVeto: { label: "Parliament — President returns two tax Bills (14 Jul 2026)", url: "https://fin.parliament.go.ug/news/4488/president-museveni-returns-two-tax-bills-parliament" },
   parlAdopt: { label: "Parliament — Parliament backs President on plastics, casino levy (4 Aug 2026)", url: "https://kob.parliament.go.ug/news/4526/parliament-backs-president-plastics-tax-casino-levy" },
-  accountsOsPaye: { label: "accounts-os — PAYE (Uganda), assent date", url: "https://accounts-os.com/ug/glossary/paye-uganda.md" },
+  accountsOsPaye: { label: "accounts-os — PAYE (Uganda), assent date", url: "https://accounts-os.com/ug/glossary/paye-uganda" },
   uraWhtWindow: { label: "URA notice — WHT exemption applications Jul–Dec 2026", url: "https://ground.news/article/withholding-tax-exemption-applications-for-the-period-july-to-december-2026-uganda-revenue-authority" },
   uraObjections: { label: "URA — Objections and appeals", url: "https://ura.go.ug/en/domestic-taxes/objection-appeals/" },
   uraWaiver: { label: "URA — Waiver of interest and penalty outstanding at 30 June 2024", url: "https://ura.go.ug/en/waiver-of-interest-and-penalty-outstanding-as-at-30th-june-2024/" },

@@ -515,7 +515,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <button 
             type="button"
             onClick={onGetStarted} 
-            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.5rem", color: "var(--landing-text)", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", marginRight: 32, flexShrink: 0, fontWeight: 800, padding: 0 }}
+            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.5rem", color: "var(--landing-text)", display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", cursor: "pointer", marginRight: 0, flexShrink: 0, fontWeight: 800, padding: 0 }}
           >
             <div style={{ width: 11, height: 11, background: "#C8922A", borderRadius: 3, transform: "rotate(45deg)", flexShrink: 0, boxShadow: "0 0 10px rgba(200,146,42,0.4)" }} />
             Tax<span style={{ color: "#1A7B6B" }}>Wise</span>
@@ -763,7 +763,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button 
                   onClick={onSignIn} 
                   className="tw-nav-link" 
-                  style={{ color: "var(--landing-text)", fontSize: ".835rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s" }}
+                  style={{ color: "var(--landing-text)", fontSize: ".835rem", fontWeight: 600, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", transition: "color .2s", padding: "6px 10px", whiteSpace: "nowrap" }}
                 >
                   Login
                 </button>

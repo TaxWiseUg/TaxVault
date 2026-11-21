@@ -2255,13 +2255,34 @@ html.dark .kyt-obligation-item { background: #0d1727; }
 
 /* Public landing page shares the workspace typography and navigation rhythm */
 .tw-landing-nav-inner {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 18px;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-.tw-landing-nav-links { justify-self: center; gap: 14px !important; margin-left: 0 !important; }
-.tw-landing-nav-actions { justify-self: end; margin-left: 0 !important; }
+.tw-landing-nav-links {
+  flex: 1 1 auto;
+  justify-content: center;
+  gap: 6px !important;
+  margin-left: 0 !important;
+  min-width: 0;
+}
+.tw-landing-nav-actions {
+  flex-shrink: 0;
+  gap: 12px !important;
+  margin-left: 0 !important;
+}
+@media (max-width: 1120px) {
+  .tw-landing-nav-inner { gap: 12px !important; padding: 0 3% !important; }
+  .tw-landing-nav-links { gap: 2px !important; }
+  .tw-landing-nav-links .tw-nav-link { padding: 0 8px !important; font-size: 0.8rem !important; }
+  .tw-landing-nav-actions { gap: 8px !important; }
+}
+@media (max-width: 960px) {
+  .tw-landing-nav-actions .tw-install-app-button span { display: none; }
+  .tw-landing-nav-actions .tw-btn-hover { padding: 8px 14px !important; font-size: 0.78rem !important; }
+}
 .tw-landing-page h1 { font-family: "Plus Jakarta Sans", Inter, sans-serif !important; letter-spacing: -0.045em !important; }
 .tw-landing-page h2,
 .tw-landing-page h3 { letter-spacing: -0.035em; }

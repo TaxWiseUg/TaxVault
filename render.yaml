@@ -1,0 +1,34 @@
+# render.yaml — Render Blueprint specification for TaxWise Uganda
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: taxwise-uganda
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build && mkdir -p .next/standalone/public && cp -r public/. .next/standalone/public/ && rm -rf .next/standalone/.next/static && cp -r .next/static .next/standalone/.next/static
+    startCommand: HOSTNAME=0.0.0.0 node .next/standalone/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: PESAPAL_CONSUMER_KEY
+        sync: false
+      - key: PESAPAL_CONSUMER_SECRET
+        sync: false
+      - key: PESAPAL_ENV
+        value: sandbox
